@@ -9,6 +9,7 @@ import "./interface/IWAVAX.sol";
 import "./interface/IJoeRouter02.sol";
 import "./interface/IJoeFactory.sol";
 import "./interface/IJoePair.sol";
+import "./interface/IRocketJoeFactory.sol";
 
 import "./RocketJoeToken.sol";
 
@@ -19,6 +20,7 @@ import "./RocketJoeToken.sol";
 // TODO: - if token hasn't 18 decimals, it needs some changes
 //       - Calculate AVAX:rJOE ratio.
 //       - FInd a way to get rJoe address and penaltyCollector address.
+//       - give owner to issuer ?
 contract LaunchEvent is Ownable{
 
     /// @notice Issuer of that contract.
@@ -68,6 +70,8 @@ contract LaunchEvent is Ownable{
     IJoeRouter02 router = IJoeRouter02(0x60aE616a2155Ee3d9A68541Ba4544862310933d4);
     /// @dev Joe Factory contract.
     IJoeFactory factory = IJoeFactory(0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10);
+    /// @dev Rocket Joe Factory contract.
+    IRocketJoeFactory rocketJoeFactory;
 
     /// @dev internal state variable for paused
     bool internal isPaused;
@@ -98,11 +102,14 @@ contract LaunchEvent is Ownable{
     // Constructor
     //
 
-    constructor(
+    constructor() {
+        rocketJoeFactory = IRocketJoeFactory(msg.sender);
+    }
+
+    function initialize(
         address _issuer,
         uint256 _phaseOneStartTime,
-        IERC20 _token,
-        uint256 _tokenAmount,
+        address _token,
         uint256 _floorPrice,
         uint256 _withdrawPenatlyGradient,
         uint256 _fixedWithdrawPenalty,
@@ -110,7 +117,8 @@ contract LaunchEvent is Ownable{
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock
-    ) {
+    ) external {
+        require(msg.sender == address(rocketJoeFactory), "LaunchEvent; Forbidden");
         require(_issuer != address(0), "LaunchEvent: Issuer can't be null address");
         require(_phaseOneStartTime >= block.timestamp, "LaunchEvent: Phase 1 needs to start after the current timestamp");
         require(factory.getPair(address(WAVAX), address(token)) == address(0) &&
@@ -132,9 +140,8 @@ contract LaunchEvent is Ownable{
 
         require(_userTimelock > phaseThreeStartTime, "LaunchEvent: Unlocks can't happen before the start of Phase 3");
 
-        token = _token;
-        tokenReserve = _tokenAmount;
-        _token.transfer(address(this), _tokenAmount);
+        token = IERC20(_token);
+        tokenReserve = token.balanceOf(address(this));
         floorPrice = _floorPrice;
 
         withdrawPenatlyGradient = _withdrawPenatlyGradient;
@@ -212,7 +219,7 @@ contract LaunchEvent is Ownable{
         uint256 amountMinusFee = amount - feeAmount;
 
         WAVAX.withdraw(amount);
-        
+
         safeTransferAVAX(msg.sender, amountMinusFee);
         safeTransferAVAX(penaltyCollector, feeAmount);
     }
