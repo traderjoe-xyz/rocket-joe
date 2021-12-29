@@ -2,21 +2,27 @@
 
 pragma solidity ^0.8.0;
 
-interface IERC20 {
-    function balanceOf(address account) external returns (uint256);
-    function transferFrom(address from, address to, uint256 amount) external;
-    function burn(address from, uint256 amount) external;
-}
-interface IWAVAX {
-    function balanceOf(address account) external returns (uint256);
-    function transferFrom(address from, address to, uint256 amount) external;
-}
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+import "./interface/IWAVAX.sol";
+import "./interface/IJoeRouter02.sol";
+import "./interface/IJoeFactory.sol";
+import "./interface/IJoePair.sol";
+
+import "./RocketJoeToken.sol";
 
 
 /// @title Rocket Joe Launch Event
 /// @author traderjoexyz
 /// @notice A liquidity launch contract enabling price discover and token distribution as secondary market listing price.
-contract LaunchEvent {
+// TODO: - if token hasn't 18 decimals, it needs some changes
+//       - Calculate AVAX:rJOE ratio.
+//       - FInd a way to get rJoe address and penaltyCollector address.
+contract LaunchEvent is Ownable{
+
+    /// @notice Issuer of that contract.
+    address public issuer;
 
     /// @notice The start time of phase 1.
     uint256 public phaseOneStartTime;
@@ -30,16 +36,38 @@ contract LaunchEvent {
 
     /// @notice The start time of phase 3.
     uint256 public phaseThreeStartTime;
-    /// @notice The length in seconds of phase 3.
-    uint256 public phaseThreeLengthSeconds;
+
+    /// @notice floor price (can be 0)
+    uint256 public floorPrice;
+
+    /// @notice When can user withdraw their LP (phase 3).
+    uint256 public userTimelock;
+
+    /// @notice When can issuer withdraw their LP (phase 3).
+    uint256 public issuerTimelock;
+
+    /// @notice The withdraw penalty gradient in “bps per sec”, in parts per 1e12 (phase 1).
+    /// e.g. linearly reach 50% in 2 days `withdrawPenatlyGradient = 50 * 100 * 1e12 / 2 days`
+    uint256 public withdrawPenatlyGradient;
+
+    /// @notice The fixed withdraw penalty, in parts per 1e12 (phase 2).
+    /// e.g. fixed penalty of 20% `fixedWithdrawPenalty = 20e11`
+    uint256 public fixedWithdrawPenalty;
 
     /// @notice The address where penalties are sent.
-    address public penaltyCollection;
+    address public penaltyCollector = address(0);
 
     /// @dev rJOE token contract.
-    IERC20 public rJoe;
+    RocketJoeToken public rJoe = RocketJoeToken(address(0));
     /// @dev WAVAX token contract.
-    IWAVAX public WAVAX;
+    IWAVAX public WAVAX = IWAVAX(0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7);
+    /// @dev THE token contract.
+    IERC20 public token;
+
+    /// @dev Joe Router contract.
+    IJoeRouter02 router = IJoeRouter02(0x60aE616a2155Ee3d9A68541Ba4544862310933d4);
+    /// @dev Joe Factory contract.
+    IJoeFactory factory = IJoeFactory(0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10);
 
     /// @dev internal state variable for paused
     bool internal isPaused;
@@ -50,22 +78,81 @@ contract LaunchEvent {
 
     /// @dev struct used to record a users allocation and allocation used.
     struct UserAllocation {
-        uint256 totalAllocation;
-        uint256 allocationUsed;
+        uint256 allocation;
         uint256 pairPoolWithdrawn;
     }
     /// @dev mapping of users to allocation record.
-    mapping(address => UserAllocation) public accounts;
+    mapping(address => UserAllocation) public users;
 
     /// @dev the address of the uniswap pair. Only set after createLiquidityPool is called.
-    address public pairAddress;
+    IJoePair public pair;
+
+    /// @dev pool information
+    uint256 public avaxAllocated;
+    uint256 public tokenAllocated;
+    uint256 public lpSupply;
+
+    uint256 public tokenReserve;
+
+    //
+    // Constructor
+    //
+
+    constructor(
+        address _issuer,
+        uint256 _phaseOneStartTime,
+        IERC20 _token,
+        uint256 _tokenAmount,
+        uint256 _floorPrice,
+        uint256 _withdrawPenatlyGradient,
+        uint256 _fixedWithdrawPenalty,
+        uint256 _minAllocation,
+        uint256 _maxAllocation,
+        uint256 _userTimelock,
+        uint256 _issuerTimelock
+    ) {
+        require(_issuer != address(0), "LaunchEvent: Issuer can't be null address");
+        require(_phaseOneStartTime >= block.timestamp, "LaunchEvent: Phase 1 needs to start after the current timestamp");
+        require(factory.getPair(address(WAVAX), address(token)) == address(0) &&
+            factory.getPair(address(token), address(WAVAX)) == address (0), "LaunchEvent: Pair already exists");
+        require(_withdrawPenatlyGradient < 5e11 / uint256(2 days), "LaunchEvent: withdrawPenatlyGradient too big"); // 50%
+        require(_fixedWithdrawPenalty < 5e11, "LaunchEvent: fixedWithdrawPenalty too big"); // 50%
+        require(_maxAllocation >= _minAllocation, "LaunchEvent: Max allocation needs to be greater than min's one");
+        require(_userTimelock < 7 days, "LaunchEvent: Can't lock user LP for more than 7 days");
+        require(_issuerTimelock > _userTimelock, "LaunchEvent: Issuer can't withdraw their LP before everyone");
+
+        issuer = _issuer;
+
+        // Different time phases
+        phaseOneStartTime = _phaseOneStartTime;
+        phaseOneLengthSeconds = 3 days;
+        phaseTwoStartTime = _phaseOneStartTime + phaseOneLengthSeconds + 1;
+        phaseTwoLengthSeconds = 1 days;
+        phaseThreeStartTime = phaseTwoStartTime + phaseTwoLengthSeconds + 1;
+
+        require(_userTimelock > phaseThreeStartTime, "LaunchEvent: Unlocks can't happen before the start of Phase 3");
+
+        token = _token;
+        tokenReserve = _tokenAmount;
+        _token.transfer(address(this), _tokenAmount);
+        floorPrice = _floorPrice;
+
+        withdrawPenatlyGradient = _withdrawPenatlyGradient;
+        fixedWithdrawPenalty = _fixedWithdrawPenalty;
+
+        minAllocation = _minAllocation;
+        maxAllocation = _maxAllocation;
+
+        userTimelock = _userTimelock;
+        issuerTimelock = _issuerTimelock;
+    }
 
     //
     // Modifiers
     //
 
     modifier notPaused() {
-        require(isPaused != true, "Contract is paused");
+        require(isPaused != true, "LaunchEvent: Contract is paused");
         _;
     }
 
@@ -73,34 +160,26 @@ contract LaunchEvent {
         require(
             block.timestamp >= phaseOneStartTime &&
             block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds),
-            "Not in phase one"
+            "LaunchEvent: Not in phase one"
         );
         _;
     }
 
     modifier phaseThreeOrLater() {
         require(
-            block.timestamp >= phaseOneStartTime,
-            "Not in phase three"
-        );
-        _;
-    }
-
-    modifier ended() {
-        require(
-            block.timestamp >= phaseThreeStartTime + phaseThreeLengthSeconds,
-            "Launch has not ended"
+            block.timestamp >= phaseThreeStartTime,
+            "LaunchEvent: Not in phase three"
         );
         _;
     }
 
     modifier pairNotCreated() {
-        require(pairAddress == address(0), "Pair is not 0 address");
+        require(address(pair) == address(0), "LaunchEvent: Pair is not 0 address");
         _;
     }
 
     modifier pairCreated() {
-        require(pairAddress != address(0), "Pair is 0 address");
+        require(address(pair) != address(0), "LaunchEvent: Pair is 0 address");
         _;
     }
 
@@ -109,53 +188,109 @@ contract LaunchEvent {
     // Public functions.
     //
 
-    /// @dev burn the deposited rJoe tokens.
-    function buyAllocationCredits(uint256 rJoeAmount) public phaseOneOnly() notPaused() {
-        burnRJoe(rJoeAmount);
-        addAllocation(msg.sender, rJoeAmount);
+    /// @notice Deposits AVAX and burns rJoe.
+    function depositAVAX() external payable phaseOneOnly notPaused {
+        WAVAX.deposit{value: msg.value}();
+        _depositWAVAX(msg.sender, msg.value); // checks are done here.
     }
 
-    /// @notice Use your allocation credits by sending WAVAX.
-    function depositWAVAX(uint256 amount) public phaseOneOnly() notPaused() {
-        uint256 currentBalance = WAVAX.balanceOf(address(this));
-        WAVAX.transferFrom(msg.sender, address(this), amount);
-        uint256 sent = WAVAX.balanceOf(address(this)) - currentBalance;
-        useAllocation(msg.sender, sent);
+    /// @notice Deposits WAVAX and burns rJoe.
+    function depositWAVAX(uint256 amount) external phaseOneOnly notPaused {
+        IERC20(address(WAVAX)).transferFrom(msg.sender, address(this), amount);
+        _depositWAVAX(msg.sender, amount); // checks are done here.
     }
 
-    /// @dev withdraw WAVAX only during phase 1 and 2.
-    /// @dev TODO: penalty calculator.
-    function withdrawWAVAX() public notPaused() {
-        // User can only withdraw in phase 1 and 2
-        // require user has deposited amount before.
-        // reduce users allocationUsed, totalAllocation by amount.
-        // send fee to penaltyAddress.
-        // send Wavax to user.
+    /// @dev withdraw AVAX only during phase 1 and 2.
+    function withdrawWAVAX(uint256 amount) public notPaused {
+        require(isPhaseOne() || isPhaseTwo(), "LaunchEvent: Can't withdraw after phase 2.");
+
+        UserAllocation storage user = users[msg.sender];
+        require(user.allocation >= amount, "LaunchEvent: Can't withdraw more than what you deposited");
+        user.allocation = user.allocation - amount;
+
+        uint256 feeAmount = amount * getPenalty() / 1e12;
+        uint256 amountMinusFee = amount - feeAmount;
+
+        WAVAX.withdraw(amount);
+        
+        safeTransferAVAX(msg.sender, amountMinusFee);
+        safeTransferAVAX(penaltyCollector, feeAmount);
     }
 
-    /// @dev Create the uniswap pair, can be called by anyone
+    /// @dev Returns the current penalty
+    function getPenalty() public view returns(uint256){
+        uint256 startedSince = block.timestamp - phaseOneStartTime;
+        if (startedSince < 1 days) {
+            return 0;
+        } else if (startedSince < 3 days) {
+            return (startedSince - 1 days) * withdrawPenatlyGradient;
+        } else {
+            return fixedWithdrawPenalty;
+        }
+    }
+
+    /// @dev Returns the current balance of the pool
+    function poolInfo() public view returns(uint256, uint256){
+        return (IERC20(address(WAVAX)).balanceOf(address(this)), token.balanceOf(address(this)));
+    }
+
+    /// @dev Create the uniswap pair, can be called by anyone but only once
     /// @dev but only once after phase 3 has started.
-    function createPair() public notPaused() phaseThreeOrLater() pairNotCreated() {
+    function createPair() public notPaused phaseThreeOrLater pairNotCreated {
+        (address wavaxAddress, address tokenAddress) = (address(WAVAX), address(token));
+        (uint256 avaxBalance, uint256 tokenBalance) = poolInfo();
 
+        if (floorPrice > avaxBalance * 1e18 / tokenBalance) {
+            tokenBalance = avaxBalance * 1e18 / floorPrice;
+        }
+
+        IERC20(wavaxAddress).approve(address(router), ~uint256(0));
+        IERC20(tokenAddress).approve(address(router), ~uint256(0));
+
+        (tokenAllocated, avaxAllocated, lpSupply) = router.addLiquidity(
+            wavaxAddress,
+            tokenAddress,
+            avaxBalance,
+            tokenBalance,
+            avaxBalance,
+            tokenBalance,
+            address(this),
+            block.timestamp
+        );
+        if (wavaxAddress > tokenAddress) {
+            pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
+        } else {
+            pair = IJoePair(factory.getPair(wavaxAddress, tokenAddress));
+            (tokenAllocated, avaxAllocated) = (avaxAllocated, tokenAllocated);
+        }
+
+        tokenReserve = tokenReserve - tokenAllocated;
     }
 
     /// @dev withdraw the liquidity pool tokens.
-    /// @dev TODO: Implement.
-    function withdrawLiquidity() public ended() notPaused() ended() pairCreated() {
+    function withdrawLiquidity() public notPaused pairCreated {
+        require(block.timestamp > userTimelock, "LaunchEvent: Can't withdraw before user timelock");
+        address to = msg.sender;
+        pair.transfer(to, pairBalance(to));
 
+        if (tokenReserve > 0) {
+            UserAllocation memory user = users[msg.sender];
+            token.transfer(msg.sender, user.allocation * tokenReserve / avaxAllocated / 2);
+        }
     }
 
-    //
-    // Internal functions.
-    //
+    /// @dev withdraw the liquidity pool tokens.
+    function withdrawIssuerLiquidity() public notPaused pairCreated {
+        require(msg.sender == issuer, "LaunchEvent: Caller is not Issuer");
+        require(block.timestamp > issuerTimelock, "LaunchEvent: Can't withdraw before issuer timelock");
 
-    /// @dev Transfers and burns all the rJoe.
-    function burnRJoe(uint256 rJoeAmount) internal {
-        require(rJoe.balanceOf(address(this)) == 0);
-        rJoe.transferFrom(msg.sender, address(this), rJoeAmount);
-        require(rJoe.balanceOf(address(this)) == rJoeAmount);
-        rJoe.burn(address(this), rJoeAmount);
+        pair.transfer(issuer, avaxAllocated / 2);
+
+        if (tokenReserve > 0) {
+            token.transfer(issuer, tokenReserve * 1e18 / avaxAllocated / 2);
+        }
     }
+
 
     /// @dev get the allocation credits for this rjoe;
     /// @dev TODO: implement, currently just returns the allocation credits.
@@ -163,40 +298,64 @@ contract LaunchEvent {
         return rJoeAmount;
     }
 
-    /// @dev Adds to a users total allocation available.
-    /// @dev reverts if the allocation added is above/below the max/min allocation.
-    function addAllocation(address _account, uint256 rJoeAmount) internal {
-        uint256 _allocation = getAllocation(rJoeAmount);
-        UserAllocation storage account = accounts[_account];
-        // Check the user is within max and min allocations.
-        require(account.totalAllocation + _allocation >= minAllocation);
-        require(account.totalAllocation + _allocation <= maxAllocation);
-        account.totalAllocation = account.totalAllocation + _allocation;
-    }
-
-    /// @dev Uses an amount of allocation.
-    /// @dev reverts if amount is above a users remaining limit.
-    function useAllocation(address _account, uint256 amount) internal {
-        require(amount <= getAccountAllocationRemaining(msg.sender), "Not enough allocation credit");
-        UserAllocation storage account = accounts[_account];
-        account.allocationUsed = account.allocationUsed + amount;
-    }
-
-    /// @dev returns the ammount of allocation an account can still use.
-    function getAccountAllocationRemaining(address account) internal view returns (uint256) {
-        return accounts[account].totalAllocation - accounts[account].allocationUsed;
-    }
-
     /// @dev The total amount of liquidity pool tokens the user can withdraw.
-    function pairBalance(address account) public view returns (uint256) {
+    function pairBalance(address _user) public view returns (uint256) {
+        if (avaxAllocated == 0) {
+            return 0;
+        }
 
+        UserAllocation memory user = users[_user];
+
+        return user.allocation * lpSupply / avaxAllocated / 2;
+    }
+
+    //
+    // Restricted functions.
+    //
+
+    /// @dev Pause this contract
+    function pause() public onlyOwner{
+        isPaused = true;
+    }
+
+    /// @dev Unpause this contract
+    function unpause() public onlyOwner{
+        isPaused = false;
+    }
+
+    //
+    // Internal functions.
+    //
+    
+    /// @dev Transfers `value` AVAX to address.
+    function safeTransferAVAX(address to, uint256 value) internal {
+        (bool success, ) = to.call{value: value}(new bytes(0));
+        require(success, "TransferHelper: AVAX_TRANSFER_FAILED");
+    }
+    
+    /// @dev Transfers and burns all the rJoe.
+    function burnRJoe(address from, uint256 rJoeAmount) internal {
+        rJoe.transferFrom(from, address(this), rJoeAmount);
+        rJoe.burn(rJoeAmount);
+    }
+
+    /// @notice Use your allocation credits by sending WAVAX.
+    function _depositWAVAX(address from, uint256 amount) internal phaseOneOnly notPaused {
+        require(msg.value >= minAllocation, "LaunchEvent: Not enough AVAX sent to meet the min allocation");
+
+        UserAllocation storage user = users[from];
+        require(user.allocation + amount <= maxAllocation, "LaunchEvent: Too much AVAX sent to meet the max allocation");
+
+        burnRJoe(from, amount); // TODO: AVAX:Rjoe ratio won't always be 1. But I don't get how it's calculated as floor price can be set to 0.
+
+        user.allocation = user.allocation + amount;
     }
 
     function isPhaseOne() internal view returns (bool){
         require(
             block.timestamp >= phaseOneStartTime &&
             block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds),
-            "Not in phase one"
+            "LaunchEvent: Not in phase one"
         );
         return true;
     }
@@ -205,7 +364,7 @@ contract LaunchEvent {
         require(
             block.timestamp >= phaseTwoStartTime &&
             block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
-            "Not in phase two"
+            "LaunchEvent: Not in phase two"
         );
         return true;
     }
