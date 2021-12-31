@@ -5,9 +5,15 @@ pragma solidity >=0.8.0;
 interface IRocketJoeFactory {
     event RJLaunchEventCreated();
 
-    function feeTo() external view returns (address);
+    function penaltyCollector() external view returns (address);
 
-    function feeToSetter() external view returns (address);
+    function wavax() external view returns (address);
+
+    function router() external view returns (address);
+
+    function factory() external view returns (address);
+
+    function rJoe() external view returns (address);
 
     function getRJLaunchEvent(address token) external view returns (address launchEvent);
 
@@ -29,7 +35,11 @@ interface IRocketJoeFactory {
         uint256 _issuerTimelock
     ) external returns (address pair);
 
-    function setFeeTo(address) external;
+    function setPenaltyCollector(address) external;
 
-    function setFeeToSetter(address) external;
+    function setRouter(address) external;
+
+    function setFactory(address) external;
+
+    function setRJoe(address) external;
 }

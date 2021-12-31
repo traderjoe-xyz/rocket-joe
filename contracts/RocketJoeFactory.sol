@@ -5,10 +5,6 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "./interface/IWAVAX.sol";
-import "./interface/IJoeRouter02.sol";
-import "./interface/IJoeFactory.sol";
-import "./interface/IJoePair.sol";
 import "./interface/IRocketJoeFactory.sol";
 
 import "./RocketJoeToken.sol";
@@ -18,16 +14,32 @@ import "./LaunchEvent.sol";
 /// @author traderjoexyz
 /// @notice Factory that creates Rocket Joe events.
 contract RocketJoeFactory is IRocketJoeFactory, Ownable{
-    address public override feeTo;
-    address public override feeToSetter;
+    address public override penaltyCollector;
+
+    address public override rJoe;
+    address public override wavax;
+    address public override router;
+    address public override factory;
 
     mapping(address => address) public override getRJLaunchEvent;
     address[] public override allRJLaunchEvent;
 
     event RJLaunchEventCreated(address indexed token, address indexed issuer);
 
-    constructor(address _feeToSetter) {
-        feeToSetter = _feeToSetter;
+    constructor(
+        address _rJoe,
+        address _wavax,
+        address _penaltyCollector,
+        address _router,
+        address _factory
+    ) {
+        require(_rJoe != address(0) && _wavax != address(0) && _penaltyCollector != address(0) &&
+                _router != address(0) && _factory != address(0), "RocketJoeFactory: Addresses can't be null address");
+        rJoe = _rJoe;
+        wavax = _wavax;
+        penaltyCollector = _penaltyCollector;
+        router = _router;
+        factory = _factory;
     }
 
     function allRJLaunchEventLength() external view override returns (uint256) {
@@ -59,6 +71,9 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable{
         assembly {
             launchEvent := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
+
+        IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount); // msg.sender needs to approve RocketJoeFactory
+
         LaunchEvent(launchEvent).initialize(
             _issuer,
             _phaseOneStartTime,
@@ -71,21 +86,26 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable{
             _userTimelock,
             _issuerTimelock
         );
+
         getRJLaunchEvent[_token] = launchEvent;
         allRJLaunchEvent.push(launchEvent);
-
-        IERC20(_token).transfer(launchEvent, _tokenAmount);
 
         emit RJLaunchEventCreated(_token, _issuer);
     }
 
-    function setFeeTo(address _feeTo) external override {
-        require(msg.sender == feeToSetter, "RocketJoeFactory: Forbidden");
-        feeTo = _feeTo;
+    function setRJoe(address _rJoe) external override onlyOwner {
+        rJoe = _rJoe;
     }
 
-    function setFeeToSetter(address _feeToSetter) external override {
-        require(msg.sender == feeToSetter, "RocketJoeFactory: Forbidden");
-        feeToSetter = _feeToSetter;
+    function setPenaltyCollector(address _penaltyCollector) external override onlyOwner {
+        penaltyCollector = _penaltyCollector;
+    }
+
+    function setRouter(address _router) external override onlyOwner {
+        router = _router;
+    }
+
+    function setFactory(address _factory) external override onlyOwner {
+        factory = _factory;
     }
 }

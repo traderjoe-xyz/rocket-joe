@@ -57,19 +57,19 @@ contract LaunchEvent is Ownable{
     uint256 public fixedWithdrawPenalty;
 
     /// @notice The address where penalties are sent.
-    address public penaltyCollector = address(0);
+    address public penaltyCollector;
 
     /// @dev rJOE token contract.
-    RocketJoeToken public rJoe = RocketJoeToken(address(0));
+    RocketJoeToken public rJoe;
     /// @dev WAVAX token contract.
-    IWAVAX public WAVAX = IWAVAX(0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7);
+    IWAVAX public WAVAX;
     /// @dev THE token contract.
     IERC20 public token;
 
     /// @dev Joe Router contract.
-    IJoeRouter02 router = IJoeRouter02(0x60aE616a2155Ee3d9A68541Ba4544862310933d4);
+    IJoeRouter02 router;
     /// @dev Joe Factory contract.
-    IJoeFactory factory = IJoeFactory(0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10);
+    IJoeFactory factory;
     /// @dev Rocket Joe Factory contract.
     IRocketJoeFactory rocketJoeFactory;
 
@@ -104,6 +104,11 @@ contract LaunchEvent is Ownable{
 
     constructor() {
         rocketJoeFactory = IRocketJoeFactory(msg.sender);
+        WAVAX = IWAVAX(rocketJoeFactory.wavax());
+        router = IJoeRouter02(rocketJoeFactory.router());
+        factory = IJoeFactory(rocketJoeFactory.factory());
+        rJoe = RocketJoeToken(rocketJoeFactory.rJoe());
+        penaltyCollector = rocketJoeFactory.penaltyCollector();
     }
 
     function initialize(
@@ -121,8 +126,7 @@ contract LaunchEvent is Ownable{
         require(msg.sender == address(rocketJoeFactory), "LaunchEvent; Forbidden");
         require(_issuer != address(0), "LaunchEvent: Issuer can't be null address");
         require(_phaseOneStartTime >= block.timestamp, "LaunchEvent: Phase 1 needs to start after the current timestamp");
-        require(factory.getPair(address(WAVAX), address(token)) == address(0) &&
-            factory.getPair(address(token), address(WAVAX)) == address (0), "LaunchEvent: Pair already exists");
+        require(factory.getPair(address(WAVAX), address(token)) == address(0), "LaunchEvent: Pair already exists");
         require(_withdrawPenatlyGradient < 5e11 / uint256(2 days), "LaunchEvent: withdrawPenatlyGradient too big"); // 50%
         require(_fixedWithdrawPenalty < 5e11, "LaunchEvent: fixedWithdrawPenalty too big"); // 50%
         require(_maxAllocation >= _minAllocation, "LaunchEvent: Max allocation needs to be greater than min's one");

@@ -7,5 +7,11 @@ require('@openzeppelin/hardhat-upgrades')
 require("./tasks/faucet")
 
 module.exports = {
-  solidity: "0.8.6"
+  solidity: "0.8.6",
+  settings: {
+    optimizer: {
+      enabled: true,
+      runs: 1000,
+    },
+  },
 };
