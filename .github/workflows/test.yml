@@ -1,0 +1,31 @@
+name: test
+
+on: ["push", "pull_request"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{github.event.pull_request.head.ref}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
+
+      - name: Install nodejs
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14.x"
+          check-latest: true
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Compile contracts
+        run: npx hardhat compile
+
+      - name: Test
+        run: npx hardhat test
