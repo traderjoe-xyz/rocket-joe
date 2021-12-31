@@ -2,6 +2,7 @@ const { ethers, network} = require("hardhat")
 const { expect } = require("chai")
 
 describe("Launch Event Contract", function () {
+
   before(async function () {
     this.signers = await ethers.getSigners()
     this.dev = this.signers[0]
