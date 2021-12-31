@@ -3,7 +3,7 @@
 pragma solidity >=0.8.0;
 
 interface IRocketJoeFactory {
-    event RJLaunchEventCreated();
+    event RJLaunchEventCreated(address indexed token, address indexed issuer);
 
     function penaltyCollector() external view returns (address);
 
