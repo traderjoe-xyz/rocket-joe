@@ -10,11 +10,11 @@ dependencies:
 ```sh
 git clone https://github.com/traderjoe-xyz/rocket-joe.git
 cd rocket-joe
-npm install
+yarn
 ```
 
 Once installed, you can run the test suite
 
 ```sh
-npx hardhat test
+yarn run hardhat test
 ```
