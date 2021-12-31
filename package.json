@@ -1,7 +1,7 @@
 {
-  "name": "hardhat-hackathon-boilerplate",
+  "name": "rocketjoe",
   "version": "1.0.0",
-  "description": "A boilerplate repository to get you started with Hardhat and Ethereum development",
+  "description": "A launch platform for bootstrapping protocol-owned liquidity",
   "directories": {
     "test": "test"
   },
@@ -10,19 +10,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nomiclabs/hardhat-hackathon-boilerplate.git"
+    "url": "git+https://github.com/traderjoe-xyz/rocket-joe.git"
   },
   "keywords": [
     "hardhat",
     "ethereum",
     "hackathon"
   ],
-  "author": "Nomic Labs",
+  "author": "traderjoezyz",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/nomiclabs/hardhat-hackathon-boilerplate/issues"
+    "url": "https://github.com/traderjoe-xyz/rocker-joe/issues"
   },
-  "homepage": "https://github.com/nomiclabs/hardhat-hackathon-boilerplate#readme",
+  "homepage": "https://github.com/traderjoe-xyz/rocker-joe/issues",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
     "@nomiclabs/hardhat-waffle": "^2.0.0",
