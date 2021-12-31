@@ -22,10 +22,10 @@ jobs:
           check-latest: true
 
       - name: Install dependencies
-        run: npm install
+        run: yarn
 
       - name: Compile contracts
-        run: npx hardhat compile
+        run: yarn run hardhat compile
 
       - name: Test
-        run: npx hardhat test
+        run: yarn run hardhat test
