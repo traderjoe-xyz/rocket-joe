@@ -18,8 +18,8 @@ import "./RocketJoeToken.sol";
 /// @notice A liquidity launch contract enabling price discover and token distribution as secondary market listing price.
 // TODO: - if token hasn't 18 decimals, it needs some changes
 //       - Calculate AVAX:rJOE ratio.
-//       - FInd a way to get rJoe address and penaltyCollector address.
 //       - give owner to issuer ?
+//       - emergency withdraws
 contract LaunchEvent is Ownable{
 
     /// @notice Issuer of that contract.
@@ -201,12 +201,6 @@ contract LaunchEvent is Ownable{
         _depositWAVAX(msg.sender, msg.value); // checks are done here.
     }
 
-    /// @notice Deposits WAVAX and burns rJoe.
-    function depositWAVAX(uint256 amount) external phaseOneOnly notPaused {
-        IERC20(address(WAVAX)).transferFrom(msg.sender, address(this), amount);
-        _depositWAVAX(msg.sender, amount); // checks are done here.
-    }
-
     /// @dev withdraw AVAX only during phase 1 and 2.
     function withdrawWAVAX(uint256 amount) public notPaused {
         require(isPhaseOne() || isPhaseTwo(), "LaunchEvent: Can't withdraw after phase 2.");
@@ -254,7 +248,8 @@ contract LaunchEvent is Ownable{
         IERC20(wavaxAddress).approve(address(router), ~uint256(0));
         IERC20(tokenAddress).approve(address(router), ~uint256(0));
 
-        (tokenAllocated, avaxAllocated, lpSupply) = router.addLiquidity(
+        /// We can't trust the output cause of reflect tokens
+        (, , lpSupply) = router.addLiquidity(
             tokenAddress,
             wavaxAddress,
             avaxBalance,
@@ -266,9 +261,9 @@ contract LaunchEvent is Ownable{
         );
 
         pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
-        if (wavaxAddress < tokenAddress) {
-            (tokenAllocated, avaxAllocated) = (avaxAllocated, tokenAllocated);
-        }
+
+        tokenAllocated = token.balanceOf(address(pair));
+        avaxAllocated = IERC20(address(WAVAX)).balanceOf(address (pair));
 
         tokenReserve = tokenReserve - tokenAllocated;
     }
