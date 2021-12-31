@@ -14,7 +14,7 @@ describe("Launch Event Contract", function () {
         {
           forking: {
             jsonRpcUrl: "https://api.avax.network/ext/bc/C/rpc",
-            //blockNumber: 8465376,
+            // blockNumber: 8465376,
           },
           live: false,
           saveDeployments: true,
@@ -44,8 +44,7 @@ describe("Launch Event Contract", function () {
 		ROUTER,
 		FACTORY
 	)
-	this.rJOE2.connect(this.dev).approve(this.RocketFactory.address, "1000000000000000000000000")
-
+	await this.rJOE2.connect(this.dev).approve(this.RocketFactory.address, "1000000000000000000000000")
   })
 
   describe("Initialising the contract", function() {
@@ -53,7 +52,7 @@ describe("Launch Event Contract", function () {
     it("should revert initialisation if token address is 0", async function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(ethers.constants.AddressZero, Math.floor(Date.now() / 1000), ethers.constants.AddressZero, 100, 1, 1, 1, 100, 10000, 60, 120)
-      ).to.be.revertedWith("RocketJoeFactory: Token can't be zero address")
+      ).to.be.revertedWith("RocketJoeFactory: Token can't be null address")
     })
 
     it("should revert initialisation if issuer is not set", async function () {
@@ -64,21 +63,20 @@ describe("Launch Event Contract", function () {
 
     it("should revert initialisation if start time is in the past", async function () {
       await expect(
-
 		this.RocketFactory.createRJLaunchEvent(this.alice.address, Math.floor(Date.now() / 1000) - 60*60*24, this.rJOE2.address, 100, 1, 1, 1, 100, 10000, 60, 120)
       ).to.be.revertedWith("LaunchEvent: Phase 1 needs to start after the current timestamp")
     })
 
-    it("should revert initialisation if the token is not set", async function () {
+    it("should revert initialisation if token is wavax", async function () {
       await expect(
-		this.RocketFactory.createRJLaunchEvent(this.alice.address, Math.floor(Date.now() / 1000) - 60*60*24, this.rJOE2.address, 100, 1, 1, 1, 100, 10000, 60, 120)
-      ).to.be.revertedWith("LaunchEvent: Phase 1 needs to start after the current timestamp")
+		this.RocketFactory.createRJLaunchEvent(this.alice.address, Math.floor(Date.now() / 1000), "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7", 100, 1, 1, 1, 100, 10000, 60, 120)
+      ).to.be.revertedWith("RocketJoeFactory: Token can't be wavax")
     })
 
-    xit("should revert initialisation if launch pair already exists (USDC)", async function () {
+    it("should revert initialisation if launch pair already exists (USDC)", async function () {
       await expect(
 		this.RocketFactory.createRJLaunchEvent(this.alice.address, Math.floor(Date.now() / 1000), "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", 100, 1, 1, 1, 100, 10000, 60, 120)
-      ).to.be.revertedWith("LaunchEvent: Pair already exists")
+      ).to.be.revertedWith("RocketJoeFactory: Pair already exists")
     })
 
     it("should revert initialisation if withdraw penalty gradient is too high", async function () {
@@ -109,12 +107,6 @@ describe("Launch Event Contract", function () {
 	  await expect(
 		this.RocketFactory.createRJLaunchEvent(this.alice.address, Math.floor(Date.now() / 1000) + 60, this.rJOE2.address, 100, 1, 2893517, 4e11, 5000, 10000, 60*60*24*6, 60*60*24*5)
       ).to.be.revertedWith("LaunchEvent: Issuer can't withdraw their LP before everyone")
-	})
-
-    it("should revert initialisation if unlocks will happen to early", async function () {
-	  await expect(
-		this.RocketFactory.createRJLaunchEvent(this.alice.address, Math.floor(Date.now() / 1000) + 60, this.rJOE2.address, 100, 1, 2893517, 4e11, 5000, 10000, 60*60*24, 60*60*24*5)
-      ).to.be.revertedWith("LaunchEvent: Unlocks can't happen before the start of Phase 3")
 	})
 
     it("should deploy with correct paramaters", async function () {

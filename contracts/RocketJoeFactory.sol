@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "./interface/IRocketJoeFactory.sol";
+import "./interfaces/IRocketJoeFactory.sol";
 
 import "./RocketJoeToken.sol";
 import "./LaunchEvent.sol";
@@ -23,8 +23,6 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable{
 
     mapping(address => address) public override getRJLaunchEvent;
     address[] public override allRJLaunchEvent;
-
-    event RJLaunchEventCreated(address indexed token, address indexed issuer);
 
     constructor(
         address _rJoe,
@@ -64,7 +62,9 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable{
         uint256 _issuerTimelock
     ) external override returns (address launchEvent) {
         require(getRJLaunchEvent[_token] == address(0), "RocketJoeFactory: Rocket Joe Launch Event already exists for this token");
-        require(_token != address(0), "RocketJoeFactory: Token can't be zero address");
+        require(_token != address(0), "RocketJoeFactory: Token can't be null address");
+        require(_token != wavax, "RocketJoeFactory: Token can't be wavax");
+        require(IJoeFactory(factory).getPair(wavax, _token) == address(0), "RocketJoeFactory: Pair already exists");
 
         bytes memory bytecode = type(LaunchEvent).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(_token));

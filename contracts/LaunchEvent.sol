@@ -5,14 +5,13 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "./interface/IWAVAX.sol";
-import "./interface/IJoeRouter02.sol";
-import "./interface/IJoeFactory.sol";
-import "./interface/IJoePair.sol";
-import "./interface/IRocketJoeFactory.sol";
+import "./interfaces/IWAVAX.sol";
+import "./interfaces/IJoeRouter02.sol";
+import "./interfaces/IJoeFactory.sol";
+import "./interfaces/IJoePair.sol";
+import "./interfaces/IRocketJoeFactory.sol";
 
 import "./RocketJoeToken.sol";
-
 
 /// @title Rocket Joe Launch Event
 /// @author traderjoexyz
@@ -123,10 +122,9 @@ contract LaunchEvent is Ownable{
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external {
-        require(msg.sender == address(rocketJoeFactory), "LaunchEvent; Forbidden");
+        require(msg.sender == address(rocketJoeFactory), "LaunchEvent: Forbidden");
         require(_issuer != address(0), "LaunchEvent: Issuer can't be null address");
         require(_phaseOneStartTime >= block.timestamp, "LaunchEvent: Phase 1 needs to start after the current timestamp");
-        require(factory.getPair(address(WAVAX), address(token)) == address(0), "LaunchEvent: Pair already exists");
         require(_withdrawPenatlyGradient < 5e11 / uint256(2 days), "LaunchEvent: withdrawPenatlyGradient too big"); // 50%
         require(_fixedWithdrawPenalty < 5e11, "LaunchEvent: fixedWithdrawPenalty too big"); // 50%
         require(_maxAllocation >= _minAllocation, "LaunchEvent: Max allocation needs to be greater than min's one");
@@ -135,14 +133,12 @@ contract LaunchEvent is Ownable{
 
         issuer = _issuer;
 
-        // Different time phases
+        /// Different time phases
         phaseOneStartTime = _phaseOneStartTime;
         phaseOneLengthSeconds = 3 days;
         phaseTwoStartTime = _phaseOneStartTime + phaseOneLengthSeconds + 1;
         phaseTwoLengthSeconds = 1 days;
         phaseThreeStartTime = phaseTwoStartTime + phaseTwoLengthSeconds + 1;
-
-        require(block.timestamp + _userTimelock > phaseThreeStartTime, "LaunchEvent: Unlocks can't happen before the start of Phase 3");
 
         token = IERC20(_token);
         tokenReserve = token.balanceOf(address(this));
@@ -259,8 +255,8 @@ contract LaunchEvent is Ownable{
         IERC20(tokenAddress).approve(address(router), ~uint256(0));
 
         (tokenAllocated, avaxAllocated, lpSupply) = router.addLiquidity(
-            wavaxAddress,
             tokenAddress,
+            wavaxAddress,
             avaxBalance,
             tokenBalance,
             avaxBalance,
@@ -268,10 +264,9 @@ contract LaunchEvent is Ownable{
             address(this),
             block.timestamp
         );
-        if (wavaxAddress > tokenAddress) {
-            pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
-        } else {
-            pair = IJoePair(factory.getPair(wavaxAddress, tokenAddress));
+
+        pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
+        if (wavaxAddress < tokenAddress) {
             (tokenAllocated, avaxAllocated) = (avaxAllocated, tokenAllocated);
         }
 
@@ -280,7 +275,7 @@ contract LaunchEvent is Ownable{
 
     /// @dev withdraw the liquidity pool tokens.
     function withdrawLiquidity() public notPaused pairCreated {
-        require(block.timestamp > userTimelock, "LaunchEvent: Can't withdraw before user timelock");
+        require(block.timestamp > phaseThreeStartTime + userTimelock, "LaunchEvent: Can't withdraw before user's timelock");
         address to = msg.sender;
         pair.transfer(to, pairBalance(to));
 
@@ -290,10 +285,10 @@ contract LaunchEvent is Ownable{
         }
     }
 
-    /// @dev withdraw the liquidity pool tokens.
+    /// @dev withdraw the liquidity pool tokens, only for issuer.
     function withdrawIssuerLiquidity() public notPaused pairCreated {
         require(msg.sender == issuer, "LaunchEvent: Caller is not Issuer");
-        require(block.timestamp > issuerTimelock, "LaunchEvent: Can't withdraw before issuer timelock");
+        require(block.timestamp > phaseThreeStartTime + issuerTimelock, "LaunchEvent: Can't withdraw before issuer's timelock");
 
         pair.transfer(issuer, avaxAllocated / 2);
 
