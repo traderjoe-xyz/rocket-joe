@@ -142,7 +142,7 @@ contract LaunchEvent is Ownable{
         phaseTwoLengthSeconds = 1 days;
         phaseThreeStartTime = phaseTwoStartTime + phaseTwoLengthSeconds + 1;
 
-        require(_userTimelock > phaseThreeStartTime, "LaunchEvent: Unlocks can't happen before the start of Phase 3");
+        require(block.timestamp + _userTimelock > phaseThreeStartTime, "LaunchEvent: Unlocks can't happen before the start of Phase 3");
 
         token = IERC20(_token);
         tokenReserve = token.balanceOf(address(this));
@@ -337,13 +337,13 @@ contract LaunchEvent is Ownable{
     //
     // Internal functions.
     //
-    
+
     /// @dev Transfers `value` AVAX to address.
     function safeTransferAVAX(address to, uint256 value) internal {
         (bool success, ) = to.call{value: value}(new bytes(0));
         require(success, "TransferHelper: AVAX_TRANSFER_FAILED");
     }
-    
+
     /// @dev Transfers and burns all the rJoe.
     function burnRJoe(address from, uint256 rJoeAmount) internal {
         rJoe.transferFrom(from, address(this), rJoeAmount);
