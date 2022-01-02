@@ -1,15 +1,13 @@
  name: Lint
 
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the main branch
   push:
     branches:
-      - main
+      - master
       - lint-action   # TODO: Remove this after testing the action.
   pull_request:
     branches:
-      - main
+      - master
       - lint-action
 
 jobs:
