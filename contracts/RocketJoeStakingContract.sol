@@ -59,7 +59,11 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
     event EmergencyWithdraw(address indexed user, uint256 amount);
     event UpdateEmissionRate(address indexed user, uint256 _rJoePerSec);
 
-    function initialize(IERC20Upgradeable _moJOE, RocketJoeToken _rJOE, uint256 _rJoePerSec) public initializer {
+    function initialize(
+        IERC20Upgradeable _moJOE,
+        RocketJoeToken _rJOE,
+        uint256 _rJoePerSec
+    ) public initializer {
         __Ownable_init();
 
         moJOE = _moJOE;
@@ -76,9 +80,12 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         if (block.timestamp > lastRewardTimestamp && moJoeSupply != 0) {
             uint256 multiplier = block.timestamp - lastRewardTimestamp;
             uint256 rJoeReward = multiplier * rJoePerSec;
-            _accRJoePerShare = _accRJoePerShare + rJoeReward * 1e12 / moJoeSupply;
+            _accRJoePerShare =
+                _accRJoePerShare +
+                (rJoeReward * 1e12) /
+                moJoeSupply;
         }
-        return user.amount * _accRJoePerShare / 1e12 - user.rewardDebt;
+        return (user.amount * _accRJoePerShare) / 1e12 - user.rewardDebt;
     }
 
     // Update reward variables of the given pool to be up-to-date.
@@ -93,7 +100,7 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         }
         uint256 multiplier = block.timestamp - lastRewardTimestamp;
         uint256 rJoeReward = multiplier * rJoePerSec;
-        accRJoePerShare = accRJoePerShare + rJoeReward * 1e12 / moJoeSupply;
+        accRJoePerShare = accRJoePerShare + (rJoeReward * 1e12) / moJoeSupply;
         lastRewardTimestamp = block.timestamp;
 
         rJOE.mint(address(this), rJoeReward);
@@ -105,11 +112,13 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
 
         updatePool();
         if (user.amount > 0) {
-            uint256 pending = user.amount * accRJoePerShare / 1e12 - user.rewardDebt;
+            uint256 pending = (user.amount * accRJoePerShare) /
+                1e12 -
+                user.rewardDebt;
             safeRJoeTransfer(msg.sender, pending);
         }
         user.amount = user.amount + _amount;
-        user.rewardDebt = user.amount * accRJoePerShare / 1e12;
+        user.rewardDebt = (user.amount * accRJoePerShare) / 1e12;
 
         moJOE.safeTransferFrom(address(msg.sender), address(this), _amount);
         emit Deposit(msg.sender, _amount);
@@ -121,9 +130,11 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         require(user.amount >= _amount, "withdraw: not good");
 
         updatePool();
-        uint256 pending = user.amount * accRJoePerShare / 1e12 - user.rewardDebt;
+        uint256 pending = (user.amount * accRJoePerShare) /
+            1e12 -
+            user.rewardDebt;
         user.amount = user.amount - _amount;
-        user.rewardDebt = user.amount * accRJoePerShare / 1e12;
+        user.rewardDebt = (user.amount * accRJoePerShare) / 1e12;
 
         safeRJoeTransfer(msg.sender, pending);
         moJOE.safeTransfer(address(msg.sender), _amount);

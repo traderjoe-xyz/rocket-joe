@@ -20,8 +20,7 @@ import "./RocketJoeToken.sol";
 //       - Calculate AVAX:rJOE ratio.
 //       - give owner to issuer ?
 //       - emergency withdraws
-contract LaunchEvent is Ownable{
-
+contract LaunchEvent is Ownable {
     /// @notice Issuer of that contract.
     address public issuer;
 
@@ -122,14 +121,38 @@ contract LaunchEvent is Ownable{
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external {
-        require(msg.sender == address(rocketJoeFactory), "LaunchEvent: Forbidden");
-        require(_issuer != address(0), "LaunchEvent: Issuer can't be null address");
-        require(_phaseOneStartTime >= block.timestamp, "LaunchEvent: Phase 1 needs to start after the current timestamp");
-        require(_withdrawPenatlyGradient < 5e11 / uint256(2 days), "LaunchEvent: withdrawPenatlyGradient too big"); // 50%
-        require(_fixedWithdrawPenalty < 5e11, "LaunchEvent: fixedWithdrawPenalty too big"); // 50%
-        require(_maxAllocation >= _minAllocation, "LaunchEvent: Max allocation needs to be greater than min's one");
-        require(_userTimelock < 7 days, "LaunchEvent: Can't lock user LP for more than 7 days");
-        require(_issuerTimelock > _userTimelock, "LaunchEvent: Issuer can't withdraw their LP before everyone");
+        require(
+            msg.sender == address(rocketJoeFactory),
+            "LaunchEvent: Forbidden"
+        );
+        require(
+            _issuer != address(0),
+            "LaunchEvent: Issuer can't be null address"
+        );
+        require(
+            _phaseOneStartTime >= block.timestamp,
+            "LaunchEvent: Phase 1 needs to start after the current timestamp"
+        );
+        require(
+            _withdrawPenatlyGradient < 5e11 / uint256(2 days),
+            "LaunchEvent: withdrawPenatlyGradient too big"
+        ); // 50%
+        require(
+            _fixedWithdrawPenalty < 5e11,
+            "LaunchEvent: fixedWithdrawPenalty too big"
+        ); // 50%
+        require(
+            _maxAllocation >= _minAllocation,
+            "LaunchEvent: Max allocation needs to be greater than min's one"
+        );
+        require(
+            _userTimelock < 7 days,
+            "LaunchEvent: Can't lock user LP for more than 7 days"
+        );
+        require(
+            _issuerTimelock > _userTimelock,
+            "LaunchEvent: Issuer can't withdraw their LP before everyone"
+        );
 
         issuer = _issuer;
 
@@ -166,7 +189,7 @@ contract LaunchEvent is Ownable{
     modifier phaseOneOnly() {
         require(
             block.timestamp >= phaseOneStartTime &&
-            block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds),
+                block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds),
             "LaunchEvent: Not in phase one"
         );
         _;
@@ -181,7 +204,10 @@ contract LaunchEvent is Ownable{
     }
 
     modifier pairNotCreated() {
-        require(address(pair) == address(0), "LaunchEvent: Pair is not 0 address");
+        require(
+            address(pair) == address(0),
+            "LaunchEvent: Pair is not 0 address"
+        );
         _;
     }
 
@@ -189,7 +215,6 @@ contract LaunchEvent is Ownable{
         require(address(pair) != address(0), "LaunchEvent: Pair is 0 address");
         _;
     }
-
 
     //
     // Public functions.
@@ -203,13 +228,19 @@ contract LaunchEvent is Ownable{
 
     /// @dev withdraw AVAX only during phase 1 and 2.
     function withdrawWAVAX(uint256 amount) public notPaused {
-        require(isPhaseOne() || isPhaseTwo(), "LaunchEvent: Can't withdraw after phase 2.");
+        require(
+            isPhaseOne() || isPhaseTwo(),
+            "LaunchEvent: Can't withdraw after phase 2."
+        );
 
         UserAllocation storage user = users[msg.sender];
-        require(user.allocation >= amount, "LaunchEvent: Can't withdraw more than what you deposited");
+        require(
+            user.allocation >= amount,
+            "LaunchEvent: Can't withdraw more than what you deposited"
+        );
         user.allocation = user.allocation - amount;
 
-        uint256 feeAmount = amount * getPenalty() / 1e12;
+        uint256 feeAmount = (amount * getPenalty()) / 1e12;
         uint256 amountMinusFee = amount - feeAmount;
 
         WAVAX.withdraw(amount);
@@ -219,7 +250,7 @@ contract LaunchEvent is Ownable{
     }
 
     /// @dev Returns the current penalty
-    function getPenalty() public view returns(uint256){
+    function getPenalty() public view returns (uint256) {
         uint256 startedSince = block.timestamp - phaseOneStartTime;
         if (startedSince < 1 days) {
             return 0;
@@ -231,18 +262,24 @@ contract LaunchEvent is Ownable{
     }
 
     /// @dev Returns the current balance of the pool
-    function poolInfo() public view returns(uint256, uint256){
-        return (IERC20(address(WAVAX)).balanceOf(address(this)), token.balanceOf(address(this)));
+    function poolInfo() public view returns (uint256, uint256) {
+        return (
+            IERC20(address(WAVAX)).balanceOf(address(this)),
+            token.balanceOf(address(this))
+        );
     }
 
     /// @dev Create the uniswap pair, can be called by anyone but only once
     /// @dev but only once after phase 3 has started.
     function createPair() public notPaused phaseThreeOrLater pairNotCreated {
-        (address wavaxAddress, address tokenAddress) = (address(WAVAX), address(token));
+        (address wavaxAddress, address tokenAddress) = (
+            address(WAVAX),
+            address(token)
+        );
         (uint256 avaxBalance, uint256 tokenBalance) = poolInfo();
 
-        if (floorPrice > avaxBalance * 1e18 / tokenBalance) {
-            tokenBalance = avaxBalance * 1e18 / floorPrice;
+        if (floorPrice > (avaxBalance * 1e18) / tokenBalance) {
+            tokenBalance = (avaxBalance * 1e18) / floorPrice;
         }
 
         IERC20(wavaxAddress).approve(address(router), ~uint256(0));
@@ -263,35 +300,43 @@ contract LaunchEvent is Ownable{
         pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
 
         tokenAllocated = token.balanceOf(address(pair));
-        avaxAllocated = IERC20(address(WAVAX)).balanceOf(address (pair));
+        avaxAllocated = IERC20(address(WAVAX)).balanceOf(address(pair));
 
         tokenReserve = tokenReserve - tokenAllocated;
     }
 
     /// @dev withdraw the liquidity pool tokens.
     function withdrawLiquidity() public notPaused pairCreated {
-        require(block.timestamp > phaseThreeStartTime + userTimelock, "LaunchEvent: Can't withdraw before user's timelock");
+        require(
+            block.timestamp > phaseThreeStartTime + userTimelock,
+            "LaunchEvent: Can't withdraw before user's timelock"
+        );
         address to = msg.sender;
         pair.transfer(to, pairBalance(to));
 
         if (tokenReserve > 0) {
             UserAllocation memory user = users[msg.sender];
-            token.transfer(msg.sender, user.allocation * tokenReserve / avaxAllocated / 2);
+            token.transfer(
+                msg.sender,
+                (user.allocation * tokenReserve) / avaxAllocated / 2
+            );
         }
     }
 
     /// @dev withdraw the liquidity pool tokens, only for issuer.
     function withdrawIssuerLiquidity() public notPaused pairCreated {
         require(msg.sender == issuer, "LaunchEvent: Caller is not Issuer");
-        require(block.timestamp > phaseThreeStartTime + issuerTimelock, "LaunchEvent: Can't withdraw before issuer's timelock");
+        require(
+            block.timestamp > phaseThreeStartTime + issuerTimelock,
+            "LaunchEvent: Can't withdraw before issuer's timelock"
+        );
 
         pair.transfer(issuer, avaxAllocated / 2);
 
         if (tokenReserve > 0) {
-            token.transfer(issuer, tokenReserve * 1e18 / avaxAllocated / 2);
+            token.transfer(issuer, (tokenReserve * 1e18) / avaxAllocated / 2);
         }
     }
-
 
     /// @dev get the allocation credits for this rjoe;
     /// @dev TODO: implement, currently just returns the allocation credits.
@@ -307,7 +352,7 @@ contract LaunchEvent is Ownable{
 
         UserAllocation memory user = users[_user];
 
-        return user.allocation * lpSupply / avaxAllocated / 2;
+        return (user.allocation * lpSupply) / avaxAllocated / 2;
     }
 
     //
@@ -315,12 +360,12 @@ contract LaunchEvent is Ownable{
     //
 
     /// @dev Pause this contract
-    function pause() public onlyOwner{
+    function pause() public onlyOwner {
         isPaused = true;
     }
 
     /// @dev Unpause this contract
-    function unpause() public onlyOwner{
+    function unpause() public onlyOwner {
         isPaused = false;
     }
 
@@ -341,33 +386,42 @@ contract LaunchEvent is Ownable{
     }
 
     /// @notice Use your allocation credits by sending WAVAX.
-    function _depositWAVAX(address from, uint256 amount) internal phaseOneOnly notPaused {
-        require(msg.value >= minAllocation, "LaunchEvent: Not enough AVAX sent to meet the min allocation");
+    function _depositWAVAX(address from, uint256 amount)
+        internal
+        phaseOneOnly
+        notPaused
+    {
+        require(
+            msg.value >= minAllocation,
+            "LaunchEvent: Not enough AVAX sent to meet the min allocation"
+        );
 
         UserAllocation storage user = users[from];
-        require(user.allocation + amount <= maxAllocation, "LaunchEvent: Too much AVAX sent to meet the max allocation");
+        require(
+            user.allocation + amount <= maxAllocation,
+            "LaunchEvent: Too much AVAX sent to meet the max allocation"
+        );
 
         burnRJoe(from, amount); // TODO: AVAX:Rjoe ratio won't always be 1. But I don't get how it's calculated as floor price can be set to 0.
 
         user.allocation = user.allocation + amount;
     }
 
-    function isPhaseOne() internal view returns (bool){
+    function isPhaseOne() internal view returns (bool) {
         require(
             block.timestamp >= phaseOneStartTime &&
-            block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds),
+                block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds),
             "LaunchEvent: Not in phase one"
         );
         return true;
     }
 
-    function isPhaseTwo() internal view returns (bool){
+    function isPhaseTwo() internal view returns (bool) {
         require(
             block.timestamp >= phaseTwoStartTime &&
-            block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
+                block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
             "LaunchEvent: Not in phase two"
         );
         return true;
     }
-
 }
