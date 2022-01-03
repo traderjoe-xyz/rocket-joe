@@ -9,6 +9,7 @@ describe("Launch event contract phase one", function () {
     this.alice = this.signers[1];
     this.bob = this.signers[2];
     this.carol = this.signers[3];
+
     await network.provider.request({
       method: "hardhat_reset",
       params: [
@@ -30,10 +31,11 @@ describe("Launch event contract phase one", function () {
     // The Rocket factory contract
     // A new ERC20 for the auction
     // rocket-joe token
-    WAVAX = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7";
-    PENALTY_COLLECTOR = this.carol.address;
-    ROUTER = "0x60aE616a2155Ee3d9A68541Ba4544862310933d4";
-    FACTORY = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
+    this.WAVAX = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7";
+    this.wavax = ethers.getContractAt("IWAVAX", this.WAVAX)
+    this.PENALTY_COLLECTOR = this.carol.address;
+    this.ROUTER = "0x60aE616a2155Ee3d9A68541Ba4544862310933d4";
+    this.FACTORY = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
 
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.rJOE = await this.RocketJoeTokenCF.deploy();
@@ -56,10 +58,10 @@ describe("Launch event contract phase one", function () {
     this.RocketFactoryCF = await ethers.getContractFactory("RocketJoeFactory");
     this.RocketFactory = await this.RocketFactoryCF.deploy(
       this.rJOE.address,
-      WAVAX,
-      PENALTY_COLLECTOR,
-      ROUTER,
-      FACTORY
+      this.WAVAX,
+      this.PENALTY_COLLECTOR,
+      this.ROUTER,
+      this.FACTORY
     );
     await this.AUCTOK
       .connect(this.dev)
@@ -106,35 +108,88 @@ describe("Launch event contract phase one", function () {
     it("should be payable with AVAX", async function () {
       await network.provider.send("evm_increaseTime", [120])
       await network.provider.send("evm_mine")
-      expect(
-        this.LaunchEvent.connect(this.bob).depositAVAX({value: ethers.utils.parseEther("1.0")})
-      ).to.be.revertedWith("ERC20: transfer amount exceeds allowance")
-
-    });
-    it("should be payable with WAVAX", async function () {
-      await network.provider.send("evm_increaseTime", [120])
-      await network.provider.send("evm_mine")
       await this.rJOE.connect(this.bob).approve(
         this.LaunchEvent.address, ethers.utils.parseEther("1.0"))
+      await this.LaunchEvent.connect(this.bob).depositAVAX({value: ethers.utils.parseEther("1.0")})
       expect(
-        this.LaunchEvent.connect(this.bob).depositAVAX({value: ethers.utils.parseEther("1.0")})
-      ).to.changeTokenBalance(this.rJOE, this.bob, ethers.utils.parseEther("1.0"))
+        this.LaunchEvent.users(this.bob.address).amount
+      ).to.equal(ethers.utils.parseEther("1.0").number)
     });
 
     it("should revert if AVAX sent less than min allocation", async function () {
       await network.provider.send("evm_increaseTime", [120])
       await network.provider.send("evm_mine")
-      await this.rJOE.connect(this.bob).approve(
-        this.LaunchEvent.address, 4999)
+      await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 4999)
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({value: 4999})
-      ).to.be.revertedWith('min alloc')
+      ).to.be.revertedWith("LaunchEvent: Not enough AVAX sent to meet the min allocation")
     });
-    it("should revert if AVAX sent more than max allocation", async function () {});
-    it("should burn rJOE on succesful deposit", async function () {});
-    it("should revert if second deposit is above max allocation", async function () {});
-    it("should revert if we withdraw during phase one", async function () {});
-    it("should revert try to create pool during phase one", async function () {});
+
+    it("Should only be pausable by owner", async function () {
+      expect(this.LaunchEvent.connect(this.dev).pause()).to.be.revertedWith("Ownable: caller is not the owner")
+    });
+
+    it("should revert if paused", async function (){
+      await network.provider.send("evm_increaseTime", [120])
+      await network.provider.send("evm_mine")
+      await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 4999)
+      await this.LaunchEvent.connect(this.alice).pause()
+      expect(
+        this.LaunchEvent.connect(this.bob).depositAVAX({value: 4999})
+      ).to.be.revertedWith("LaunchEvent: Contract is paused")
+    });
+
+    it("should revert if AVAX sent more than max allocation", async function () {
+      await network.provider.send("evm_increaseTime", [120])
+      await network.provider.send("evm_mine")
+      await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, ethers.utils.parseEther('6'))
+      expect(
+        this.LaunchEvent.connect(this.bob).depositAVAX({value: ethers.utils.parseEther('6')})
+      ).to.be.revertedWith("LaunchEvent: Too much AVAX sent to meet the max allocation")
+    });
+
+    xit("should burn rJOE on succesful deposit", async function () {
+      let rJOEBefore = await this.rJOE.totalSupply()
+
+      await network.provider.send("evm_increaseTime", [120])
+      await network.provider.send("evm_mine")
+      await this.rJOE.connect(this.bob).approve(
+        this.LaunchEvent.address, ethers.utils.parseEther("1.0"))
+      await this.LaunchEvent.connect(this.bob).depositAVAX({value: ethers.utils.parseEther("1.0")})
+
+      expect(this.rJOE.totalSupply()).to.equal(rJOEBefore - ethers.utils.parseEther("1.0"))
+
+    });
+
+    it("should apply no fee if withdraw in first day", async function () {
+      await network.provider.send("evm_increaseTime", [120])
+      await network.provider.send("evm_mine")
+      await this.rJOE.connect(this.bob).approve(
+        this.LaunchEvent.address, ethers.utils.parseEther("1.0"))
+      await this.LaunchEvent.connect(this.bob).depositAVAX({value: ethers.utils.parseEther("1.0")})
+
+      // Test the amount received
+      let balanceBefore = this.bob.getBalance();
+      await this.LaunchEvent.connect(this.bob).withdrawWAVAX(ethers.utils.parseEther("1.0"))
+      expect(this.bob.getBalance()).to.equal(balanceBefore + ethers.utils.parseEther("1.0"))
+
+      // Check the balance of penalty collecter.
+      expect(this.PENALTY_COLLECTOR.getBalance()).to.equal(0)
+
+    });
+
+    xit("should apply gradient fee if withdraw in second day", async function () {
+
+    });
+
+    it("should revert try to create pool during phase one", async function () {
+      await network.provider.send("evm_increaseTime", [120])
+      await network.provider.send("evm_mine")
+      expect(this.LaunchEvent.connect(this.dev).createPair()).to.be.revertedWith(
+        "LaunchEvent: Not in phase three"
+      )
+
+    });
   });
 
   after(async function () {

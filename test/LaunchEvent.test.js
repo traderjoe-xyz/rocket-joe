@@ -1,13 +1,15 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
 
-describe("Launch Event Contract", function () {
+describe("Launch event contract initialisation", function () {
   before(async function () {
     this.signers = await ethers.getSigners();
     this.dev = this.signers[0];
     this.alice = this.signers[1];
     this.bob = this.signers[2];
     this.carol = this.signers[3];
+    // I think if we deploy WAVAX contract we can skip the forking.
+    // To get faster tests.
     await network.provider.request({
       method: "hardhat_reset",
       params: [
@@ -257,33 +259,6 @@ describe("Launch Event Contract", function () {
         60 * 60 * 24 * 8
       );
     });
-  });
-
-  describe("Interacting with phase one", function () {
-    it("should revert if cant transfer rJOE", async function () {});
-    it("should revert if AVAX sent less than min allocation", async function () {});
-    it("should revert if AVAX sent more than max allocation", async function () {});
-    it("should burn rJOE on succesful deposit", async function () {});
-    it("should revert if second deposit is above max allocation", async function () {});
-    it("should revert if we withdraw during phase one", async function () {});
-    it("should revert try to create pool during phase one", async function () {});
-  });
-
-  describe("Interacting with phase two", function () {
-    it("should revert try to create pool during phase two", async function () {});
-  });
-
-  describe("Interacting with phase three", function () {
-    it("should revert if users withdraws before timelock", async function () {});
-    it("should revert if issuer withdraws before timelock", async function () {});
-    it("should revert when timelock finishes", async function () {});
-    it("should create the pair", async function () {});
-    it("should revert if the pair is already created", async function () {});
-  });
-
-  describe("The penalty structure", function () {
-    it("should be static for the first day", function () {});
-    it("should be linear for second day", function () {});
   });
 
   after(async function () {

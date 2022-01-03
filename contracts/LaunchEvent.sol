@@ -155,7 +155,7 @@ contract LaunchEvent is Ownable {
         );
 
         issuer = _issuer;
-
+        transferOwnership(issuer);
         /// Different time phases
         phaseOneStartTime = _phaseOneStartTime;
         phaseOneLengthSeconds = 3 days;
@@ -381,6 +381,7 @@ contract LaunchEvent is Ownable {
 
     /// @dev Transfers and burns all the rJoe.
     function burnRJoe(address from, uint256 rJoeAmount) internal {
+        // TODO: Should we use SafeERC20
         rJoe.transferFrom(from, address(this), rJoeAmount);
         rJoe.burn(rJoeAmount);
     }
