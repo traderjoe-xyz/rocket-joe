@@ -13,7 +13,7 @@ import "./LaunchEvent.sol";
 /// @title Rocket Joe Factory
 /// @author traderjoexyz
 /// @notice Factory that creates Rocket Joe events.
-contract RocketJoeFactory is IRocketJoeFactory, Ownable{
+contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override penaltyCollector;
 
     address public override rJoe;
@@ -31,8 +31,14 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable{
         address _router,
         address _factory
     ) {
-        require(_rJoe != address(0) && _wavax != address(0) && _penaltyCollector != address(0) &&
-                _router != address(0) && _factory != address(0), "RocketJoeFactory: Addresses can't be null address");
+        require(
+            _rJoe != address(0) &&
+                _wavax != address(0) &&
+                _penaltyCollector != address(0) &&
+                _router != address(0) &&
+                _factory != address(0),
+            "RocketJoeFactory: Addresses can't be null address"
+        );
         rJoe = _rJoe;
         wavax = _wavax;
         penaltyCollector = _penaltyCollector;
@@ -61,10 +67,19 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable{
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external override returns (address launchEvent) {
-        require(getRJLaunchEvent[_token] == address(0), "RocketJoeFactory: Rocket Joe Launch Event already exists for this token");
-        require(_token != address(0), "RocketJoeFactory: Token can't be null address");
+        require(
+            getRJLaunchEvent[_token] == address(0),
+            "RocketJoeFactory: Rocket Joe Launch Event already exists for this token"
+        );
+        require(
+            _token != address(0),
+            "RocketJoeFactory: Token can't be null address"
+        );
         require(_token != wavax, "RocketJoeFactory: Token can't be wavax");
-        require(IJoeFactory(factory).getPair(wavax, _token) == address(0), "RocketJoeFactory: Pair already exists");
+        require(
+            IJoeFactory(factory).getPair(wavax, _token) == address(0),
+            "RocketJoeFactory: Pair already exists"
+        );
 
         bytes memory bytecode = type(LaunchEvent).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(_token));
@@ -97,7 +112,11 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable{
         rJoe = _rJoe;
     }
 
-    function setPenaltyCollector(address _penaltyCollector) external override onlyOwner {
+    function setPenaltyCollector(address _penaltyCollector)
+        external
+        override
+        onlyOwner
+    {
         penaltyCollector = _penaltyCollector;
     }
 

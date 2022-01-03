@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.0;
 
-interface IWAVAX{
+interface IWAVAX {
     function deposit() external payable;
 
     function transfer(address to, uint256 value) external returns (bool);
