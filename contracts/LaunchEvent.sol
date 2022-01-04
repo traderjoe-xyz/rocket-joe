@@ -198,10 +198,12 @@ contract LaunchEvent is Ownable {
     /// @dev withdraw AVAX only during phase 1 and 2.
     function withdrawWAVAX(uint256 amount) public notPaused {
         require(
-            block.timestamp >= phaseOneStartTime &&
-            block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds) ||
-            block.timestamp >= phaseTwoStartTime &&
-            block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
+            (block.timestamp >= phaseOneStartTime &&
+                block.timestamp <=
+                (phaseOneStartTime + phaseOneLengthSeconds)) ||
+                (block.timestamp >= phaseTwoStartTime &&
+                    block.timestamp <=
+                    (phaseTwoStartTime + phaseTwoLengthSeconds)),
             "LaunchEvent: Can't withdraw after phase 2."
         );
 
@@ -372,10 +374,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Use your allocation credits by sending WAVAX.
-    function _depositWAVAX(address from, uint256 amount)
-        internal
-        notPaused
-    {
+    function _depositWAVAX(address from, uint256 amount) internal notPaused {
         require(
             msg.value >= minAllocation,
             "LaunchEvent: Not enough AVAX sent to meet the min allocation"
