@@ -2,9 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-
 import "./interfaces/IRocketJoeFactory.sol";
 
 import "./RocketJoeToken.sol";
@@ -37,7 +34,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
                 _penaltyCollector != address(0) &&
                 _router != address(0) &&
                 _factory != address(0),
-            "RocketJoeFactory: Addresses can't be null address"
+            "RJFactory: Addresses can't be null address"
         );
         rJoe = _rJoe;
         wavax = _wavax;
@@ -50,13 +47,9 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         return allRJLaunchEvent.length;
     }
 
-    function launchEventCodeHash() external pure returns (bytes32) {
-        return keccak256(type(LaunchEvent).creationCode);
-    }
-
     function createRJLaunchEvent(
         address _issuer,
-        uint256 _phaseOneStartTime,
+        uint256 _phaseOne,
         address _token,
         uint256 _tokenAmount,
         uint256 _floorPrice,
@@ -69,16 +62,16 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     ) external override returns (address launchEvent) {
         require(
             getRJLaunchEvent[_token] == address(0),
-            "RocketJoeFactory: Rocket Joe Launch Event already exists for this token"
+            "RJFactory: token has already been issued"
         );
         require(
             _token != address(0),
-            "RocketJoeFactory: Token can't be null address"
+            "RJFactory: token can't be 0 address"
         );
-        require(_token != wavax, "RocketJoeFactory: Token can't be wavax");
+        require(_token != wavax, "RJFactory: token can't be wavax");
         require(
             IJoeFactory(factory).getPair(wavax, _token) == address(0),
-            "RocketJoeFactory: Pair already exists"
+            "RJFactory: pair already exists"
         );
 
         bytes memory bytecode = type(LaunchEvent).creationCode;
@@ -91,7 +84,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
         LaunchEvent(payable(launchEvent)).initialize(
             _issuer,
-            _phaseOneStartTime,
+            _phaseOne,
             _token,
             _floorPrice,
             _withdrawPenatlyGradient,
