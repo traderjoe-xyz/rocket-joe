@@ -117,20 +117,20 @@ contract LaunchEvent is Ownable {
         );
         require(_issuer != address(0), "LaunchEvent: Issuer is null address");
         require(
-            _phaseOneStartTime >= block.timestamp,
-            "LaunchEvent: phase 1 needs to start after the current timestamp"
+            _phaseOne >= block.timestamp,
+            "LaunchEvent: phase1 starts in the past"
         );
         require(
             _withdrawPenatlyGradient < 5e11 / uint256(2 days),
-            "LaunchEvent: withdraw penalty gradient too big"
+            "LaunchEvent: withdrawPenatlyGradient too big"
         ); /// 50%
         require(
             _fixedWithdrawPenalty < 5e11,
-            "LaunchEvent: fixed withdraw penalty too big"
+            "LaunchEvent: fixedWithdrawPenalty too big"
         ); /// 50%
         require(
             _maxAllocation >= _minAllocation,
-            "LaunchEvent: max allocation needs to be greater than min's one"
+            "LaunchEvent: max allocation less than min"
         );
         require(
             _userTimelock < 7 days,
@@ -138,7 +138,7 @@ contract LaunchEvent is Ownable {
         );
         require(
             _issuerTimelock > _userTimelock,
-            "LaunchEvent: issuer can't withdraw their LP before users"
+            "LaunchEvent: issuer can't withdraw before users"
         );
 
         issuer = _issuer;
@@ -217,8 +217,6 @@ contract LaunchEvent is Ownable {
             return 0;
         } else if (startedSince < 3 days) {
             return (startedSince - 1 days) * withdrawPenaltyGradient;
-        } else {
-            return fixedWithdrawPenalty;
         }
         return fixedWithdrawPenalty;
     }
@@ -279,15 +277,15 @@ contract LaunchEvent is Ownable {
     function withdrawLiquidity() public notPaused {
         require(address(pair) != address(0), "LaunchEvent: pair is 0 address");
         require(
-            block.timestamp > phaseThreeStartTime + userTimelock,
+            block.timestamp > phaseThree + userTimelock,
             "LaunchEvent: can't withdraw before user's timelock"
         );
         pair.transfer(msg.sender, pairBalance(msg.sender));
 
         if (tokenReserve > 0) {
             token.transfer(
-                to,
-                (users[to].allocation * tokenReserve) / avaxAllocated / 2
+                msg.sender,
+                (users[msg.sender].allocation * tokenReserve) / avaxAllocated / 2
             );
         }
     }
