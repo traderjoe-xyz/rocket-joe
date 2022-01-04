@@ -166,20 +166,21 @@ describe("Launch event contract phase one", function () {
       );
     });
 
-    xit("should burn rJOE on succesful deposit", async function () {
+    it("should burn rJOE on succesful deposit", async function () {
       let rJOEBefore = await this.rJOE.totalSupply();
 
       await network.provider.send("evm_increaseTime", [120]);
       await network.provider.send("evm_mine");
       await this.rJOE
-        .connect(this.bob)
-        .approve(this.LaunchEvent.address, ethers.utils.parseEther("1.0"));
+          .connect(this.bob)
+          .approve(this.LaunchEvent.address, ethers.utils.parseEther("1.0"));
+
       await this.LaunchEvent.connect(this.bob).depositAVAX({
         value: ethers.utils.parseEther("1.0"),
       });
 
-      expect(this.rJOE.totalSupply()).to.equal(
-        rJOEBefore - ethers.utils.parseEther("1.0")
+      expect(await this.rJOE.totalSupply()).to.be.equal(
+        rJOEBefore.sub(ethers.utils.parseEther("1.0"))
       );
     });
 
