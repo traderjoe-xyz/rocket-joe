@@ -166,20 +166,31 @@ describe("Launch event contract phase one", function () {
       await network.provider.send("evm_mine")
       await this.rJOE.connect(this.bob).approve(
         this.LaunchEvent.address, ethers.utils.parseEther("1.0"))
+
       await this.LaunchEvent.connect(this.bob).depositAVAX({value: ethers.utils.parseEther("1.0")})
 
       // Test the amount received
       const balanceBefore = await this.bob.getBalance();
-      console.log('balanceBefore ', balanceBefore)
       await this.LaunchEvent.connect(this.bob).withdrawWAVAX(ethers.utils.parseEther("1.0"))
-      //expect(await this.bob.getBalance()).to.equal(balanceBefore + ethers.utils.parseEther("1.0"))
-      console.log('balanceAfter', await this.bob.getBalance());
+      expect(await this.bob.getBalance()).to.be.above(balanceBefore)
       // Check the balance of penalty collecter.
       expect(await this.carol.getBalance()).to.equal("10000000000000000000000")
 
     });
 
-    xit("should apply gradient fee if withdraw in second day", async function () {
+    it("should apply gradient fee if withdraw in second day", async function () {
+      await network.provider.send("evm_increaseTime", [120])
+      await network.provider.send("evm_mine")
+      await this.rJOE.connect(this.bob).approve(
+        this.LaunchEvent.address, ethers.utils.parseEther("1.0"))
+
+      await this.LaunchEvent.connect(this.bob).depositAVAX({value: ethers.utils.parseEther("1.0")})
+      await network.provider.send("evm_increaseTime", [60*60*36])  // 1.5 days
+      await network.provider.send("evm_mine")
+      await this.LaunchEvent.connect(this.bob).withdrawWAVAX(ethers.utils.parseEther("1.0"))
+
+      // Check the balance of penalty collecter.
+      expect(await this.carol.getBalance()).to.be.above("10000000000000000000000")
 
     });
 
