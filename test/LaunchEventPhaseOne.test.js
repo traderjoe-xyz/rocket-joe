@@ -169,12 +169,13 @@ describe("Launch event contract phase one", function () {
       await this.LaunchEvent.connect(this.bob).depositAVAX({value: ethers.utils.parseEther("1.0")})
 
       // Test the amount received
-      let balanceBefore = this.bob.getBalance();
+      const balanceBefore = await this.bob.getBalance();
+      console.log('balanceBefore ', balanceBefore)
       await this.LaunchEvent.connect(this.bob).withdrawWAVAX(ethers.utils.parseEther("1.0"))
-      expect(this.bob.getBalance()).to.equal(balanceBefore + ethers.utils.parseEther("1.0"))
-
+      //expect(await this.bob.getBalance()).to.equal(balanceBefore + ethers.utils.parseEther("1.0"))
+      console.log('balanceAfter', await this.bob.getBalance());
       // Check the balance of penalty collecter.
-      expect(this.PENALTY_COLLECTOR.getBalance()).to.equal(0)
+      expect(await this.carol.getBalance()).to.equal("10000000000000000000000")
 
     });
 
