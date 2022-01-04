@@ -96,9 +96,7 @@ contract LaunchEvent is Ownable {
 
     uint256 public tokenReserve;
 
-    //
     // Constructor
-    //
 
     constructor() {
         rocketJoeFactory = IRocketJoeFactory(msg.sender);
@@ -177,51 +175,22 @@ contract LaunchEvent is Ownable {
         issuerTimelock = _issuerTimelock;
     }
 
-    //
     // Modifiers
-    //
 
     modifier notPaused() {
         require(isPaused != true, "LaunchEvent: Contract is paused");
         _;
     }
 
-    modifier phaseOneOnly() {
+    // Public functions.
+
+    /// @notice Deposits AVAX and burns rJoe.
+    function depositAVAX() external payable notPaused {
         require(
             block.timestamp >= phaseOneStartTime &&
                 block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds),
             "LaunchEvent: Not in phase one"
         );
-        _;
-    }
-
-    modifier phaseThreeOrLater() {
-        require(
-            block.timestamp >= phaseThreeStartTime,
-            "LaunchEvent: Not in phase three"
-        );
-        _;
-    }
-
-    modifier pairNotCreated() {
-        require(
-            address(pair) == address(0),
-            "LaunchEvent: Pair is not 0 address"
-        );
-        _;
-    }
-
-    modifier pairCreated() {
-        require(address(pair) != address(0), "LaunchEvent: Pair is 0 address");
-        _;
-    }
-
-    //
-    // Public functions.
-    //
-
-    /// @notice Deposits AVAX and burns rJoe.
-    function depositAVAX() external payable phaseOneOnly notPaused {
         WAVAX.deposit{value: msg.value}();
         _depositWAVAX(msg.sender, msg.value); // checks are done here.
     }
@@ -229,7 +198,10 @@ contract LaunchEvent is Ownable {
     /// @dev withdraw AVAX only during phase 1 and 2.
     function withdrawWAVAX(uint256 amount) public notPaused {
         require(
-            isPhaseOne() || isPhaseTwo(),
+            block.timestamp >= phaseOneStartTime &&
+            block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds) ||
+            block.timestamp >= phaseTwoStartTime &&
+            block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
             "LaunchEvent: Can't withdraw after phase 2."
         );
 
@@ -276,7 +248,15 @@ contract LaunchEvent is Ownable {
 
     /// @dev Create the uniswap pair, can be called by anyone but only once
     /// @dev but only once after phase 3 has started.
-    function createPair() public notPaused phaseThreeOrLater pairNotCreated {
+    function createPair() public notPaused {
+        require(
+            block.timestamp >= phaseThreeStartTime,
+            "LaunchEvent: Not in phase three"
+        );
+        require(
+            address(pair) == address(0),
+            "LaunchEvent: Pair is not 0 address"
+        );
         (address wavaxAddress, address tokenAddress) = (
             address(WAVAX),
             address(token)
@@ -311,7 +291,8 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev withdraw the liquidity pool tokens.
-    function withdrawLiquidity() public notPaused pairCreated {
+    function withdrawLiquidity() public notPaused {
+        require(address(pair) != address(0), "LaunchEvent: Pair is 0 address");
         require(
             block.timestamp > phaseThreeStartTime + userTimelock,
             "LaunchEvent: Can't withdraw before user's timelock"
@@ -329,7 +310,8 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev withdraw the liquidity pool tokens, only for issuer.
-    function withdrawIssuerLiquidity() public notPaused pairCreated {
+    function withdrawIssuerLiquidity() public notPaused {
+        require(address(pair) != address(0), "LaunchEvent: Pair is 0 address");
         require(msg.sender == issuer, "LaunchEvent: Caller is not Issuer");
         require(
             block.timestamp > phaseThreeStartTime + issuerTimelock,
@@ -374,9 +356,7 @@ contract LaunchEvent is Ownable {
         isPaused = false;
     }
 
-    //
     // Internal functions.
-    //
 
     /// @dev Transfers `value` AVAX to address.
     function safeTransferAVAX(address to, uint256 value) internal {
@@ -394,7 +374,6 @@ contract LaunchEvent is Ownable {
     /// @notice Use your allocation credits by sending WAVAX.
     function _depositWAVAX(address from, uint256 amount)
         internal
-        phaseOneOnly
         notPaused
     {
         require(
@@ -411,23 +390,5 @@ contract LaunchEvent is Ownable {
         burnRJoe(from, amount); // TODO: AVAX:Rjoe ratio won't always be 1. But I don't get how it's calculated as floor price can be set to 0.
 
         user.allocation = user.allocation + amount;
-    }
-
-    function isPhaseOne() internal view returns (bool) {
-        require(
-            block.timestamp >= phaseOneStartTime &&
-                block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds),
-            "LaunchEvent: Not in phase one"
-        );
-        return true;
-    }
-
-    function isPhaseTwo() internal view returns (bool) {
-        require(
-            block.timestamp >= phaseTwoStartTime &&
-                block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
-            "LaunchEvent: Not in phase two"
-        );
-        return true;
     }
 }
