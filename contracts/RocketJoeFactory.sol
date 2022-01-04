@@ -89,7 +89,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
         IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount); // msg.sender needs to approve RocketJoeFactory
 
-        LaunchEvent(launchEvent).initialize(
+        LaunchEvent(payable(launchEvent)).initialize(
             _issuer,
             _phaseOneStartTime,
             _token,

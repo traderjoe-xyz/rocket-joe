@@ -246,8 +246,13 @@ contract LaunchEvent is Ownable {
         WAVAX.withdraw(amount);
 
         safeTransferAVAX(msg.sender, amountMinusFee);
-        safeTransferAVAX(penaltyCollector, feeAmount);
+        if (feeAmount > 0) {
+            safeTransferAVAX(penaltyCollector, feeAmount);
+        }
     }
+
+    /// @dev Needed for withdrawing from WAVAX contract.
+    receive () external payable {}
 
     /// @dev Returns the current penalty
     function getPenalty() public view returns (uint256) {
