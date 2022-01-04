@@ -288,7 +288,9 @@ contract LaunchEvent is Ownable {
         if (tokenReserve > 0) {
             token.transfer(
                 msg.sender,
-                (users[msg.sender].allocation * tokenReserve) / avaxAllocated / 2
+                (users[msg.sender].allocation * tokenReserve) /
+                    avaxAllocated /
+                    2
             );
         }
     }

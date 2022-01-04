@@ -215,7 +215,9 @@ describe("Launch event contract initialisation", function () {
           60 * 60 * 24 * 8,
           120
         )
-      ).to.be.revertedWith("LaunchEvent: can't lock user LP for more than 7 days");
+      ).to.be.revertedWith(
+        "LaunchEvent: can't lock user LP for more than 7 days"
+      );
     });
 
     it("should revert initialisation if issuer timelock is before user", async function () {
