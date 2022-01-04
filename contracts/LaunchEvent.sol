@@ -252,7 +252,7 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: Not in phase three"
         );
         require(
-            address(pair) == address(0),
+            address(factory.getPair(address(WAVAX), address(token))) == address(0),
             "LaunchEvent: Pair is not 0 address"
         );
         (address wavaxAddress, address tokenAddress) = (
