@@ -200,7 +200,7 @@ contract LaunchEvent is Ownable {
     function withdrawWAVAX(uint256 amount) public notPaused {
         require(
             block.timestamp >= phaseOneStartTime &&
-            block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
+                block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
             "LaunchEvent: Can't withdraw after phase 2."
         );
 
@@ -252,7 +252,8 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: Not in phase three"
         );
         require(
-            address(factory.getPair(address(WAVAX), address(token))) == address(0),
+            address(factory.getPair(address(WAVAX), address(token))) ==
+                address(0),
             "LaunchEvent: Pair is not 0 address"
         );
         (address wavaxAddress, address tokenAddress) = (
@@ -343,7 +344,7 @@ contract LaunchEvent is Ownable {
 
     /// @dev Pause or unpause the launch.
     function togglePause() public onlyOwner {
-        isPaused = isPaused ? false: true;
+        isPaused = isPaused ? false : true;
     }
 
     // Internal functions.
