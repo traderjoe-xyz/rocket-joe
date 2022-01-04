@@ -123,10 +123,7 @@ contract LaunchEvent is Ownable {
             msg.sender == address(rocketJoeFactory),
             "LaunchEvent: Forbidden"
         );
-        require(
-            _issuer != address(0),
-            "LaunchEvent: Issuer is null address"
-        );
+        require(_issuer != address(0), "LaunchEvent: Issuer is null address");
         require(
             _phaseOneStartTime >= block.timestamp,
             "LaunchEvent: Phase 1 start time in past"
@@ -143,10 +140,7 @@ contract LaunchEvent is Ownable {
             _maxAllocation >= _minAllocation,
             "LaunchEvent: Max allocation less than min"
         );
-        require(
-            _userTimelock < 7 days,
-            "LaunchEvent: LP lock > 7 days"
-        );
+        require(_userTimelock < 7 days, "LaunchEvent: LP lock > 7 days");
         require(
             _issuerTimelock > _userTimelock,
             "LaunchEvent: Issuer lock > user"

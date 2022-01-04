@@ -107,9 +107,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith(
-        "LaunchEvent: Phase 1 start time in past"
-      );
+      ).to.be.revertedWith("LaunchEvent: Phase 1 start time in past");
     });
 
     it("should revert initialisation if token is wavax", async function () {
@@ -199,9 +197,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith(
-        "LaunchEvent: Max allocation less than min"
-      );
+      ).to.be.revertedWith("LaunchEvent: Max allocation less than min");
     });
 
     it("should revert initialisation if user timelock is too long", async function () {
@@ -219,9 +215,7 @@ describe("Launch event contract initialisation", function () {
           60 * 60 * 24 * 8,
           120
         )
-      ).to.be.revertedWith(
-        "LaunchEvent: LP lock > 7 days"
-      );
+      ).to.be.revertedWith("LaunchEvent: LP lock > 7 days");
     });
 
     it("should revert initialisation if issuer timelock is before user", async function () {
@@ -239,9 +233,7 @@ describe("Launch event contract initialisation", function () {
           60 * 60 * 24 * 6,
           60 * 60 * 24 * 5
         )
-      ).to.be.revertedWith(
-        "LaunchEvent: Issuer lock > user"
-      );
+      ).to.be.revertedWith("LaunchEvent: Issuer lock > user");
     });
 
     it("should deploy with correct paramaters", async function () {
