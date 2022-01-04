@@ -54,11 +54,11 @@ contract LaunchEvent is Ownable {
     IERC20 public token;
 
     /// @dev Joe Router contract.
-    IJoeRouter02 router;
+    IJoeRouter02 private router;
     /// @dev Joe Factory contract.
-    IJoeFactory factory;
+    IJoeFactory private factory;
     /// @dev Rocket Joe Factory contract.
-    IRocketJoeFactory rocketJoeFactory;
+    IRocketJoeFactory private rocketJoeFactory;
 
     /// @dev internal state variable for paused
     bool internal isPaused;
@@ -203,7 +203,7 @@ contract LaunchEvent is Ownable {
     receive() external payable {}
 
     /// @dev Returns the current penalty
-    function getPenalty() public view returns (uint256) {
+    function getPenalty() private view returns (uint256) {
         uint256 startedSince = block.timestamp - phaseOne;
         if (startedSince < 1 days) {
             return 0;
@@ -214,7 +214,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev Returns the current balance of the pool
-    function poolInfo() public view returns (uint256, uint256) {
+    function poolInfo() private view returns (uint256, uint256) {
         return (
             IERC20(address(WAVAX)).balanceOf(address(this)),
             token.balanceOf(address(this))
@@ -305,12 +305,12 @@ contract LaunchEvent is Ownable {
 
     /// @dev get the rJoe amount needed;
     /// @dev TODO: implement, currently just returns the allocation credits.
-    function getRJoeAmount(uint256 avaxAmount) public view returns (uint256) {
+    function getRJoeAmount(uint256 avaxAmount) private view returns (uint256) {
         return avaxAmount * rJoePerAvax;
     }
 
     /// @dev The total amount of liquidity pool tokens the user can withdraw.
-    function pairBalance(address _user) public view returns (uint256) {
+    function pairBalance(address _user) private view returns (uint256) {
         if (avaxAllocated == 0) {
             return 0;
         }
@@ -333,13 +333,6 @@ contract LaunchEvent is Ownable {
         require(success, "LaunchEvent: avax transfer failed");
     }
 
-    /// @dev Transfers and burns all the rJoe.
-    function burnRJoe(address from, uint256 rJoeAmount) internal {
-        // TODO: Should we use SafeERC20
-        rJoe.transferFrom(from, address(this), rJoeAmount);
-        rJoe.burn(rJoeAmount);
-    }
-
     /// @notice Use your allocation credits by sending WAVAX.
     function _depositWAVAX(address from, uint256 avaxAmount) internal {
         require(isPaused != true, "LaunchEvent: paused");
@@ -354,7 +347,9 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: amount exceeds max allocation"
         );
 
-        burnRJoe(from, getRJoeAmount(avaxAmount));
+        uint256 rJoeAmount = getRJoeAmount(avaxAmount);
+        rJoe.transferFrom(from, address(this), rJoeAmount);
+        rJoe.burn(rJoeAmount);
 
         user.allocation = user.allocation + avaxAmount;
     }
