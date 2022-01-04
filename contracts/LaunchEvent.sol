@@ -164,7 +164,8 @@ contract LaunchEvent is Ownable {
     function depositAVAX() external payable {
         require(isPaused != true, "LaunchEvent: paused");
         require(
-            block.timestamp >= phaseOne && block.timestamp < (phaseOne + 3 days),
+            block.timestamp >= phaseOne &&
+                block.timestamp < (phaseOne + 3 days),
             "LaunchEvent: phase1 is over"
         );
         WAVAX.deposit{value: msg.value}();
@@ -175,7 +176,8 @@ contract LaunchEvent is Ownable {
     function withdrawWAVAX(uint256 amount) public {
         require(isPaused != true, "LaunchEvent: paused");
         require(
-            block.timestamp >= phaseOne && block.timestamp < (phaseOne + 4 days),
+            block.timestamp >= phaseOne &&
+                block.timestamp < (phaseOne + 4 days),
             "LaunchEvent: can't withdraw after phase2"
         );
 
@@ -339,9 +341,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Use your allocation credits by sending WAVAX.
-    function _depositWAVAX(address from, uint256 avaxAmount)
-        internal
-    {
+    function _depositWAVAX(address from, uint256 avaxAmount) internal {
         require(isPaused != true, "LaunchEvent: paused");
         require(
             avaxAmount >= minAllocation,
