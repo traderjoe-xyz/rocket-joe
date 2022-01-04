@@ -197,8 +197,8 @@ contract LaunchEvent is Ownable {
 
     modifier phaseThreeOrLater() {
         require(
-        block.timestamp >= phaseThreeStartTime,
-        "LaunchEvent: Not in phase three"
+            block.timestamp >= phaseThreeStartTime,
+            "LaunchEvent: Not in phase three"
         );
         _;
     }
