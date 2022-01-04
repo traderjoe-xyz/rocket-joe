@@ -125,11 +125,11 @@ contract LaunchEvent is Ownable {
         );
         require(
             _issuer != address(0),
-            "LaunchEvent: Issuer can't be null address"
+            "LaunchEvent: Issuer is null address"
         );
         require(
             _phaseOneStartTime >= block.timestamp,
-            "LaunchEvent: Phase 1 needs to start after the current timestamp"
+            "LaunchEvent: Phase 1 start time in past"
         );
         require(
             _withdrawPenatlyGradient < 5e11 / uint256(2 days),
@@ -141,15 +141,15 @@ contract LaunchEvent is Ownable {
         ); // 50%
         require(
             _maxAllocation >= _minAllocation,
-            "LaunchEvent: Max allocation needs to be greater than min's one"
+            "LaunchEvent: Max allocation less than min"
         );
         require(
             _userTimelock < 7 days,
-            "LaunchEvent: Can't lock user LP for more than 7 days"
+            "LaunchEvent: LP lock > 7 days"
         );
         require(
             _issuerTimelock > _userTimelock,
-            "LaunchEvent: Issuer can't withdraw their LP before everyone"
+            "LaunchEvent: Issuer lock > user"
         );
 
         issuer = _issuer;
@@ -178,7 +178,7 @@ contract LaunchEvent is Ownable {
     // Modifiers
 
     modifier notPaused() {
-        require(isPaused != true, "LaunchEvent: Contract is paused");
+        require(isPaused != true, "LaunchEvent: Contract paused");
         _;
     }
 
@@ -190,7 +190,7 @@ contract LaunchEvent is Ownable {
         require(
             block.timestamp >= phaseOneStartTime &&
                 block.timestamp <= (phaseOneStartTime + phaseOneLengthSeconds),
-            "LaunchEvent: Not in phase one"
+            "LaunchEvent: Not phase one"
         );
         WAVAX.deposit{value: msg.value}();
         _depositWAVAX(msg.sender, msg.value);
@@ -201,13 +201,13 @@ contract LaunchEvent is Ownable {
         require(
             block.timestamp >= phaseOneStartTime &&
                 block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
-            "LaunchEvent: Can't withdraw after phase 2."
+            "LaunchEvent: phase 2 over"
         );
 
         UserAllocation storage user = users[msg.sender];
         require(
             user.allocation >= amount,
-            "LaunchEvent: Can't withdraw more than what you deposited"
+            "LaunchEvent: Illegal withdraw amount"
         );
         user.allocation = user.allocation - amount;
 
@@ -254,7 +254,7 @@ contract LaunchEvent is Ownable {
         require(
             address(factory.getPair(address(WAVAX), address(token))) ==
                 address(0),
-            "LaunchEvent: Pair is not 0 address"
+            "LaunchEvent: Pair exists"
         );
         (address wavaxAddress, address tokenAddress) = (
             address(WAVAX),
@@ -291,10 +291,10 @@ contract LaunchEvent is Ownable {
 
     /// @dev withdraw the liquidity pool tokens.
     function withdrawLiquidity() public notPaused {
-        require(address(pair) != address(0), "LaunchEvent: Pair is 0 address");
+        require(address(pair) != address(0), "LaunchEvent: Pair not created");
         require(
             block.timestamp > phaseThreeStartTime + userTimelock,
-            "LaunchEvent: Can't withdraw before user's timelock"
+            "LaunchEvent: timelocked"
         );
         pair.transfer(msg.sender, pairBalance(msg.sender));
 
@@ -309,11 +309,11 @@ contract LaunchEvent is Ownable {
 
     /// @dev withdraw the liquidity pool tokens, only for issuer.
     function withdrawIssuerLiquidity() public notPaused {
-        require(address(pair) != address(0), "LaunchEvent: Pair is 0 address");
-        require(msg.sender == issuer, "LaunchEvent: Caller is not Issuer");
+        require(address(pair) != address(0), "LaunchEvent: Pair not created");
+        require(msg.sender == issuer, "LaunchEvent: not issuer");
         require(
             block.timestamp > phaseThreeStartTime + issuerTimelock,
-            "LaunchEvent: Can't withdraw before issuer's timelock"
+            "LaunchEvent: timelocked"
         );
 
         pair.transfer(issuer, avaxAllocated / 2);
@@ -366,13 +366,13 @@ contract LaunchEvent is Ownable {
     function _depositWAVAX(address from, uint256 amount) internal notPaused {
         require(
             msg.value >= minAllocation,
-            "LaunchEvent: Not enough AVAX sent to meet the min allocation"
+            "LaunchEvent: AVAX sent less than min allocation"
         );
 
         UserAllocation storage user = users[from];
         require(
             user.allocation + amount <= maxAllocation,
-            "LaunchEvent: Too much AVAX sent to meet the max allocation"
+            "LaunchEvent: AVAX sent greater than max allocation"
         );
 
         burnRJoe(from, amount); // TODO: AVAX:Rjoe ratio won't always be 1. But I don't get how it's calculated as floor price can be set to 0.

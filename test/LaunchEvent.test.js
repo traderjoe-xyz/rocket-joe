@@ -89,7 +89,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("LaunchEvent: Issuer can't be null address");
+      ).to.be.revertedWith("LaunchEvent: Issuer is null address");
     });
 
     it("should revert initialisation if start time is in the past", async function () {
@@ -108,7 +108,7 @@ describe("Launch event contract initialisation", function () {
           120
         )
       ).to.be.revertedWith(
-        "LaunchEvent: Phase 1 needs to start after the current timestamp"
+        "LaunchEvent: Phase 1 start time in past"
       );
     });
 
@@ -200,7 +200,7 @@ describe("Launch event contract initialisation", function () {
           120
         )
       ).to.be.revertedWith(
-        "LaunchEvent: Max allocation needs to be greater than min"
+        "LaunchEvent: Max allocation less than min"
       );
     });
 
@@ -220,7 +220,7 @@ describe("Launch event contract initialisation", function () {
           120
         )
       ).to.be.revertedWith(
-        "LaunchEvent: Can't lock user LP for more than 7 days"
+        "LaunchEvent: LP lock > 7 days"
       );
     });
 
@@ -240,7 +240,7 @@ describe("Launch event contract initialisation", function () {
           60 * 60 * 24 * 5
         )
       ).to.be.revertedWith(
-        "LaunchEvent: Issuer can't withdraw their LP before everyone"
+        "LaunchEvent: Issuer lock > user"
       );
     });
 
