@@ -252,7 +252,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev Needed for withdrawing from WAVAX contract.
-    receive () external payable {}
+    receive() external payable {}
 
     /// @dev Returns the current penalty
     function getPenalty() public view returns (uint256) {

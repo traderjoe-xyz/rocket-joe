@@ -9,5 +9,5 @@ interface IWAVAX {
 
     function withdraw(uint256) external;
 
-    function balanceOf(address account) external returns (uint);
+    function balanceOf(address account) external returns (uint256);
 }
