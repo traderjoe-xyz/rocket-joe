@@ -22,40 +22,34 @@ import "./RocketJoeToken.sol";
 ///       - emergency withdraws
 contract LaunchEvent is Ownable {
     /// @notice Issuer of that contract.
-    address public issuer;
+    address private issuer;
 
     /// @notice The start time of phase 1.
     uint256 public phaseOne;
-
-    /// @notice The start time of phase 2.
-    uint256 public phaseTwo;
-
-    /// @notice The start time of phase 3.
-    uint256 public phaseThree;
 
     /// @notice floor price (can be 0)
     uint256 public floorPrice;
 
     /// @notice When can user withdraw their LP (phase 3).
-    uint256 public userTimelock;
+    uint256 private userTimelock;
 
     /// @notice When can issuer withdraw their LP (phase 3).
-    uint256 public issuerTimelock;
+    uint256 private issuerTimelock;
 
     /// @notice The withdraw penalty gradient in “bps per sec”, in parts per 1e12 (phase 1).
     /// e.g. linearly reach 50% in 2 days `withdrawPenaltyGradient = 50 * 100 * 1e12 / 2 days`
-    uint256 public withdrawPenaltyGradient;
+    uint256 private withdrawPenaltyGradient;
 
     /// @notice The fixed withdraw penalty, in parts per 1e12 (phase 2).
     /// e.g. fixed penalty of 20% `fixedWithdrawPenalty = 20e11`
-    uint256 public fixedWithdrawPenalty;
+    uint256 private fixedWithdrawPenalty;
 
     /// @dev rJOE token contract.
-    RocketJoeToken public rJoe;
+    RocketJoeToken private rJoe;
     /// @dev RJoe needed to deposit 1 AVAX
-    uint256 public rJoePerAvax;
+    uint256 private rJoePerAvax;
     /// @dev WAVAX token contract.
-    IWAVAX public WAVAX;
+    IWAVAX private WAVAX;
     /// @dev THE token contract.
     IERC20 public token;
 
@@ -79,17 +73,17 @@ contract LaunchEvent is Ownable {
         uint256 pairPoolWithdrawn;
     }
     /// @dev mapping of users to allocation record.
-    mapping(address => UserAllocation) public users;
+    mapping(address => UserAllocation) private users;
 
     /// @dev the address of the uniswap pair. Only set after createLiquidityPool is called.
-    IJoePair public pair;
+    IJoePair private pair;
 
     /// @dev pool information
-    uint256 public avaxAllocated;
-    uint256 public tokenAllocated;
-    uint256 public lpSupply;
+    uint256 private avaxAllocated;
+    uint256 private tokenAllocated;
+    uint256 private lpSupply;
 
-    uint256 public tokenReserve;
+    uint256 private tokenReserve;
 
     /// Constructor
 
@@ -148,8 +142,6 @@ contract LaunchEvent is Ownable {
         transferOwnership(issuer);
         /// Different time phases
         phaseOne = _phaseOne;
-        phaseTwo = _phaseOne + 3 days;
-        phaseThree = phaseTwo + 1 days;
 
         token = IERC20(_token);
         tokenReserve = token.balanceOf(address(this));
@@ -165,20 +157,14 @@ contract LaunchEvent is Ownable {
         issuerTimelock = _issuerTimelock;
     }
 
-    /// Modifiers
-
-    modifier notPaused() {
-        require(isPaused != true, "LaunchEvent: paused");
-        _;
-    }
-
     /// Public functions.
 
     /// @notice Deposits AVAX and burns rJoe.
     /// @dev Checks are done in the `_depositWAVAX` function.
-    function depositAVAX() external payable notPaused {
+    function depositAVAX() external payable {
+        require(isPaused != true, "LaunchEvent: paused");
         require(
-            block.timestamp >= phaseOne && block.timestamp < phaseTwo,
+            block.timestamp >= phaseOne && block.timestamp < (phaseOne + 3 days),
             "LaunchEvent: phase1 is over"
         );
         WAVAX.deposit{value: msg.value}();
@@ -186,9 +172,10 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev withdraw AVAX only during phase 1 and 2.
-    function withdrawWAVAX(uint256 amount) public notPaused {
+    function withdrawWAVAX(uint256 amount) public {
+        require(isPaused != true, "LaunchEvent: paused");
         require(
-            block.timestamp >= phaseOne && block.timestamp < phaseThree,
+            block.timestamp >= phaseOne && block.timestamp < (phaseOne + 4 days),
             "LaunchEvent: can't withdraw after phase2"
         );
 
@@ -234,9 +221,10 @@ contract LaunchEvent is Ownable {
 
     /// @dev Create the uniswap pair, can be called by anyone but only once
     /// @dev but only once after phase 3 has started.
-    function createPair() external notPaused {
+    function createPair() external {
+        require(isPaused != true, "LaunchEvent: paused");
         require(
-            block.timestamp >= phaseThree,
+            block.timestamp >= (phaseOne + 4 days),
             "LaunchEvent: not in phase three"
         );
         require(
@@ -277,10 +265,11 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev withdraw the liquidity pool tokens.
-    function withdrawLiquidity() external notPaused {
+    function withdrawLiquidity() external {
+        require(isPaused != true, "LaunchEvent: paused");
         require(address(pair) != address(0), "LaunchEvent: pair is 0 address");
         require(
-            block.timestamp > phaseThree + userTimelock,
+            block.timestamp > (phaseOne + 4 days) + userTimelock,
             "LaunchEvent: can't withdraw before user's timelock"
         );
         pair.transfer(msg.sender, pairBalance(msg.sender));
@@ -296,11 +285,12 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev withdraw the liquidity pool tokens, only for issuer.
-    function withdrawIssuerLiquidity() external notPaused {
+    function withdrawIssuerLiquidity() external {
+        require(isPaused != true, "LaunchEvent: paused");
         require(address(pair) != address(0), "LaunchEvent: pair is 0 address");
         require(msg.sender == issuer, "LaunchEvent: caller is not Issuer");
         require(
-            block.timestamp > phaseThree + issuerTimelock,
+            block.timestamp > (phaseOne + 4 days) + issuerTimelock,
             "LaunchEvent: can't withdraw before issuer's timelock"
         );
 
@@ -329,13 +319,8 @@ contract LaunchEvent is Ownable {
     /// Restricted functions.
 
     /// @dev Pause this contract
-    function pause() external onlyOwner {
-        isPaused = true;
-    }
-
-    /// @dev Unpause this contract
-    function unpause() external onlyOwner {
-        isPaused = false;
+    function togglePause() external onlyOwner {
+        isPaused = false ? isPaused : false;
     }
 
     /// Internal functions.
@@ -356,8 +341,8 @@ contract LaunchEvent is Ownable {
     /// @notice Use your allocation credits by sending WAVAX.
     function _depositWAVAX(address from, uint256 avaxAmount)
         internal
-        notPaused
     {
+        require(isPaused != true, "LaunchEvent: paused");
         require(
             avaxAmount >= minAllocation,
             "LaunchEvent: amount doesnt fulfil min allocation"
