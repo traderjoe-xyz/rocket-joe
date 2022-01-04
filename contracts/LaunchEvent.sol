@@ -185,6 +185,7 @@ contract LaunchEvent is Ownable {
     // Public functions.
 
     /// @notice Deposits AVAX and burns rJoe.
+    /// @dev Checks are done in the `_depositWAVAX` function.
     function depositAVAX() external payable notPaused {
         require(
             block.timestamp >= phaseOneStartTime &&
@@ -192,18 +193,14 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: Not in phase one"
         );
         WAVAX.deposit{value: msg.value}();
-        _depositWAVAX(msg.sender, msg.value); // checks are done here.
+        _depositWAVAX(msg.sender, msg.value);
     }
 
     /// @dev withdraw AVAX only during phase 1 and 2.
     function withdrawWAVAX(uint256 amount) public notPaused {
         require(
-            (block.timestamp >= phaseOneStartTime &&
-                block.timestamp <=
-                (phaseOneStartTime + phaseOneLengthSeconds)) ||
-                (block.timestamp >= phaseTwoStartTime &&
-                    block.timestamp <=
-                    (phaseTwoStartTime + phaseTwoLengthSeconds)),
+            block.timestamp >= phaseOneStartTime &&
+            block.timestamp <= (phaseTwoStartTime + phaseTwoLengthSeconds),
             "LaunchEvent: Can't withdraw after phase 2."
         );
 
@@ -235,9 +232,8 @@ contract LaunchEvent is Ownable {
             return 0;
         } else if (startedSince < 3 days) {
             return (startedSince - 1 days) * withdrawPenatlyGradient;
-        } else {
-            return fixedWithdrawPenalty;
         }
+        return fixedWithdrawPenalty;
     }
 
     /// @dev Returns the current balance of the pool
@@ -299,8 +295,7 @@ contract LaunchEvent is Ownable {
             block.timestamp > phaseThreeStartTime + userTimelock,
             "LaunchEvent: Can't withdraw before user's timelock"
         );
-        address to = msg.sender;
-        pair.transfer(to, pairBalance(to));
+        pair.transfer(msg.sender, pairBalance(msg.sender));
 
         if (tokenReserve > 0) {
             UserAllocation memory user = users[msg.sender];
@@ -344,18 +339,11 @@ contract LaunchEvent is Ownable {
         return (user.allocation * lpSupply) / avaxAllocated / 2;
     }
 
-    //
     // Restricted functions.
-    //
 
-    /// @dev Pause this contract
-    function pause() public onlyOwner {
-        isPaused = true;
-    }
-
-    /// @dev Unpause this contract
-    function unpause() public onlyOwner {
-        isPaused = false;
+    /// @dev Pause or unpause the launch.
+    function togglePause() public onlyOwner {
+        isPaused = isPaused ? false: true;
     }
 
     // Internal functions.
