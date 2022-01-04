@@ -89,7 +89,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("LaunchEvent: Issuer is null address");
+      ).to.be.revertedWith("LaunchEvent: issuer is null address");
     });
 
     it("should revert initialisation if start time is in the past", async function () {

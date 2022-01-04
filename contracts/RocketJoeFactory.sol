@@ -14,6 +14,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override penaltyCollector;
 
     address public override rJoe;
+    uint256 public override rJoePerAvax;
     address public override wavax;
     address public override router;
     address public override factory;
@@ -41,6 +42,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         penaltyCollector = _penaltyCollector;
         router = _router;
         factory = _factory;
+        rJoePerAvax = 100;
     }
 
     function allRJLaunchEventLength() external view override returns (uint256) {
@@ -116,5 +118,9 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
     function setFactory(address _factory) external override onlyOwner {
         factory = _factory;
+    }
+
+    function setRJoePerAvax(uint256 _rJoePerAvax) external override onlyOwner {
+        rJoePerAvax = _rJoePerAvax;
     }
 }

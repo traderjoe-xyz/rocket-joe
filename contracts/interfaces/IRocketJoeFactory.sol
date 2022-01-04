@@ -9,6 +9,8 @@ interface IRocketJoeFactory {
 
     function wavax() external view returns (address);
 
+    function rJoePerAvax() external view returns (uint256);
+
     function router() external view returns (address);
 
     function factory() external view returns (address);
@@ -45,4 +47,6 @@ interface IRocketJoeFactory {
     function setFactory(address) external;
 
     function setRJoe(address) external;
+
+    function setRJoePerAvax(uint256) external;
 }

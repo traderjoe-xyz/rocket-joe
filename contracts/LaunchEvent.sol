@@ -52,6 +52,8 @@ contract LaunchEvent is Ownable {
 
     /// @dev rJOE token contract.
     RocketJoeToken public rJoe;
+    /// @dev RJoe needed to deposit 1 AVAX
+    uint256 public rJoePerAvax;
     /// @dev WAVAX token contract.
     IWAVAX public WAVAX;
     /// @dev THE token contract.
@@ -97,6 +99,7 @@ contract LaunchEvent is Ownable {
         router = IJoeRouter02(rocketJoeFactory.router());
         factory = IJoeFactory(rocketJoeFactory.factory());
         rJoe = RocketJoeToken(rocketJoeFactory.rJoe());
+        rJoePerAvax = rocketJoeFactory.rJoePerAvax();
     }
 
     function initialize(
@@ -115,7 +118,7 @@ contract LaunchEvent is Ownable {
             msg.sender == address(rocketJoeFactory),
             "LaunchEvent: forbidden"
         );
-        require(_issuer != address(0), "LaunchEvent: Issuer is null address");
+        require(_issuer != address(0), "LaunchEvent: issuer is null address");
         require(
             _phaseOne >= block.timestamp,
             "LaunchEvent: phase1 starts in the past"
@@ -274,7 +277,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev withdraw the liquidity pool tokens.
-    function withdrawLiquidity() public notPaused {
+    function withdrawLiquidity() external notPaused {
         require(address(pair) != address(0), "LaunchEvent: pair is 0 address");
         require(
             block.timestamp > phaseThree + userTimelock,
@@ -291,7 +294,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev withdraw the liquidity pool tokens, only for issuer.
-    function withdrawIssuerLiquidity() public notPaused {
+    function withdrawIssuerLiquidity() external notPaused {
         require(address(pair) != address(0), "LaunchEvent: pair is 0 address");
         require(msg.sender == issuer, "LaunchEvent: caller is not Issuer");
         require(
@@ -306,10 +309,10 @@ contract LaunchEvent is Ownable {
         }
     }
 
-    /// @dev get the allocation credits for this rjoe;
+    /// @dev get the rJoe amount needed;
     /// @dev TODO: implement, currently just returns the allocation credits.
-    function getAllocation(uint256 avaxAmount) public pure returns (uint256) {
-        return avaxAmount / 1;
+    function getRJoeAmount(uint256 avaxAmount) public view returns (uint256) {
+        return avaxAmount * rJoePerAvax;
     }
 
     /// @dev The total amount of liquidity pool tokens the user can withdraw.
@@ -364,7 +367,7 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: amount exceeds max allocation"
         );
 
-        burnRJoe(from, getAllocation(avaxAmount));
+        burnRJoe(from, getRJoeAmount(avaxAmount));
 
         user.allocation = user.allocation + avaxAmount;
     }
