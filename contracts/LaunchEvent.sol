@@ -175,8 +175,7 @@ contract LaunchEvent is Ownable {
     /// @dev Checks are done in the `_depositWAVAX` function.
     function depositAVAX() external payable notPaused {
         require(
-            block.timestamp >= phaseOne &&
-                block.timestamp < phaseTwo,
+            block.timestamp >= phaseOne && block.timestamp < phaseTwo,
             "LaunchEvent: phase1 is over"
         );
         WAVAX.deposit{value: msg.value}();
@@ -186,8 +185,7 @@ contract LaunchEvent is Ownable {
     /// @dev withdraw AVAX only during phase 1 and 2.
     function withdrawWAVAX(uint256 amount) public notPaused {
         require(
-            block.timestamp >= phaseOne &&
-                block.timestamp < phaseThree,
+            block.timestamp >= phaseOne && block.timestamp < phaseThree,
             "LaunchEvent: can't withdraw after phase2"
         );
 
@@ -322,7 +320,7 @@ contract LaunchEvent is Ownable {
             return 0;
         }
 
-        return users[_user].allocation * lpSupply / avaxAllocated / 2;
+        return (users[_user].allocation * lpSupply) / avaxAllocated / 2;
     }
 
     /// Restricted functions.
@@ -353,7 +351,10 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Use your allocation credits by sending WAVAX.
-    function _depositWAVAX(address from, uint256 avaxAmount) internal notPaused {
+    function _depositWAVAX(address from, uint256 avaxAmount)
+        internal
+        notPaused
+    {
         require(
             avaxAmount >= minAllocation,
             "LaunchEvent: amount doesnt fulfil min allocation"
