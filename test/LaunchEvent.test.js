@@ -71,7 +71,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("RocketJoeFactory: Token can't be null address");
+      ).to.be.revertedWith("RJFactory: token can't be 0 address");
     });
 
     it("should revert initialisation if issuer is not set", async function () {
@@ -89,7 +89,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("LaunchEvent: Issuer can't be null address");
+      ).to.be.revertedWith("LaunchEvent: issuer is null address");
     });
 
     it("should revert initialisation if start time is in the past", async function () {
@@ -107,9 +107,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith(
-        "LaunchEvent: Phase 1 needs to start after the current timestamp"
-      );
+      ).to.be.revertedWith("LaunchEvent: phase1 starts in the past");
     });
 
     it("should revert initialisation if token is wavax", async function () {
@@ -127,7 +125,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("RocketJoeFactory: Token can't be wavax");
+      ).to.be.revertedWith("RJFactory: token can't be wavax");
     });
 
     it("should revert initialisation if launch pair already exists (USDC)", async function () {
@@ -145,7 +143,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("RocketJoeFactory: Pair already exists");
+      ).to.be.revertedWith("RJFactory: pair already exists");
     });
 
     it("should revert initialisation if withdraw penalty gradient is too high", async function () {
@@ -163,7 +161,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("LaunchEvent: withdrawPenatlyGradient too big");
+      ).to.be.revertedWith("LaunchEvent: withdrawPenaltyGradient too big");
     });
 
     it("should revert initialisation if fixed withdraw penalty is too high", async function () {
@@ -199,9 +197,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith(
-        "LaunchEvent: Max allocation needs to be greater than min"
-      );
+      ).to.be.revertedWith("LaunchEvent: max allocation less than min");
     });
 
     it("should revert initialisation if user timelock is too long", async function () {
@@ -220,7 +216,7 @@ describe("Launch event contract initialisation", function () {
           120
         )
       ).to.be.revertedWith(
-        "LaunchEvent: Can't lock user LP for more than 7 days"
+        "LaunchEvent: can't lock user LP for more than 7 days"
       );
     });
 
@@ -239,9 +235,7 @@ describe("Launch event contract initialisation", function () {
           60 * 60 * 24 * 6,
           60 * 60 * 24 * 5
         )
-      ).to.be.revertedWith(
-        "LaunchEvent: Issuer can't withdraw their LP before everyone"
-      );
+      ).to.be.revertedWith("LaunchEvent: issuer can't withdraw before users");
     });
 
     it("should deploy with correct paramaters", async function () {

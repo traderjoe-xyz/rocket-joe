@@ -46,7 +46,7 @@ describe("Launch event contract phase one", function () {
 
     await this.rJOE
       .connect(this.dev)
-      .mint(this.bob.address, ethers.utils.parseEther("10.0"));
+      .mint(this.bob.address, ethers.utils.parseEther("1000.0"));
 
     // Send auction token to the dev.
     await this.AUCTOK.connect(this.dev).mint(
@@ -97,7 +97,7 @@ describe("Launch event contract phase one", function () {
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("LaunchEvent: Not in phase one");
+      ).to.be.revertedWith("LaunchEvent: phase1 is over");
     });
 
     it("It should revert if rJOE not approved", async function () {
@@ -115,7 +115,7 @@ describe("Launch event contract phase one", function () {
       await network.provider.send("evm_mine");
       await this.rJOE
         .connect(this.bob)
-        .approve(this.LaunchEvent.address, ethers.utils.parseEther("1.0"));
+        .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
       await this.LaunchEvent.connect(this.bob).depositAVAX({
         value: ethers.utils.parseEther("1.0"),
       });
@@ -131,24 +131,30 @@ describe("Launch event contract phase one", function () {
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({ value: 4999 })
       ).to.be.revertedWith(
-        "LaunchEvent: Not enough AVAX sent to meet the min allocation"
+        "LaunchEvent: amount doesnt fulfil min allocation"
       );
     });
 
-    it("Should only be pausable by owner", async function () {
-      expect(this.LaunchEvent.connect(this.dev).pause()).to.be.revertedWith(
-        "Ownable: caller is not the owner"
+    it("Should only be stopped by RJFactory owner", async function () {
+      //issuer of the LaunchEvent
+      await expect(this.LaunchEvent.connect(this.alice).allowEmergencyWithdraw()).to.be.revertedWith(
+        "Launch Event: caller is not RJFactory owner"
+      );
+
+      // any user
+      expect(this.LaunchEvent.connect(this.bob).allowEmergencyWithdraw()).to.be.revertedWith(
+        "Launch Event: caller is not RJFactory owner"
       );
     });
 
-    it("should revert if paused", async function () {
+    it("should revert if stopped", async function () {
       await network.provider.send("evm_increaseTime", [120]);
       await network.provider.send("evm_mine");
-      await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 4999);
-      await this.LaunchEvent.connect(this.alice).pause();
+      await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 6000*100);
+      await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
       expect(
-        this.LaunchEvent.connect(this.bob).depositAVAX({ value: 4999 })
-      ).to.be.revertedWith("LaunchEvent: Contract is paused");
+        this.LaunchEvent.connect(this.bob).depositAVAX({ value: 6000})
+      ).to.be.revertedWith("LaunchEvent: stopped");
     });
 
     it("should revert if AVAX sent more than max allocation", async function () {
@@ -162,7 +168,7 @@ describe("Launch event contract phase one", function () {
           value: ethers.utils.parseEther("6"),
         })
       ).to.be.revertedWith(
-        "LaunchEvent: Too much AVAX sent to meet the max allocation"
+        "LaunchEvent: amount exceeds max allocation"
       );
     });
 
@@ -173,14 +179,14 @@ describe("Launch event contract phase one", function () {
       await network.provider.send("evm_mine");
       await this.rJOE
         .connect(this.bob)
-        .approve(this.LaunchEvent.address, ethers.utils.parseEther("1.0"));
+        .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
 
       await this.LaunchEvent.connect(this.bob).depositAVAX({
         value: ethers.utils.parseEther("1.0"),
       });
 
       expect(await this.rJOE.totalSupply()).to.be.equal(
-        rJOEBefore.sub(ethers.utils.parseEther("1.0"))
+        rJOEBefore.sub(ethers.utils.parseEther("100.0"))
       );
     });
 
@@ -189,7 +195,7 @@ describe("Launch event contract phase one", function () {
       await network.provider.send("evm_mine");
       await this.rJOE
         .connect(this.bob)
-        .approve(this.LaunchEvent.address, ethers.utils.parseEther("1.0"));
+        .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
 
       await this.LaunchEvent.connect(this.bob).depositAVAX({
         value: ethers.utils.parseEther("1.0"),
@@ -210,7 +216,7 @@ describe("Launch event contract phase one", function () {
       await network.provider.send("evm_mine");
       await this.rJOE
         .connect(this.bob)
-        .approve(this.LaunchEvent.address, ethers.utils.parseEther("1.0"));
+        .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
 
       await this.LaunchEvent.connect(this.bob).depositAVAX({
         value: ethers.utils.parseEther("1.0"),
@@ -232,7 +238,7 @@ describe("Launch event contract phase one", function () {
       await network.provider.send("evm_mine");
       expect(
         this.LaunchEvent.connect(this.dev).createPair()
-      ).to.be.revertedWith("LaunchEvent: Not in phase three");
+      ).to.be.revertedWith("LaunchEvent: not in phase three");
     });
   });
 
