@@ -203,7 +203,7 @@ contract LaunchEvent is Ownable {
     receive() external payable {}
 
     /// @dev Returns the current penalty
-    function getPenalty() private view returns (uint256) {
+    function getPenalty() public view returns (uint256) {
         uint256 startedSince = block.timestamp - phaseOne;
         if (startedSince < 1 days) {
             return 0;
@@ -214,7 +214,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @dev Returns the current balance of the pool
-    function poolInfo() private view returns (uint256, uint256) {
+    function poolInfo() public view returns (uint256, uint256) {
         return (
             IERC20(address(WAVAX)).balanceOf(address(this)),
             token.balanceOf(address(this))
@@ -305,12 +305,12 @@ contract LaunchEvent is Ownable {
 
     /// @dev get the rJoe amount needed;
     /// @dev TODO: implement, currently just returns the allocation credits.
-    function getRJoeAmount(uint256 avaxAmount) private view returns (uint256) {
+    function getRJoeAmount(uint256 avaxAmount) public view returns (uint256) {
         return avaxAmount * rJoePerAvax;
     }
 
     /// @dev The total amount of liquidity pool tokens the user can withdraw.
-    function pairBalance(address _user) private view returns (uint256) {
+    function pairBalance(address _user) public view returns (uint256) {
         if (avaxAllocated == 0) {
             return 0;
         }
