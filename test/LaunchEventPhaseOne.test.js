@@ -135,20 +135,26 @@ describe("Launch event contract phase one", function () {
       );
     });
 
-    it("Should only be pausable by owner", async function () {
-      expect(this.LaunchEvent.connect(this.dev).togglePause()).to.be.revertedWith(
-        "Ownable: caller is not the owner"
+    it("Should only be stopped by RJFactory owner", async function () {
+      //issuer of the LaunchEvent
+      await expect(this.LaunchEvent.connect(this.alice).allowEmergencyWithdraw()).to.be.revertedWith(
+        "Launch Event: caller is not RJFactory owner"
+      );
+
+      // any user
+      expect(this.LaunchEvent.connect(this.bob).allowEmergencyWithdraw()).to.be.revertedWith(
+        "Launch Event: caller is not RJFactory owner"
       );
     });
 
-    it("should revert if paused", async function () {
+    it("should revert if stopped", async function () {
       await network.provider.send("evm_increaseTime", [120]);
       await network.provider.send("evm_mine");
       await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 6000*100);
-      await this.LaunchEvent.connect(this.alice).togglePause();
+      await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({ value: 6000})
-      ).to.be.revertedWith("LaunchEvent: paused");
+      ).to.be.revertedWith("LaunchEvent: stopped");
     });
 
     it("should revert if AVAX sent more than max allocation", async function () {

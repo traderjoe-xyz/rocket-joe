@@ -61,7 +61,7 @@ contract LaunchEvent is Ownable {
     IRocketJoeFactory private rocketJoeFactory;
 
     /// @dev internal state variable for paused
-    bool internal isPaused;
+    bool internal isStopped;
 
     /// @dev max and min allocation limits.
     uint256 public minAllocation;
@@ -162,7 +162,7 @@ contract LaunchEvent is Ownable {
     /// @notice Deposits AVAX and burns rJoe.
     /// @dev Checks are done in the `_depositWAVAX` function.
     function depositAVAX() external payable {
-        require(isPaused != true, "LaunchEvent: paused");
+        require(!isStopped, "LaunchEvent: stopped");
         require(
             block.timestamp >= phaseOne &&
                 block.timestamp < (phaseOne + 3 days),
@@ -174,7 +174,7 @@ contract LaunchEvent is Ownable {
 
     /// @dev withdraw AVAX only during phase 1 and 2.
     function withdrawWAVAX(uint256 amount) public {
-        require(isPaused != true, "LaunchEvent: paused");
+        require(!isStopped, "LaunchEvent: stopped");
         require(
             block.timestamp >= phaseOne &&
                 block.timestamp < (phaseOne + 4 days),
@@ -224,7 +224,7 @@ contract LaunchEvent is Ownable {
     /// @dev Create the uniswap pair, can be called by anyone but only once
     /// @dev but only once after phase 3 has started.
     function createPair() external {
-        require(isPaused != true, "LaunchEvent: paused");
+        require(!isStopped, "LaunchEvent: stopped");
         require(
             block.timestamp >= (phaseOne + 4 days),
             "LaunchEvent: not in phase three"
@@ -268,7 +268,7 @@ contract LaunchEvent is Ownable {
 
     /// @dev withdraw the liquidity pool tokens.
     function withdrawLiquidity() external {
-        require(isPaused != true, "LaunchEvent: paused");
+        require(!isStopped, "LaunchEvent: stopped");
         require(address(pair) != address(0), "LaunchEvent: pair is 0 address");
         require(
             block.timestamp > (phaseOne + 4 days) + userTimelock,
@@ -284,27 +284,23 @@ contract LaunchEvent is Ownable {
                     2
             );
         }
-    }
 
-    /// @dev withdraw the liquidity pool tokens, only for issuer.
-    function withdrawIssuerLiquidity() external {
-        require(isPaused != true, "LaunchEvent: paused");
-        require(address(pair) != address(0), "LaunchEvent: pair is 0 address");
-        require(msg.sender == issuer, "LaunchEvent: caller is not Issuer");
-        require(
-            block.timestamp > (phaseOne + 4 days) + issuerTimelock,
-            "LaunchEvent: can't withdraw before issuer's timelock"
-        );
+        if (msg.sender == issuer) {
+            // TODO: require or simple check ?
+            require(
+                block.timestamp > (phaseOne + 4 days) + issuerTimelock,
+                "LaunchEvent: can't withdraw before issuer's timelock"
+            );
 
-        pair.transfer(issuer, avaxAllocated / 2);
+            pair.transfer(issuer, lpSupply / 2);
 
-        if (tokenReserve > 0) {
-            token.transfer(issuer, (tokenReserve * 1e18) / avaxAllocated / 2);
+            if (tokenReserve > 0) {
+                token.transfer(issuer, (tokenReserve * 1e18) / avaxAllocated / 2);
+            }
         }
     }
 
     /// @dev get the rJoe amount needed;
-    /// @dev TODO: implement, currently just returns the allocation credits.
     function getRJoeAmount(uint256 avaxAmount) public view returns (uint256) {
         return avaxAmount * rJoePerAvax;
     }
@@ -318,11 +314,29 @@ contract LaunchEvent is Ownable {
         return (users[_user].allocation * lpSupply) / avaxAllocated / 2;
     }
 
+    function emergencyWithdraw() external {
+        require(isStopped, "Launch Event: is not stopped");
+
+        UserAllocation storage user = users[msg.sender];
+
+        safeTransferAVAX(msg.sender, user.allocation);
+
+        user.allocation = 0;
+
+        if (msg.sender == issuer) {
+            token.transfer(issuer, token.balanceOf(issuer));
+        }
+    }
+
     /// Restricted functions.
 
-    /// @dev Pause this contract
-    function togglePause() external onlyOwner {
-        isPaused = isPaused ? false: true;
+    /// @dev Allows user and isssuer to emergency withdraw their funds
+    function allowEmergencyWithdraw() external {
+        require(
+            msg.sender == Ownable(address(rocketJoeFactory)).owner(),
+            "Launch Event: caller is not RJFactory owner"
+        );
+        isStopped = true;
     }
 
     /// Internal functions.
@@ -335,7 +349,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice Use your allocation credits by sending WAVAX.
     function _depositWAVAX(address from, uint256 avaxAmount) internal {
-        require(isPaused != true, "LaunchEvent: paused");
+        require(!isStopped, "LaunchEvent: stopped");
         require(
             avaxAmount >= minAllocation,
             "LaunchEvent: amount doesnt fulfil min allocation"
