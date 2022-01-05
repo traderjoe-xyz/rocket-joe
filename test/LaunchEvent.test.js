@@ -161,7 +161,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("LaunchEvent: withdrawPenatlyGradient too big");
+      ).to.be.revertedWith("LaunchEvent: withdrawPenaltyGradient too big");
     });
 
     it("should revert initialisation if fixed withdraw penalty is too high", async function () {

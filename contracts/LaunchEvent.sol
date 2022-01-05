@@ -101,7 +101,7 @@ contract LaunchEvent is Ownable {
         uint256 _phaseOne,
         address _token,
         uint256 _floorPrice,
-        uint256 _withdrawPenatlyGradient,
+        uint256 _withdrawPenaltyGradient,
         uint256 _fixedWithdrawPenalty,
         uint256 _minAllocation,
         uint256 _maxAllocation,
@@ -118,8 +118,8 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: phase1 starts in the past"
         );
         require(
-            _withdrawPenatlyGradient < 5e11 / uint256(2 days),
-            "LaunchEvent: withdrawPenatlyGradient too big"
+            _withdrawPenaltyGradient < 5e11 / uint256(2 days),
+            "LaunchEvent: withdrawPenaltyGradient too big"
         ); /// 50%
         require(
             _fixedWithdrawPenalty < 5e11,
@@ -147,7 +147,7 @@ contract LaunchEvent is Ownable {
         tokenReserve = token.balanceOf(address(this));
         floorPrice = _floorPrice;
 
-        withdrawPenaltyGradient = _withdrawPenatlyGradient;
+        withdrawPenaltyGradient = _withdrawPenaltyGradient;
         fixedWithdrawPenalty = _fixedWithdrawPenalty;
 
         minAllocation = _minAllocation;
