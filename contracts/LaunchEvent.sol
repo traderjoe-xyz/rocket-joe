@@ -73,7 +73,7 @@ contract LaunchEvent is Ownable {
         uint256 pairPoolWithdrawn;
     }
     /// @dev mapping of users to allocation record.
-    mapping(address => UserAllocation) private users;
+    mapping(address => UserAllocation) public users;
 
     /// @dev the address of the uniswap pair. Only set after createLiquidityPool is called.
     IJoePair private pair;
@@ -195,7 +195,7 @@ contract LaunchEvent is Ownable {
 
         safeTransferAVAX(msg.sender, amountMinusFee);
         if (feeAmount > 0) {
-            safeTransferAVAX(penaltyCollector, feeAmount);
+            safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
         }
     }
 
@@ -322,7 +322,7 @@ contract LaunchEvent is Ownable {
 
     /// @dev Pause this contract
     function togglePause() external onlyOwner {
-        isPaused = false ? isPaused : false;
+        isPaused = isPaused ? false: true;
     }
 
     /// Internal functions.
