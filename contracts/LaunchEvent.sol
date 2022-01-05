@@ -295,7 +295,10 @@ contract LaunchEvent is Ownable {
             pair.transfer(issuer, lpSupply / 2);
 
             if (tokenReserve > 0) {
-                token.transfer(issuer, (tokenReserve * 1e18) / avaxAllocated / 2);
+                token.transfer(
+                    issuer,
+                    (tokenReserve * 1e18) / avaxAllocated / 2
+                );
             }
         }
     }

@@ -130,30 +130,30 @@ describe("Launch event contract phase one", function () {
       await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 4999);
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({ value: 4999 })
-      ).to.be.revertedWith(
-        "LaunchEvent: amount doesnt fulfil min allocation"
-      );
+      ).to.be.revertedWith("LaunchEvent: amount doesnt fulfil min allocation");
     });
 
     it("Should only be stopped by RJFactory owner", async function () {
       //issuer of the LaunchEvent
-      await expect(this.LaunchEvent.connect(this.alice).allowEmergencyWithdraw()).to.be.revertedWith(
-        "Launch Event: caller is not RJFactory owner"
-      );
+      await expect(
+        this.LaunchEvent.connect(this.alice).allowEmergencyWithdraw()
+      ).to.be.revertedWith("Launch Event: caller is not RJFactory owner");
 
       // any user
-      expect(this.LaunchEvent.connect(this.bob).allowEmergencyWithdraw()).to.be.revertedWith(
-        "Launch Event: caller is not RJFactory owner"
-      );
+      expect(
+        this.LaunchEvent.connect(this.bob).allowEmergencyWithdraw()
+      ).to.be.revertedWith("Launch Event: caller is not RJFactory owner");
     });
 
     it("should revert if stopped", async function () {
       await network.provider.send("evm_increaseTime", [120]);
       await network.provider.send("evm_mine");
-      await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 6000*100);
+      await this.rJOE
+        .connect(this.bob)
+        .approve(this.LaunchEvent.address, 6000 * 100);
       await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
       expect(
-        this.LaunchEvent.connect(this.bob).depositAVAX({ value: 6000})
+        this.LaunchEvent.connect(this.bob).depositAVAX({ value: 6000 })
       ).to.be.revertedWith("LaunchEvent: stopped");
     });
 
@@ -167,9 +167,7 @@ describe("Launch event contract phase one", function () {
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("6"),
         })
-      ).to.be.revertedWith(
-        "LaunchEvent: amount exceeds max allocation"
-      );
+      ).to.be.revertedWith("LaunchEvent: amount exceeds max allocation");
     });
 
     it("should burn rJOE on succesful deposit", async function () {
