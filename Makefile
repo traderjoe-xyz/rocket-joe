@@ -13,3 +13,6 @@ coverage:
 
 console:
 	yarn run hardhat console
+
+size:
+	yarn run hardhat size-contracts
