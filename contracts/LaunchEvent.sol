@@ -155,7 +155,7 @@ contract LaunchEvent is Ownable {
         );
 
         issuer = _issuer;
-
+        transferOwnership(issuer);
         /// Different time phases
         phaseOneStartTime = _phaseOneStartTime;
         phaseOneLengthSeconds = 3 days;
@@ -246,8 +246,13 @@ contract LaunchEvent is Ownable {
         WAVAX.withdraw(amount);
 
         safeTransferAVAX(msg.sender, amountMinusFee);
-        safeTransferAVAX(penaltyCollector, feeAmount);
+        if (feeAmount > 0) {
+            safeTransferAVAX(penaltyCollector, feeAmount);
+        }
     }
+
+    /// @dev Needed for withdrawing from WAVAX contract.
+    receive() external payable {}
 
     /// @dev Returns the current penalty
     function getPenalty() public view returns (uint256) {
@@ -381,6 +386,7 @@ contract LaunchEvent is Ownable {
 
     /// @dev Transfers and burns all the rJoe.
     function burnRJoe(address from, uint256 rJoeAmount) internal {
+        // TODO: Should we use SafeERC20
         rJoe.transferFrom(from, address(this), rJoeAmount);
         rJoe.burn(rJoeAmount);
     }
