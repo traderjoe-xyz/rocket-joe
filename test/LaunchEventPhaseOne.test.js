@@ -241,8 +241,13 @@ describe("Launch event contract phase one", function () {
 
     it("should revert trying to send AVAX to the contract", async function () {
       await expect(
-        this.bob.sendTransaction({to: this.LaunchEvent.address, value: ethers.utils.parseEther("1.0")})
-      ).to.be.revertedWith("LaunchEvent: You can't send AVAX directly to this contract");
+        this.bob.sendTransaction({
+          to: this.LaunchEvent.address,
+          value: ethers.utils.parseEther("1.0"),
+        })
+      ).to.be.revertedWith(
+        "LaunchEvent: You can't send AVAX directly to this contract"
+      );
     });
   });
 

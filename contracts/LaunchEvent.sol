@@ -174,6 +174,7 @@ contract LaunchEvent is Ownable {
     receive() external payable {
         require(msg.sender == address(WAVAX), "LaunchEvent: You can't send AVAX directly to this contract");
     }
+
     /// @dev Returns the current penalty
     function getPenalty() public view returns (uint256) {
         uint256 startedSince = block.timestamp - phaseOne;
