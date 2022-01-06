@@ -238,6 +238,14 @@ describe("Launch event contract phase one", function () {
         this.LaunchEvent.connect(this.dev).createPair()
       ).to.be.revertedWith("LaunchEvent: not in phase three");
     });
+
+    it("should revert trying to send AVAX to the contract", async function () {
+      await network.provider.send("evm_increaseTime", [120]);
+      await network.provider.send("evm_mine");
+      await expect(
+        this.bob.sendTransaction({to: this.LaunchEvent.address, value: ethers.utils.parseEther("1.0")})
+      ).to.be.revertedWith("LaunchEvent: You can't send AVAX directly to this contract");
+    });
   });
 
   after(async function () {
