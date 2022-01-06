@@ -8,8 +8,6 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "./RocketJoeToken.sol";
 
-import "hardhat/console.sol";
-
 // MasterChefJoe is a boss. He says "go f your blocks lego boy, I'm gonna use timestamp instead".
 // And to top it off, it takes no risks. Because the biggest risk is operator error.
 // So we make it virtually impossible for the operator of this contract to cause a bug with people's harvests.

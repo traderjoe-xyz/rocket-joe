@@ -101,6 +101,9 @@ describe("Launch event contract phase one", function () {
     expect(this.LaunchEvent.users(this.bob.address).amount).to.equal(
       ethers.utils.parseEther("1.0").number
     );
+    await expect(
+      this.bob.sendTransaction({to: this.LaunchEvent.address, value: ethers.parseEther("1.0")})
+    ).to.be.revertedWith("LaunchEvent: You can't send AVAX directly to this contract")
     // increase time by 3 days.
     await network.provider.send("evm_increaseTime", [60*60*24*3]);
     await network.provider.send("evm_mine");
