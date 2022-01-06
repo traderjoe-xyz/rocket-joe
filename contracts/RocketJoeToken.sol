@@ -5,7 +5,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-// RocketJoeToken, rJoe.
+/// @title Rocket Joe Token
+/// @author Trader Joe
+/// @notice Token that gives allocation credits for Rocket Joe launch events
 contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
     /// @notice Infinite supply, but burned to join IDO.
 

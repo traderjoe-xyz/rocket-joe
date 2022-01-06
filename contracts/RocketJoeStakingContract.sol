@@ -10,17 +10,9 @@ import "./RocketJoeToken.sol";
 
 import "hardhat/console.sol";
 
-// MasterChefJoe is a boss. He says "go f your blocks lego boy, I'm gonna use timestamp instead".
-// And to top it off, it takes no risks. Because the biggest risk is operator error.
-// So we make it virtually impossible for the operator of this contract to cause a bug with people's harvests.
-//
-// Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once JOE is sufficiently
-// distributed and the community can show to govern itself.
-//
-// With thanks to the Lydia Finance team.
-//
-// Godspeed and may the 10x be with you.
+/// @title Rocket Joe Staking
+/// @author Trader Joe
+/// @notice Staking contract to earn Rocket Joe credits
 contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -80,10 +72,7 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         if (block.timestamp > lastRewardTimestamp && moJoeSupply != 0) {
             uint256 multiplier = block.timestamp - lastRewardTimestamp;
             uint256 rJoeReward = multiplier * rJoePerSec;
-            _accRJoePerShare =
-                _accRJoePerShare +
-                (rJoeReward * 1e12) /
-                moJoeSupply;
+            _accRJoePerShare = _accRJoePerShare + (rJoeReward * 1e12) / moJoeSupply;
         }
         return (user.amount * _accRJoePerShare) / 1e12 - user.rewardDebt;
     }
@@ -112,9 +101,7 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
 
         updatePool();
         if (user.amount > 0) {
-            uint256 pending = (user.amount * accRJoePerShare) /
-                1e12 -
-                user.rewardDebt;
+            uint256 pending = (user.amount * accRJoePerShare) / 1e12 - user.rewardDebt;
             safeRJoeTransfer(msg.sender, pending);
         }
         user.amount = user.amount + _amount;
@@ -130,9 +117,7 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         require(user.amount >= _amount, "withdraw: not good");
 
         updatePool();
-        uint256 pending = (user.amount * accRJoePerShare) /
-            1e12 -
-            user.rewardDebt;
+        uint256 pending = (user.amount * accRJoePerShare) / 1e12 - user.rewardDebt;
         user.amount = user.amount - _amount;
         user.rewardDebt = (user.amount * accRJoePerShare) / 1e12;
 
