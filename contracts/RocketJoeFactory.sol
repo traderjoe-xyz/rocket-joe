@@ -62,16 +62,10 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external override returns (address launchEvent) {
-        require(
-            getRJLaunchEvent[_token] == address(0),
-            "RJFactory: token has already been issued"
-        );
+        require(getRJLaunchEvent[_token] == address(0), "RJFactory: token has already been issued");
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
-        require(
-            IJoeFactory(factory).getPair(wavax, _token) == address(0),
-            "RJFactory: pair already exists"
-        );
+        require(IJoeFactory(factory).getPair(wavax, _token) == address(0), "RJFactory: pair already exists");
 
         bytes memory bytecode = type(LaunchEvent).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(_token));
@@ -104,11 +98,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         rJoe = _rJoe;
     }
 
-    function setPenaltyCollector(address _penaltyCollector)
-        external
-        override
-        onlyOwner
-    {
+    function setPenaltyCollector(address _penaltyCollector) external override onlyOwner {
         penaltyCollector = _penaltyCollector;
     }
 
