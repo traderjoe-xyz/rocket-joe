@@ -85,7 +85,7 @@ contract LaunchEvent is Ownable {
 
 
     /// @notice Receive AVAX from the WAVAX contract
-    /// @dev Needed for withdrawing from WAVAX contract.
+    /// @dev Needed for withdrawing from WAVAX contract
     receive() external payable {
         require(
             msg.sender == address(WAVAX),
@@ -108,7 +108,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Modifier which checks we are at a valid state in the auction for a user to withdraw their bid
-    /// @dev This essentially checks we are in phase one or two.
+    /// @dev This essentially checks we are in phase one or two
     modifier withdrawable() {
         require(
             currentPhase() == Phases.PhaseOne || currentPhase() == Phases.PhaseTwo,
@@ -196,7 +196,7 @@ contract LaunchEvent is Ownable {
         issuerTimelock = _issuerTimelock;
     }
 
-    /// @notice The current phase the auction is in.
+    /// @notice The current phase the auction is in
     function currentPhase() public view returns (Phases) {
         if (block.timestamp < phaseOne || phaseOne == 0) {
             return Phases.NotStarted;
@@ -227,7 +227,7 @@ contract LaunchEvent is Ownable {
         (address wavaxAddress, address tokenAddress) = (address(WAVAX), address(token));
         (uint256 avaxBalance, uint256 tokenBalance) = getReserves();
 
-        // Adjust the amount of tokens sent to the pool if floor price not met.
+        // Adjust the amount of tokens sent to the pool if floor price not met
         if (floorPrice > (avaxBalance * 1e18) / tokenBalance) {
             tokenBalance = (avaxBalance * 1e18) / floorPrice;
         }
