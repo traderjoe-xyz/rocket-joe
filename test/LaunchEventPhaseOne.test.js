@@ -201,7 +201,7 @@ describe("Launch event contract phase one", function () {
 
       // Test the amount received
       const balanceBefore = await this.bob.getBalance();
-      await this.LaunchEvent.connect(this.bob).withdrawWAVAX(
+      await this.LaunchEvent.connect(this.bob).withdrawAVAX(
         ethers.utils.parseEther("1.0")
       );
       expect(await this.bob.getBalance()).to.be.above(balanceBefore);
@@ -221,7 +221,7 @@ describe("Launch event contract phase one", function () {
       });
       await network.provider.send("evm_increaseTime", [60 * 60 * 36]); // 1.5 days
       await network.provider.send("evm_mine");
-      await this.LaunchEvent.connect(this.bob).withdrawWAVAX(
+      await this.LaunchEvent.connect(this.bob).withdrawAVAX(
         ethers.utils.parseEther("1.0")
       );
 

@@ -297,7 +297,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice Withdraw AVAX only during phase 1 and 2
     /// @param amount The amount of AVAX to withdraw
-    function withdrawWAVAX(uint256 amount) public {
+    function withdrawAVAX(uint256 amount) public {
         require(!isStopped, "LaunchEvent: stopped");
         require(
             block.timestamp >= phaseOne &&
