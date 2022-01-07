@@ -178,7 +178,6 @@ contract LaunchEvent is Ownable {
         require(_phaseOne > block.timestamp, "LaunchEvent: phase 1 has not started");
 
         issuer = _issuer;
-        //transferOwnership(issuer);
 
         phaseOne = _phaseOne;
         PHASE_ONE_DURATION = 3 days;
