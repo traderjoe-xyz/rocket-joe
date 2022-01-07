@@ -323,6 +323,7 @@ contract LaunchEvent is Ownable {
     /// @notice Send AVAX
     /// @param to The receiving address
     /// @param value The amount of AVAX to send
+    /// @dev Will revert on failure
     function safeTransferAVAX(address to, uint256 value) internal {
         (bool success, ) = to.call{value: value}(new bytes(0));
         require(success, "LaunchEvent: avax transfer failed");
