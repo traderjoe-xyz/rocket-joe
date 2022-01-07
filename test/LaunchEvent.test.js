@@ -74,24 +74,6 @@ describe("Launch event contract initialisation", function () {
       ).to.be.revertedWith("RJFactory: token can't be 0 address");
     });
 
-    it("should revert initialisation if issuer is not set", async function () {
-      await expect(
-        this.RocketFactory.createRJLaunchEvent(
-          ethers.constants.AddressZero,
-          Math.floor(Date.now() / 1000),
-          this.rJOE2.address,
-          100,
-          1,
-          1,
-          1,
-          100,
-          10000,
-          60,
-          120
-        )
-      ).to.be.revertedWith("LaunchEvent: issuer is null address");
-    });
-
     it("should revert initialisation if start time is in the past", async function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(

@@ -97,7 +97,7 @@ describe("Launch event contract phase one", function () {
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("LaunchEvent: phase1 is over");
+      ).to.be.revertedWith("LaunchEvent: phase 1 is over");
     });
 
     it("It should revert if rJOE not approved", async function () {

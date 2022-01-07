@@ -121,7 +121,7 @@ describe("Launch event contract phase two", function () {
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("LaunchEvent: phase1 is over");
+      ).to.be.revertedWith("LaunchEvent: phase 1 is over");
     });
 
     it("should revert try to create pool", async function () {
