@@ -116,7 +116,6 @@ contract LaunchEvent is Ownable {
         uint256 _issuerTimelock
     ) external {
         require(msg.sender == address(rocketJoeFactory), "LaunchEvent: forbidden");
-        require(_issuer != address(0), "LaunchEvent: issuer is null address");
         require(_phaseOne >= block.timestamp, "LaunchEvent: phase 1 has not started yet");
         require(
             _withdrawPenaltyGradient < 5e11 / uint256(2 days),
@@ -155,7 +154,7 @@ contract LaunchEvent is Ownable {
         require(!isStopped, "LaunchEvent: stopped");
         require(
             block.timestamp >= phaseOne && block.timestamp < (phaseOne + PHASE_ONE_DURATION),
-            "LaunchEvent: phase1 is over"
+            "LaunchEvent: phase 1 is over"
         );
         WAVAX.deposit{value: msg.value}();
         _depositWAVAX(msg.sender, msg.value); // checks are done here
