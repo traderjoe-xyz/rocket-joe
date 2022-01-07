@@ -120,8 +120,8 @@ contract LaunchEvent is Ownable {
         require(
             _withdrawPenaltyGradient < 5e11 / uint256(2 days),
             "LaunchEvent: withdrawPenaltyGradient too big"
-        ); /// 50%
-        require(_fixedWithdrawPenalty < 5e11, "LaunchEvent: fixedWithdrawPenalty too big"); /// 50%
+        ); // 50%
+        require(_fixedWithdrawPenalty < 5e11, "LaunchEvent: fixedWithdrawPenalty too big"); // 50%
         require(_maxAllocation >= _minAllocation, "LaunchEvent: max allocation less than min");
         require(_userTimelock < 7 days, "LaunchEvent: can't lock user LP for more than 7 days");
         require(
@@ -340,7 +340,7 @@ contract LaunchEvent is Ownable {
             user.allocation + avaxAmount <= maxAllocation,
             "LaunchEvent: amount exceeds max allocation");
 
-        user.allocation = user.allocation + avaxAmount;
+        user.allocation += avaxAmount;
         user.hasWithdrawnPair = false;
 
         uint256 rJoeAmount = getRJoeAmount(avaxAmount);
