@@ -85,8 +85,6 @@ contract LaunchEvent is Ownable {
 
     uint256 private tokenReserve;
 
-    /// Constructor
-
     constructor() {
         rocketJoeFactory = IRocketJoeFactory(msg.sender);
         WAVAX = IWAVAX(rocketJoeFactory.wavax());
@@ -94,6 +92,11 @@ contract LaunchEvent is Ownable {
         factory = IJoeFactory(rocketJoeFactory.factory());
         rJoe = RocketJoeToken(rocketJoeFactory.rJoe());
         rJoePerAvax = rocketJoeFactory.rJoePerAvax();
+    }
+
+    /// @dev Needed for withdrawing from WAVAX contract.
+    receive() external payable {
+        require(msg.sender == address(WAVAX), "LaunchEvent: You can't send AVAX directly to this contract");
     }
 
     function initialize(
@@ -136,8 +139,6 @@ contract LaunchEvent is Ownable {
         issuerTimelock = _issuerTimelock;
     }
 
-    /// Public functions.
-
     /// @notice Deposits AVAX and burns rJoe.
     /// @dev Checks are done in the `_depositWAVAX` function.
     function depositAVAX() external payable {
@@ -145,50 +146,6 @@ contract LaunchEvent is Ownable {
         require(block.timestamp >= phaseOne && block.timestamp < (phaseOne + 3 days), "LaunchEvent: phase1 is over");
         WAVAX.deposit{value: msg.value}();
         _depositWAVAX(msg.sender, msg.value); // checks are done here.
-    }
-
-    /// @dev withdraw AVAX only during phase 1 and 2.
-    function withdrawWAVAX(uint256 amount) public {
-        require(!isStopped, "LaunchEvent: stopped");
-        require(
-            block.timestamp >= phaseOne && block.timestamp < (phaseOne + 4 days),
-            "LaunchEvent: can't withdraw after phase2"
-        );
-
-        UserAllocation storage user = users[msg.sender];
-        require(user.allocation >= amount, "LaunchEvent: withdrawn amount exceeds balance");
-        user.allocation = user.allocation - amount;
-
-        uint256 feeAmount = (amount * getPenalty()) / 1e12;
-        uint256 amountMinusFee = amount - feeAmount;
-
-        WAVAX.withdraw(amount);
-
-        safeTransferAVAX(msg.sender, amountMinusFee);
-        if (feeAmount > 0) {
-            safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
-        }
-    }
-
-    /// @dev Needed for withdrawing from WAVAX contract.
-    receive() external payable {
-        require(msg.sender == address(WAVAX), "LaunchEvent: You can't send AVAX directly to this contract");
-    }
-
-    /// @dev Returns the current penalty
-    function getPenalty() public view returns (uint256) {
-        uint256 startedSince = block.timestamp - phaseOne;
-        if (startedSince < 1 days) {
-            return 0;
-        } else if (startedSince < 3 days) {
-            return (startedSince - 1 days) * withdrawPenaltyGradient;
-        }
-        return fixedWithdrawPenalty;
-    }
-
-    /// @dev Returns the current balance of the pool
-    function poolInfo() public view returns (uint256, uint256) {
-        return (IERC20(address(WAVAX)).balanceOf(address(this)), token.balanceOf(address(this)));
     }
 
     /// @dev Create the uniswap pair, can be called by anyone but only once
@@ -256,19 +213,6 @@ contract LaunchEvent is Ownable {
         }
     }
 
-    /// @dev get the rJoe amount needed;
-    function getRJoeAmount(uint256 avaxAmount) public view returns (uint256) {
-        return avaxAmount * rJoePerAvax;
-    }
-
-    /// @dev The total amount of liquidity pool tokens the user can withdraw.
-    function pairBalance(address _user) public view returns (uint256) {
-        if (avaxAllocated == 0) {
-            return 0;
-        }
-
-        return (users[_user].allocation * lpSupply) / avaxAllocated / 2;
-    }
 
     function emergencyWithdraw() external {
         require(isStopped, "Launch Event: is not stopped");
@@ -295,7 +239,59 @@ contract LaunchEvent is Ownable {
         isStopped = true;
     }
 
-    /// Internal functions.
+
+    /// @dev Returns the current penalty
+    function getPenalty() public view returns (uint256) {
+        uint256 startedSince = block.timestamp - phaseOne;
+        if (startedSince < 1 days) {
+            return 0;
+        } else if (startedSince < 3 days) {
+            return (startedSince - 1 days) * withdrawPenaltyGradient;
+        }
+        return fixedWithdrawPenalty;
+    }
+
+    /// @dev Returns the current balance of the pool
+    function poolInfo() public view returns (uint256, uint256) {
+        return (IERC20(address(WAVAX)).balanceOf(address(this)), token.balanceOf(address(this)));
+    }
+
+    /// @dev get the rJoe amount needed;
+    function getRJoeAmount(uint256 avaxAmount) public view returns (uint256) {
+        return avaxAmount * rJoePerAvax;
+    }
+
+    /// @dev The total amount of liquidity pool tokens the user can withdraw.
+    function pairBalance(address _user) public view returns (uint256) {
+        if (avaxAllocated == 0) {
+            return 0;
+        }
+
+        return (users[_user].allocation * lpSupply) / avaxAllocated / 2;
+    }
+
+    /// @dev withdraw AVAX only during phase 1 and 2.
+    function withdrawWAVAX(uint256 amount) public {
+        require(!isStopped, "LaunchEvent: stopped");
+        require(
+            block.timestamp >= phaseOne && block.timestamp < (phaseOne + 4 days),
+            "LaunchEvent: can't withdraw after phase2"
+        );
+
+        UserAllocation storage user = users[msg.sender];
+        require(user.allocation >= amount, "LaunchEvent: withdrawn amount exceeds balance");
+        user.allocation = user.allocation - amount;
+
+        uint256 feeAmount = (amount * getPenalty()) / 1e12;
+        uint256 amountMinusFee = amount - feeAmount;
+
+        WAVAX.withdraw(amount);
+
+        safeTransferAVAX(msg.sender, amountMinusFee);
+        if (feeAmount > 0) {
+            safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
+        }
+    }
 
     /// @dev Transfers `value` AVAX to address.
     function safeTransferAVAX(address to, uint256 value) internal {
