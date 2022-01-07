@@ -5,6 +5,8 @@ pragma solidity >=0.8.0;
 interface IRocketJoeFactory {
     event RJLaunchEventCreated(address indexed token, address indexed issuer);
 
+    function eventImplementation() external view returns (address);
+
     function penaltyCollector() external view returns (address);
 
     function wavax() external view returns (address);

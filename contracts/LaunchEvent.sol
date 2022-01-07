@@ -13,6 +13,7 @@ import "./interfaces/IWAVAX.sol";
 
 import "./RocketJoeToken.sol";
 
+
 /// @title Rocket Joe Launch Event
 /// @author Trader Joe
 /// @notice A liquidity launch contract enabling price discovery and token distribution at secondary market listing price
@@ -33,8 +34,8 @@ contract LaunchEvent is Ownable {
     /// @notice The start time of phase 1
     uint256 public phaseOne;
 
-    uint256 private PHASE_ONE_DURATION = 3 days;
-    uint256 private PHASE_TWO_DURATION = 1 days;
+    uint256 public PHASE_ONE_DURATION;
+    uint256 public PHASE_TWO_DURATION;
 
     /// @notice Floor price per AVAX (can be 0)
     uint256 public floorPrice;
@@ -43,24 +44,24 @@ contract LaunchEvent is Ownable {
     uint256 private userTimelock;
 
     /// @notice Timelock duration post phase 3 When can issuer withdraw their LP tokens
-    uint256 private issuerTimelock;
+    uint256 public issuerTimelock;
 
     /// @notice The withdraw penalty gradient in bps per sec, in parts per 1e12 (phase 1)
     /// e.g. linearly reach 50% in 2 days `withdrawPenaltyGradient = 50 * 100 * 1e12 / 2 days`
-    uint256 private withdrawPenaltyGradient;
+    uint256 public withdrawPenaltyGradient;
 
     /// @notice The fixed withdraw penalty, in parts per 1e12 (phase 2)
     /// e.g. fixed penalty of 20% `fixedWithdrawPenalty = 20e11`
-    uint256 private fixedWithdrawPenalty;
+    uint256 public fixedWithdrawPenalty;
 
-    RocketJoeToken private rJoe;
-    uint256 private rJoePerAvax;
-    IWAVAX immutable WAVAX;
+    RocketJoeToken public rJoe;
+    uint256 public rJoePerAvax;
+    IWAVAX public WAVAX;
     IERC20 public token;
 
-    IJoeRouter02 private router;
-    IJoeFactory private factory;
-    IRocketJoeFactory private rocketJoeFactory;
+    IJoeRouter02 public router;
+    IJoeFactory public factory;
+    IRocketJoeFactory public rocketJoeFactory;
 
     bool internal isStopped;
 
@@ -83,16 +84,6 @@ contract LaunchEvent is Ownable {
 
     uint256 private tokenReserve;
 
-    /// @notice Creates the contract and sets the contracts it will interact with
-    /// @dev Note: the launch event is not ready until the initialize function is called
-    constructor() {
-        rocketJoeFactory = IRocketJoeFactory(msg.sender);
-        WAVAX = IWAVAX(rocketJoeFactory.wavax());
-        router = IJoeRouter02(rocketJoeFactory.router());
-        factory = IJoeFactory(rocketJoeFactory.factory());
-        rJoe = RocketJoeToken(rocketJoeFactory.rJoe());
-        rJoePerAvax = rocketJoeFactory.rJoePerAvax();
-    }
 
     /// @notice Receive AVAX from the WAVAX contract
     /// @dev Needed for withdrawing from WAVAX contract.
@@ -105,7 +96,9 @@ contract LaunchEvent is Ownable {
 
     /// @notice Modifier which ensures contract is in a defined phase
     modifier atPhase(Phases _phase) {
-        if (_phase == Phases.PhaseOne) {
+        if (_phase == Phases.NotStarted) {
+            require(currentPhase() == Phases.NotStarted, "LaunchEvent: Not in not started");
+        } else if (_phase == Phases.PhaseOne) {
             require(currentPhase() == Phases.PhaseOne, "LaunchEvent: Not in phase one");
         } else if (_phase == Phases.PhaseTwo) {
             require(currentPhase() == Phases.PhaseTwo, "LaunchEvent: Not in phase two");
@@ -163,6 +156,14 @@ contract LaunchEvent is Ownable {
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external atPhase(Phases.NotStarted) {
+
+        rocketJoeFactory = IRocketJoeFactory(msg.sender);
+        WAVAX = IWAVAX(rocketJoeFactory.wavax());
+        router = IJoeRouter02(rocketJoeFactory.router());
+        factory = IJoeFactory(rocketJoeFactory.factory());
+        rJoe = RocketJoeToken(rocketJoeFactory.rJoe());
+        rJoePerAvax = rocketJoeFactory.rJoePerAvax();
+
         require(msg.sender == address(rocketJoeFactory), "LaunchEvent: forbidden");
         require(
             _withdrawPenaltyGradient < 5e11 / uint256(2 days),
@@ -175,12 +176,14 @@ contract LaunchEvent is Ownable {
             _issuerTimelock > _userTimelock,
             "LaunchEvent: issuer can't withdraw before users"
         );
+        require(_phaseOne > block.timestamp, "LaunchEvent: phase 1 has not started");
 
         issuer = _issuer;
-        transferOwnership(issuer);
+        //transferOwnership(issuer);
 
         phaseOne = _phaseOne;
-
+        PHASE_ONE_DURATION = 3 days;
+        PHASE_TWO_DURATION = 1 days;
         token = IERC20(_token);
         tokenReserve = token.balanceOf(address(this));
         floorPrice = _floorPrice;
@@ -197,7 +200,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice The current phase the auction is in.
     function currentPhase() public view returns (Phases) {
-        if (block.timestamp < phaseOne) {
+        if (block.timestamp < phaseOne || phaseOne == 0) {
             return Phases.NotStarted;
         } else if (block.timestamp < phaseOne + PHASE_ONE_DURATION) {
             return Phases.PhaseOne;
@@ -258,6 +261,7 @@ contract LaunchEvent is Ownable {
     function withdrawLiquidity() external timelockElapsed {
         require(!isStopped, "LaunchEvent: stopped");
         require(address(pair) != address(0), "LaunchEvent: pair does not exist");
+
 
         pair.transfer(msg.sender, pairBalance(msg.sender));
 
