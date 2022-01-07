@@ -213,7 +213,6 @@ contract LaunchEvent is Ownable {
         }
     }
 
-
     function emergencyWithdraw() external {
         require(isStopped, "Launch Event: is not stopped");
 
@@ -238,7 +237,6 @@ contract LaunchEvent is Ownable {
         );
         isStopped = true;
     }
-
 
     /// @dev Returns the current penalty
     function getPenalty() public view returns (uint256) {
