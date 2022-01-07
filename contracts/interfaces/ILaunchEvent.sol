@@ -3,7 +3,6 @@
 pragma solidity ^0.8.0;
 
 interface ILaunchEvent {
-
     function initialize(
         address _issuer,
         uint256 _phaseOne,

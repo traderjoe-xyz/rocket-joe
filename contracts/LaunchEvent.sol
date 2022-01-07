@@ -10,8 +10,7 @@ import "./interfaces/IJoePair.sol";
 import "./interfaces/IJoeRouter02.sol";
 import "./interfaces/IRocketJoeFactory.sol";
 import "./interfaces/IWAVAX.sol";
-
-import "./RocketJoeToken.sol";
+import "./interfaces/IRocketJoeToken.sol";
 
 
 /// @title Rocket Joe Launch Event
@@ -54,7 +53,7 @@ contract LaunchEvent is Ownable {
     /// e.g. fixed penalty of 20% `fixedWithdrawPenalty = 20e11`
     uint256 public fixedWithdrawPenalty;
 
-    RocketJoeToken public rJoe;
+    IRocketJoeToken public rJoe;
     uint256 public rJoePerAvax;
     IWAVAX public WAVAX;
     IERC20 public token;
@@ -161,7 +160,7 @@ contract LaunchEvent is Ownable {
         WAVAX = IWAVAX(rocketJoeFactory.wavax());
         router = IJoeRouter02(rocketJoeFactory.router());
         factory = IJoeFactory(rocketJoeFactory.factory());
-        rJoe = RocketJoeToken(rocketJoeFactory.rJoe());
+        rJoe = IRocketJoeToken(rocketJoeFactory.rJoe());
         rJoePerAvax = rocketJoeFactory.rJoePerAvax();
 
         require(msg.sender == address(rocketJoeFactory), "LaunchEvent: forbidden");
