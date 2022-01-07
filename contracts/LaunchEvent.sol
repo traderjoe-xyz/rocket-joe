@@ -59,7 +59,7 @@ contract LaunchEvent is Ownable {
 
     struct UserAllocation {
         uint256 allocation;
-        bool pairPoolWithdrawn;
+        bool hasWithdrawnPair;
     }
 
     mapping(address => UserAllocation) public getUserAllocation;
@@ -170,6 +170,7 @@ contract LaunchEvent is Ownable {
         require(
             factory.getPair(address(WAVAX), address(token)) == address(0),
             "LaunchEvent: pair already created");
+
         (address wavaxAddress, address tokenAddress) = (address(WAVAX), address(token));
         (uint256 avaxBalance, uint256 tokenBalance) = getReserves();
 
@@ -213,8 +214,8 @@ contract LaunchEvent is Ownable {
 
         if (tokenReserve > 0) {
             UserAllocation storage user = getUserAllocation[msg.sender];
-            require(user.pairPoolWithdrawn == false, "LaunchEvent: liquidity already withdrawn");
-            user.pairPoolWithdrawn = true;
+            require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
+            user.hasWithdrawnPair = true;
             token.transfer(
                 msg.sender,
                 (user.allocation * tokenReserve) / avaxAllocated / 2
@@ -238,7 +239,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice Withdraw AVAX if launch has been cancelled
     function emergencyWithdraw() external {
-        require(isStopped, "Launch Event: is still running");
+        require(isStopped, "LaunchEvent: is still running");
 
         UserAllocation storage user = getUserAllocation[msg.sender];
 
@@ -288,7 +289,7 @@ contract LaunchEvent is Ownable {
     /// @notice The total amount of liquidity pool tokens the user can withdraw
     /// @param _user The address of the user to check
     function pairBalance(address _user) public view returns (uint256) {
-        if (avaxAllocated == 0 || getUserAllocation[_user].pairPoolWithdrawn == true) {
+        if (avaxAllocated == 0 || getUserAllocation[_user].hasWithdrawnPair == true) {
             return 0;
         }
         return (getUserAllocation[_user].allocation * lpSupply) / avaxAllocated / 2;
@@ -340,7 +341,7 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: amount exceeds max allocation");
 
         user.allocation = user.allocation + avaxAmount;
-        user.pairPoolWithdrawn = false;
+        user.hasWithdrawnPair = false;
 
         uint256 rJoeAmount = getRJoeAmount(avaxAmount);
         rJoe.transferFrom(from, address(this), rJoeAmount);
