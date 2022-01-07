@@ -74,13 +74,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         require(_token != wavax, "RJFactory: token can't be wavax");
         require(IJoeFactory(factory).getPair(wavax, _token) == address(0), "RJFactory: pair already exists");
 
-        //bytes memory bytecode = type(LaunchEvent).creationCode;
-        //bytes32 salt = keccak256(abi.encodePacked(_token));
-        //assembly {
-        //    launchEvent := create2(0, add(bytecode, 32), mload(bytecode), salt)
-        //}
         address launchEvent = Clones.clone(eventImplementation);
-
 
         IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount); // msg.sender needs to approve RocketJoeFactory
 
