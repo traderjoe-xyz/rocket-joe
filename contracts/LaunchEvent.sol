@@ -15,7 +15,7 @@ import "./RocketJoeToken.sol";
 
 /// @title Rocket Joe Launch Event
 /// @author Trader Joe
-/// @notice A liquidity launch contract enabling price discovery and token distribution at secondary market listing price.
+/// @notice A liquidity launch contract enabling price discovery and token distribution at secondary market listing price
 contract LaunchEvent is Ownable {
     /// @notice Issuer of sale tokens
     address private issuer;
@@ -59,7 +59,7 @@ contract LaunchEvent is Ownable {
 
     struct UserAllocation {
         uint256 allocation;
-        uint256 pairPoolWithdrawn;
+        bool pairPoolWithdrawn;
     }
 
     mapping(address => UserAllocation) public getUserAllocation;
@@ -102,7 +102,7 @@ contract LaunchEvent is Ownable {
     /// @param _maxAllocation The maximum amount of AVAX depositable
     /// @param _userTimelock The time a user must wait after auction ends to withdraw liquidity
     /// @param _issuerTimelock The time the issuer must wait after auction ends to withdraw liquidity
-    /// @dev This function is called by the factory immediatly after it creates the contract instance
+    /// @dev This function is called by the factory immediately after it creates the contract instance
     function initialize(
         address _issuer,
         uint256 _phaseOne,
@@ -213,9 +213,12 @@ contract LaunchEvent is Ownable {
         pair.transfer(msg.sender, pairBalance(msg.sender));
 
         if (tokenReserve > 0) {
+            UserAllocation storage user = getUserAllocation[msg.sender];
+            require(user.pairPoolWithdrawn == false, "LaunchEvent: liquidity already withdrawn");
+            user.pairPoolWithdrawn = true;
             token.transfer(
                 msg.sender,
-                (getUserAllocation[msg.sender].allocation * tokenReserve) / avaxAllocated / 2
+                (user.allocation * tokenReserve) / avaxAllocated / 2
             );
         }
 
@@ -286,7 +289,7 @@ contract LaunchEvent is Ownable {
     /// @notice The total amount of liquidity pool tokens the user can withdraw
     /// @param _user The address of the user to check
     function pairBalance(address _user) public view returns (uint256) {
-        if (avaxAllocated == 0) {
+        if (avaxAllocated == 0 || getUserAllocation[_user].pairPoolWithdrawn == true) {
             return 0;
         }
         return (getUserAllocation[_user].allocation * lpSupply) / avaxAllocated / 2;
@@ -338,6 +341,7 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: amount exceeds max allocation");
 
         user.allocation = user.allocation + avaxAmount;
+        user.pairPoolWithdrawn = false;
 
         uint256 rJoeAmount = getRJoeAmount(avaxAmount);
         rJoe.transferFrom(from, address(this), rJoeAmount);
