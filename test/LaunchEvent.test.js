@@ -107,7 +107,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("LaunchEvent: phase1 starts in the past");
+      ).to.be.revertedWith("LaunchEvent: phase 1 has not started");
     });
 
     it("should revert initialisation if token is wavax", async function () {
