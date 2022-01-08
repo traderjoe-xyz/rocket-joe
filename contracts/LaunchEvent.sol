@@ -209,8 +209,8 @@ contract LaunchEvent is Ownable {
 
         /// We can't trust the output cause of reflect tokens
         (, , lpSupply) = router.addLiquidity(
-            tokenAddress,
             wavaxAddress,
+            tokenAddress,
             avaxBalance,
             tokenBalance,
             avaxBalance,
