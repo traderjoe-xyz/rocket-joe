@@ -83,6 +83,18 @@ contract LaunchEvent is Ownable {
 
     uint256 private tokenReserve;
 
+    event IssuingTokenDeposited(address token, uint amount);
+
+    event UserParticipated(address user, uint AVAXamount, uint RJOEAmount);
+
+    event UserWithdrawn(address user, uint AVAXamount);
+
+    event LiquidityPoolCreated(address pair, address token0, address token1, uint amount0, uint amount1);
+
+    event UserLiquidityWithdrawn(address user, address pair, uint amount);
+
+    event IssuerLiquidityWithdrawn(address issuer, address pair, uint amount);
+
     /// @notice Receive AVAX from the WAVAX contract
     /// @dev Needed for withdrawing from WAVAX contract
     receive() external payable {
@@ -343,6 +355,14 @@ contract LaunchEvent is Ownable {
         avaxAllocated = IERC20(address(WAVAX)).balanceOf(address(pair));
 
         tokenReserve -= tokenAllocated;
+
+        emit LiquidityPoolCreated(
+            address(pair),
+            pair.token0(),
+            pair.token1(),
+            avaxBalance,
+            tokenBalance
+        );
     }
 
     /// @notice Withdraw liquidity pool tokens
@@ -353,6 +373,20 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: pair does not exist"
         );
 
+        uint balance = pairBalance(msg.sender);
+        pair.transfer(msg.sender, balance);
+        emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
+
+        if (tokenReserve > 0) {
+            UserAllocation storage user = getUserAllocation[msg.sender];
+            require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
+            user.hasWithdrawnPair = true;
+            token.transfer(
+                msg.sender,
+                (user.allocation * tokenReserve) / avaxAllocated / 2
+            );
+        }
+
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(
             !user.hasWithdrawnPair,
@@ -362,7 +396,7 @@ contract LaunchEvent is Ownable {
 
         if (msg.sender == issuer) {
             pair.transfer(issuer, lpSupply / 2);
-
+            emit IssuerLiquidityWithdrawn(issuer, address(pair), lpSupply / 2);
             if (tokenReserve > 0) {
                 token.transfer(issuer, tokenReserve / 2);
             }
