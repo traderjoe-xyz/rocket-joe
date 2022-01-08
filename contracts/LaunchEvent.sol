@@ -9,9 +9,8 @@ import "./interfaces/IJoeFactory.sol";
 import "./interfaces/IJoePair.sol";
 import "./interfaces/IJoeRouter02.sol";
 import "./interfaces/IRocketJoeFactory.sol";
-import "./interfaces/IWAVAX.sol";
 import "./interfaces/IRocketJoeToken.sol";
-
+import "./interfaces/IWAVAX.sol";
 
 /// @title Rocket Joe Launch Event
 /// @author Trader Joe
@@ -31,7 +30,7 @@ contract LaunchEvent is Ownable {
     address private issuer;
 
     /// @notice The start time of phase 1
-    uint256 public phaseOne;
+    uint256 public auctionStart;
 
     uint256 public PHASE_ONE_DURATION;
     uint256 public PHASE_TWO_DURATION;
@@ -117,16 +116,16 @@ contract LaunchEvent is Ownable {
         _;
     }
 
-    /// @notice Modifier which ensures the callers timelock to withdraw has elapsed
+    /// @notice Modifier which ensures the caller's timelock to withdraw has elapsed
     modifier timelockElapsed() {
         require(
-            block.timestamp > phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION + userTimelock,
+            block.timestamp > auctionStart + PHASE_ONE_DURATION + PHASE_TWO_DURATION + userTimelock,
             "LaunchEvent: can't withdraw before user's timelock"
         );
         if (msg.sender == issuer) {
              require(
                 block.timestamp >
-                    phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION + issuerTimelock,
+                    auctionStart + PHASE_ONE_DURATION + PHASE_TWO_DURATION + issuerTimelock,
                 "LaunchEvent: can't withdraw before issuer's timelock"
             );
         }
@@ -135,7 +134,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice Initialise the launch event with needed paramaters
     /// @param _issuer Address of the token issuer
-    /// @param _phaseOne The start time of the auction
+    /// @param _auctionStart The start time of the auction
     /// @param _token The contract address of auctioned token
     /// @param _floorPrice The minimum price the token is sold at
     /// @param _minAllocation The minimum amount of AVAX depositable
@@ -145,7 +144,7 @@ contract LaunchEvent is Ownable {
     /// @dev This function is called by the factory immediately after it creates the contract instance
     function initialize(
         address _issuer,
-        uint256 _phaseOne,
+        uint256 _auctionStart,
         address _token,
         uint256 _floorPrice,
         uint256 _withdrawPenaltyGradient,
@@ -175,11 +174,11 @@ contract LaunchEvent is Ownable {
             _issuerTimelock > _userTimelock,
             "LaunchEvent: issuer can't withdraw before users"
         );
-        require(_phaseOne > block.timestamp, "LaunchEvent: phase 1 has not started");
+        require(_auctionStart> block.timestamp, "LaunchEvent: phase 1 has not started");
 
         issuer = _issuer;
 
-        phaseOne = _phaseOne;
+        auctionStart = _auctionStart;
         PHASE_ONE_DURATION = 3 days;
         PHASE_TWO_DURATION = 1 days;
         token = IERC20(_token);
@@ -198,11 +197,11 @@ contract LaunchEvent is Ownable {
 
     /// @notice The current phase the auction is in
     function currentPhase() public view returns (Phases) {
-        if (block.timestamp < phaseOne || phaseOne == 0) {
+        if (block.timestamp < auctionStart || auctionStart == 0) {
             return Phases.NotStarted;
-        } else if (block.timestamp < phaseOne + PHASE_ONE_DURATION) {
+        } else if (block.timestamp < auctionStart + PHASE_ONE_DURATION) {
             return Phases.PhaseOne;
-        } else if (block.timestamp < phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION) {
+        } else if (block.timestamp < auctionStart + PHASE_ONE_DURATION + PHASE_TWO_DURATION) {
             return Phases.PhaseTwo;
         }
         return Phases.PhaseThree;
@@ -309,7 +308,7 @@ contract LaunchEvent is Ownable {
     /// @notice Returns the current penalty for early withdrawal
     /// @return The penalty to apply to a withdrawal amount
     function getPenalty() public view returns (uint256) {
-        uint256 timeElapsed = block.timestamp - phaseOne;
+        uint256 timeElapsed = block.timestamp - auctionStart;
         if (timeElapsed < 1 days) {
             return 0;
         } else if (timeElapsed < PHASE_ONE_DURATION) {
