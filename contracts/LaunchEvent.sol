@@ -155,7 +155,7 @@ contract LaunchEvent is Ownable {
             block.timestamp >= phaseOne && block.timestamp < (phaseOne + PHASE_ONE_DURATION),
             "LaunchEvent: phase 1 is over"
         );
-        require(avaxAmount >= minAllocation, "LaunchEvent: amount doesn't fulfil min allocation");
+        require(msg.value >= minAllocation, "LaunchEvent: amount doesn't fulfil min allocation");
 
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(
@@ -168,7 +168,7 @@ contract LaunchEvent is Ownable {
         uint256 rJoeAmount = getRJoeAmount(msg.value);
 
         WAVAX.deposit{value: msg.value}();
-        rJoe.transferFrom(from, address(this), rJoeAmount);
+        rJoe.transferFrom(msg.sender, address(this), rJoeAmount);
         rJoe.burn(rJoeAmount);
     }
 
