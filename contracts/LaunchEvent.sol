@@ -134,7 +134,7 @@ contract LaunchEvent is Ownable {
         issuerTimelock = _issuerTimelock;
     }
 
-    /// @dev Needed for withdrawing from WAVAX contract
+    /// @notice Receive AVAX from the WAVAX contract
     receive() external payable {
         require(msg.sender == address(WAVAX), "LaunchEvent: you can't send AVAX directly to this contract");
     }
