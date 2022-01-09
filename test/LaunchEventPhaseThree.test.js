@@ -1,7 +1,7 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
 
-describe("Launch event contract phase two", function () {
+describe("Launch event contract phase three", function () {
   before(async function () {
     this.signers = await ethers.getSigners();
     this.dev = this.signers[0];
@@ -26,10 +26,6 @@ describe("Launch event contract phase two", function () {
   });
 
   beforeEach(async function () {
-    // We want to setup
-    // The Rocket factory contract
-    // A new ERC20 for the auction
-    // rocket-joe token
     this.WAVAX = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7";
     this.wavax = ethers.getContractAt("IWAVAX", this.WAVAX);
     this.PENALTY_COLLECTOR = this.carol.address;
@@ -98,45 +94,55 @@ describe("Launch event contract phase two", function () {
     await this.LaunchEvent.connect(this.bob).depositAVAX({
       value: ethers.utils.parseEther("1.0"),
     });
-    expect(
-      this.LaunchEvent.getUserAllocation(this.bob.address).amount
-    ).to.equal(ethers.utils.parseEther("1.0").number);
+    expect(this.LaunchEvent.users(this.bob.address).amount).to.equal(
+      ethers.utils.parseEther("1.0").number
+    );
     // increase time by 3 days.
-    await network.provider.send("evm_increaseTime", [60 * 60 * 24 * 3]);
+    await network.provider.send("evm_increaseTime", [60 * 60 * 24 * 4]);
     await network.provider.send("evm_mine");
   });
 
-  describe("Interacting with phase two", function () {
+  describe("Interacting with phase three", function () {
     it("should revert if try do withdraw liquidity", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).withdrawLiquidity()
-      ).to.be.revertedWith("LaunchEvent: pair does not exist");
+      ).to.be.revertedWith("LaunchEvent: pair is 0 address");
+    });
+
+    it("should revert if try do withdraw WAVAX", async function () {
+      expect(
+        this.LaunchEvent.connect(this.bob).withdrawWAVAX(
+          ethers.utils.parseEther("1")
+        )
+      ).to.be.revertedWith("LaunchEvent: can't withdraw after phase2");
     });
 
     it("should revert if deposited", async function () {
-      await this.rJOE
-        .connect(this.bob)
-        .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({
-          value: ethers.utils.parseEther("1.0"),
+          value: ethers.utils.parseEther("1"),
         })
-      ).to.be.revertedWith("LaunchEvent: phase 1 is over");
+      ).to.be.revertedWith("LaunchEvent: phase1 is over");
     });
 
-    it("should revert try to create pool", async function () {
+    it("should revert when withdraw liquidity if pair not created", async function () {
+      await network.provider.send("evm_increaseTime", [60 * 60 * 24 * 8]);
+      await network.provider.send("evm_mine");
+      expect(
+        this.LaunchEvent.connect(this.bob).withdrawLiquidity()
+      ).to.be.revertedWith("LaunchEvent: pair is 0 address");
+    });
+
+    it("should create a uniswap pair", async function () {
+      await this.LaunchEvent.connect(this.bob).createPair();
+      // TODO: assert event emitted.
+    });
+
+    it("should revert if uniswap pair already created", async function () {
+      await this.LaunchEvent.connect(this.bob).createPair();
       expect(
         this.LaunchEvent.connect(this.bob).createPair()
-      ).to.be.revertedWith("LaunchEvent: not in phase three");
-    });
-
-    it("should charge a fixed withdraw penalty", async function () {
-      await this.LaunchEvent.connect(this.bob).withdrawAVAX(
-        ethers.utils.parseEther("1.0")
-      );
-      expect(await this.carol.getBalance()).to.be.above(
-        "10000390000000000000000"
-      );
+      ).to.be.revertedWith("LaunchEvent: pair already created");
     });
   });
 
