@@ -97,7 +97,7 @@ describe("Launch event contract phase one", function () {
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("LaunchEvent: phase1 is over");
+      ).to.be.revertedWith("LaunchEvent: phase 1 is over");
     });
 
     it("It should revert if rJOE not approved", async function () {
@@ -119,7 +119,7 @@ describe("Launch event contract phase one", function () {
       await this.LaunchEvent.connect(this.bob).depositAVAX({
         value: ethers.utils.parseEther("1.0"),
       });
-      expect(this.LaunchEvent.users(this.bob.address).amount).to.equal(
+      expect(this.LaunchEvent.getUserAllocation(this.bob.address).amount).to.equal(
         ethers.utils.parseEther("1.0").number
       );
     });
@@ -130,19 +130,19 @@ describe("Launch event contract phase one", function () {
       await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 4999);
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({ value: 4999 })
-      ).to.be.revertedWith("LaunchEvent: amount doesnt fulfil min allocation");
+      ).to.be.revertedWith("LaunchEvent: amount doesn't fulfil min allocation");
     });
 
     it("Should only be stopped by RJFactory owner", async function () {
       //issuer of the LaunchEvent
       await expect(
         this.LaunchEvent.connect(this.alice).allowEmergencyWithdraw()
-      ).to.be.revertedWith("Launch Event: caller is not RJFactory owner");
+      ).to.be.revertedWith("LaunchEvent: caller is not RocketJoeFactory owner");
 
       // any user
       expect(
         this.LaunchEvent.connect(this.bob).allowEmergencyWithdraw()
-      ).to.be.revertedWith("Launch Event: caller is not RJFactory owner");
+      ).to.be.revertedWith("LaunchEvent: caller is not RocketJoeFactory owner");
     });
 
     it("should revert if stopped", async function () {
@@ -201,7 +201,7 @@ describe("Launch event contract phase one", function () {
 
       // Test the amount received
       const balanceBefore = await this.bob.getBalance();
-      await this.LaunchEvent.connect(this.bob).withdrawWAVAX(
+      await this.LaunchEvent.connect(this.bob).withdrawAVAX(
         ethers.utils.parseEther("1.0")
       );
       expect(await this.bob.getBalance()).to.be.above(balanceBefore);
@@ -221,7 +221,7 @@ describe("Launch event contract phase one", function () {
       });
       await network.provider.send("evm_increaseTime", [60 * 60 * 36]); // 1.5 days
       await network.provider.send("evm_mine");
-      await this.LaunchEvent.connect(this.bob).withdrawWAVAX(
+      await this.LaunchEvent.connect(this.bob).withdrawAVAX(
         ethers.utils.parseEther("1.0")
       );
 
