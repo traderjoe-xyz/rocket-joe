@@ -92,7 +92,15 @@ describe("Launch event contract phase one", function () {
   });
 
   describe("Interacting with phase one", function () {
-    it("It should revert if sale has not started yet", async function () {
+    it("should revert if issuer tries to participate", async function () {
+      expect(
+        this.LaunchEvent.connect(this.alice).depositAVAX({
+          value: ethers.utils.parseEther("1.0"),
+        })
+      ).to.be.revertedWith("LaunchEvent: issuer cannot participate");
+    });
+
+    it("should revert if sale has not started yet", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
@@ -100,7 +108,7 @@ describe("Launch event contract phase one", function () {
       ).to.be.revertedWith("LaunchEvent: phase 1 is over");
     });
 
-    it("It should revert if rJOE not approved", async function () {
+    it("should revert if rJOE not approved", async function () {
       await network.provider.send("evm_increaseTime", [120]);
       await network.provider.send("evm_mine");
       expect(

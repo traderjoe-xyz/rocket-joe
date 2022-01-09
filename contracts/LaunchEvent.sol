@@ -17,7 +17,6 @@ import "./RocketJoeToken.sol";
 /// @author Trader Joe
 /// @notice A liquidity launch contract enabling price discovery and token distribution at secondary market listing price
 contract LaunchEvent is Ownable {
-
     struct UserAllocation {
         uint256 allocation;
         bool hasWithdrawnPair;
@@ -144,6 +143,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice Deposits AVAX and burns rJoe to participate in the auction
     function depositAVAX() external payable {
+        require(msg.sender != issuer, "LaunchEvent: issuer cannot participate");
         require(msg.value > 0, "LaunchEvent: expected non-zero AVAX to deposit");
         require(!isStopped, "LaunchEvent: stopped");
         require(
@@ -238,14 +238,6 @@ contract LaunchEvent is Ownable {
             block.timestamp > phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION + userTimelock,
             "LaunchEvent: can't withdraw before user's timelock"
         );
-        pair.transfer(msg.sender, pairBalance(msg.sender));
-
-        if (tokenReserve > 0) {
-            UserAllocation storage user = getUserAllocation[msg.sender];
-            require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
-            user.hasWithdrawnPair = true;
-            token.transfer(msg.sender, (user.allocation * tokenReserve) / avaxAllocated / 2);
-        }
 
         if (msg.sender == issuer) {
             // TODO: require or simple check ?
@@ -258,6 +250,15 @@ contract LaunchEvent is Ownable {
 
             if (tokenReserve > 0) {
                 token.transfer(issuer, (tokenReserve * 1e18) / avaxAllocated / 2);
+            }
+        } else {
+            pair.transfer(msg.sender, pairBalance(msg.sender));
+
+            if (tokenReserve > 0) {
+                UserAllocation storage user = getUserAllocation[msg.sender];
+                require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
+                user.hasWithdrawnPair = true;
+                token.transfer(msg.sender, (user.allocation * tokenReserve) / avaxAllocated / 2);
             }
         }
     }
