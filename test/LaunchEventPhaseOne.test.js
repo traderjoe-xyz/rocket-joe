@@ -157,6 +157,15 @@ describe("Launch event contract phase one", function () {
       ).to.be.revertedWith("LaunchEvent: stopped");
     });
 
+    it("Should revert if trying to emergency withdraw with 0 allocation", async function () {
+      await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
+
+      // any user
+      expect(
+        this.LaunchEvent.connect(this.bob).emergencyWithdraw()
+      ).to.be.revertedWith("LaunchEvent: expected user to have non-zero allocation to perform emergency withdraw");
+    });
+
     it("should revert if AVAX sent more than max allocation", async function () {
       await network.provider.send("evm_increaseTime", [120]);
       await network.provider.send("evm_mine");
