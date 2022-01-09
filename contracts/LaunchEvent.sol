@@ -17,6 +17,12 @@ import "./RocketJoeToken.sol";
 /// @author Trader Joe
 /// @notice A liquidity launch contract enabling price discovery and token distribution at secondary market listing price
 contract LaunchEvent is Ownable {
+
+    struct UserAllocation {
+        uint256 allocation;
+        bool hasWithdrawnPair;
+    }
+
     /// @notice Issuer of sale tokens
     address private issuer;
 
@@ -57,11 +63,6 @@ contract LaunchEvent is Ownable {
     /// @dev max and min allocation limits in AVAX
     uint256 public minAllocation;
     uint256 public maxAllocation;
-
-    struct UserAllocation {
-        uint256 allocation;
-        bool hasWithdrawnPair;
-    }
 
     mapping(address => UserAllocation) public getUserAllocation;
 
