@@ -87,10 +87,7 @@ contract LaunchEvent is Ownable {
     /// @notice Receive AVAX from the WAVAX contract
     /// @dev Needed for withdrawing from WAVAX contract.
     receive() external payable {
-        require(
-            msg.sender == address(WAVAX),
-            "LaunchEvent: You can't send AVAX directly to this contract"
-        );
+        require(msg.sender == address(WAVAX), "LaunchEvent: You can't send AVAX directly to this contract");
     }
 
     /// @notice Initialise the launch event with needed paramaters
@@ -117,17 +114,11 @@ contract LaunchEvent is Ownable {
     ) external {
         require(msg.sender == address(rocketJoeFactory), "LaunchEvent: forbidden");
         require(_phaseOne >= block.timestamp, "LaunchEvent: phase 1 has not started yet");
-        require(
-            _withdrawPenaltyGradient < 5e11 / uint256(2 days),
-            "LaunchEvent: withdrawPenaltyGradient too big"
-        ); // 50%
+        require(_withdrawPenaltyGradient < 5e11 / uint256(2 days), "LaunchEvent: withdrawPenaltyGradient too big"); // 50%
         require(_fixedWithdrawPenalty < 5e11, "LaunchEvent: fixedWithdrawPenalty too big"); // 50%
         require(_maxAllocation >= _minAllocation, "LaunchEvent: max allocation less than min");
         require(_userTimelock < 7 days, "LaunchEvent: can't lock user LP for more than 7 days");
-        require(
-            _issuerTimelock > _userTimelock,
-            "LaunchEvent: issuer can't withdraw before users"
-        );
+        require(_issuerTimelock > _userTimelock, "LaunchEvent: issuer can't withdraw before users");
 
         issuer = _issuer;
         transferOwnership(issuer);
@@ -158,12 +149,9 @@ contract LaunchEvent is Ownable {
         require(msg.value >= minAllocation, "LaunchEvent: amount doesn't fulfil min allocation");
 
         UserAllocation storage user = getUserAllocation[msg.sender];
-        require(
-            user.allocation + msg.value <= maxAllocation,
-            "LaunchEvent: amount exceeds max allocation"
-        );
+        require(user.allocation + msg.value <= maxAllocation, "LaunchEvent: amount exceeds max allocation");
 
-        user.allocation += msg.value ;
+        user.allocation += msg.value;
         user.hasWithdrawnPair = false;
 
         uint256 rJoeAmount = getRJoeAmount(msg.value);
@@ -178,8 +166,7 @@ contract LaunchEvent is Ownable {
     function withdrawAVAX(uint256 amount) public {
         require(!isStopped, "LaunchEvent: stopped");
         require(
-            block.timestamp >= phaseOne &&
-                block.timestamp < (phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION),
+            block.timestamp >= phaseOne && block.timestamp < (phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION),
             "LaunchEvent: can't withdraw after phase2"
         );
 
@@ -204,10 +191,9 @@ contract LaunchEvent is Ownable {
         require(!isStopped, "LaunchEvent: stopped");
         require(
             block.timestamp >= (phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION),
-            "LaunchEvent: not in phase three");
-        require(
-            factory.getPair(address(WAVAX), address(token)) == address(0),
-            "LaunchEvent: pair already created");
+            "LaunchEvent: not in phase three"
+        );
+        require(factory.getPair(address(WAVAX), address(token)) == address(0), "LaunchEvent: pair already created");
 
         (address wavaxAddress, address tokenAddress) = (address(WAVAX), address(token));
         (uint256 avaxBalance, uint256 tokenBalance) = getReserves();
@@ -254,10 +240,7 @@ contract LaunchEvent is Ownable {
             UserAllocation storage user = getUserAllocation[msg.sender];
             require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
             user.hasWithdrawnPair = true;
-            token.transfer(
-                msg.sender,
-                (user.allocation * tokenReserve) / avaxAllocated / 2
-            );
+            token.transfer(msg.sender, (user.allocation * tokenReserve) / avaxAllocated / 2);
         }
 
         if (msg.sender == issuer) {

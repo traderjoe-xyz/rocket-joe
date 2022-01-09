@@ -119,9 +119,9 @@ describe("Launch event contract phase one", function () {
       await this.LaunchEvent.connect(this.bob).depositAVAX({
         value: ethers.utils.parseEther("1.0"),
       });
-      expect(this.LaunchEvent.getUserAllocation(this.bob.address).amount).to.equal(
-        ethers.utils.parseEther("1.0").number
-      );
+      expect(
+        this.LaunchEvent.getUserAllocation(this.bob.address).amount
+      ).to.equal(ethers.utils.parseEther("1.0").number);
     });
 
     it("should revert if AVAX sent less than min allocation", async function () {
