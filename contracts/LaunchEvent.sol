@@ -149,7 +149,7 @@ contract LaunchEvent is Ownable {
             block.timestamp >= phaseOne && block.timestamp < (phaseOne + PHASE_ONE_DURATION),
             "LaunchEvent: phase 1 is over"
         );
-        require(msg.value >= minAllocation, "LaunchEvent: amount doesn't fulfil min allocation");
+        require(msg.value >= minAllocation, "LaunchEvent: amount doesn't fulfill min allocation");
 
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(user.allocation + msg.value <= maxAllocation, "LaunchEvent: amount exceeds max allocation");
