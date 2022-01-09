@@ -111,7 +111,7 @@ describe("Launch event contract phase three", function () {
 
     it("should revert if try do withdraw WAVAX", async function () {
       expect(
-        this.LaunchEvent.connect(this.bob).withdrawWAVAX(
+        this.LaunchEvent.connect(this.bob).withdrawAVAX(
           ethers.utils.parseEther("1")
         )
       ).to.be.revertedWith("LaunchEvent: can't withdraw after phase2");

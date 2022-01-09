@@ -131,7 +131,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should charge a fixed withdraw penalty", async function () {
-      await this.LaunchEvent.connect(this.bob).withdrawWAVAX(
+      await this.LaunchEvent.connect(this.bob).withdrawAVAX(
         ethers.utils.parseEther("1.0")
       );
       expect(await this.carol.getBalance()).to.be.above(

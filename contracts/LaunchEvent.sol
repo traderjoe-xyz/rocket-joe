@@ -44,26 +44,21 @@ contract LaunchEvent is Ownable {
     /// e.g. fixed penalty of 20% `fixedWithdrawPenalty = 20e11`
     uint256 private fixedWithdrawPenalty;
 
-    /// @dev rJOE token contract.
     RocketJoeToken private rJoe;
     /// @dev RJoe needed to deposit 1 AVAX
     uint256 private rJoePerAvax;
-    /// @dev WAVAX token contract.
     IWAVAX private WAVAX;
     /// @dev THE token contract.
     IERC20 public token;
 
-    /// @dev Joe Router contract.
     IJoeRouter02 private router;
-    /// @dev Joe Factory contract.
     IJoeFactory private factory;
-    /// @dev Rocket Joe Factory contract.
     IRocketJoeFactory private rocketJoeFactory;
 
     /// @dev internal state variable for paused
     bool internal isStopped;
 
-    /// @dev max and min allocation limits.
+    /// @dev max and min allocation limits in AVAX
     uint256 public minAllocation;
     uint256 public maxAllocation;
 
@@ -108,7 +103,7 @@ contract LaunchEvent is Ownable {
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external {
-        require(msg.sender == address(rocketJoeFactory), "LaunchEvent: forbidden");
+        require(msg.sender == address(rocketJoeFactory), "LaunchEvent: only RocketJoeFactory allowed to initialize");
         require(_issuer != address(0), "LaunchEvent: issuer is null address");
         require(_phaseOne >= block.timestamp, "LaunchEvent: phase1 starts in the past");
         require(_withdrawPenaltyGradient < 5e11 / uint256(2 days), "LaunchEvent: withdrawPenaltyGradient too big"); /// 50%
@@ -136,19 +131,25 @@ contract LaunchEvent is Ownable {
         issuerTimelock = _issuerTimelock;
     }
 
+    /// @dev Needed for withdrawing from WAVAX contract.
+    receive() external payable {
+        require(msg.sender == address(WAVAX), "LaunchEvent: you can't send AVAX directly to this contract");
+    }
+
     /// Public functions.
 
     /// @notice Deposits AVAX and burns rJoe.
-    /// @dev Checks are done in the `_depositWAVAX` function.
+    /// @dev Checks are done in the `_depositAVAX` function.
     function depositAVAX() external payable {
+        require(msg.value > 0, "LaunchEvent: expected non-zero AVAX to deposit");
         require(!isStopped, "LaunchEvent: stopped");
         require(block.timestamp >= phaseOne && block.timestamp < (phaseOne + 3 days), "LaunchEvent: phase1 is over");
         WAVAX.deposit{value: msg.value}();
-        _depositWAVAX(msg.sender, msg.value); // checks are done here.
+        _depositAVAX(msg.sender, msg.value); // checks are done here.
     }
 
     /// @dev withdraw AVAX only during phase 1 and 2.
-    function withdrawWAVAX(uint256 amount) public {
+    function withdrawAVAX(uint256 _amount) external {
         require(!isStopped, "LaunchEvent: stopped");
         require(
             block.timestamp >= phaseOne && block.timestamp < (phaseOne + 4 days),
@@ -156,23 +157,18 @@ contract LaunchEvent is Ownable {
         );
 
         UserAllocation storage user = users[msg.sender];
-        require(user.allocation >= amount, "LaunchEvent: withdrawn amount exceeds balance");
-        user.allocation = user.allocation - amount;
+        require(user.allocation >= _amount, "LaunchEvent: withdrawn amount exceeds balance");
+        user.allocation = user.allocation - _amount;
 
-        uint256 feeAmount = (amount * getPenalty()) / 1e12;
-        uint256 amountMinusFee = amount - feeAmount;
+        uint256 feeAmount = (_amount * getPenalty()) / 1e12;
+        uint256 amountMinusFee = _amount - feeAmount;
 
-        WAVAX.withdraw(amount);
+        WAVAX.withdraw(_amount);
 
-        safeTransferAVAX(msg.sender, amountMinusFee);
+        _safeTransferAVAX(msg.sender, amountMinusFee);
         if (feeAmount > 0) {
-            safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
+            _safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
         }
-    }
-
-    /// @dev Needed for withdrawing from WAVAX contract.
-    receive() external payable {
-        require(msg.sender == address(WAVAX), "LaunchEvent: You can't send AVAX directly to this contract");
     }
 
     /// @dev Returns the current penalty
@@ -191,8 +187,8 @@ contract LaunchEvent is Ownable {
         return (IERC20(address(WAVAX)).balanceOf(address(this)), token.balanceOf(address(this)));
     }
 
-    /// @dev Create the uniswap pair, can be called by anyone but only once
-    /// @dev but only once after phase 3 has started.
+    /// @dev Creates the JoePair — function is only called once ever and
+    /// only after phase 3 has started.
     function createPair() external {
         require(!isStopped, "LaunchEvent: stopped");
         require(block.timestamp >= (phaseOne + 4 days), "LaunchEvent: not in phase three");
@@ -209,14 +205,14 @@ contract LaunchEvent is Ownable {
 
         /// We can't trust the output cause of reflect tokens
         (, , lpSupply) = router.addLiquidity(
-            wavaxAddress,
-            tokenAddress,
-            avaxBalance,
-            tokenBalance,
-            avaxBalance,
-            tokenBalance,
-            address(this),
-            block.timestamp
+            wavaxAddress, // tokenA
+            tokenAddress, // tokenB
+            avaxBalance, // amountADesired
+            tokenBalance, // amountBDesired
+            avaxBalance, // amountAMin
+            tokenBalance, // amountBMin
+            address(this), // to
+            block.timestamp // deadline
         );
 
         pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
@@ -235,11 +231,6 @@ contract LaunchEvent is Ownable {
             block.timestamp > (phaseOne + 4 days) + userTimelock,
             "LaunchEvent: can't withdraw before user's timelock"
         );
-        pair.transfer(msg.sender, pairBalance(msg.sender));
-
-        if (tokenReserve > 0) {
-            token.transfer(msg.sender, (users[msg.sender].allocation * tokenReserve) / avaxAllocated / 2);
-        }
 
         if (msg.sender == issuer) {
             // TODO: require or simple check ?
@@ -253,12 +244,18 @@ contract LaunchEvent is Ownable {
             if (tokenReserve > 0) {
                 token.transfer(issuer, (tokenReserve * 1e18) / avaxAllocated / 2);
             }
+        } else {
+            pair.transfer(msg.sender, pairBalance(msg.sender));
+
+            if (tokenReserve > 0) {
+                token.transfer(msg.sender, (users[msg.sender].allocation * tokenReserve) / avaxAllocated / 2);
+            }
         }
     }
 
     /// @dev get the rJoe amount needed;
-    function getRJoeAmount(uint256 avaxAmount) public view returns (uint256) {
-        return avaxAmount * rJoePerAvax;
+    function getRJoeAmount(uint256 _avaxAmount) public view returns (uint256) {
+        return _avaxAmount * rJoePerAvax;
     }
 
     /// @dev The total amount of liquidity pool tokens the user can withdraw.
@@ -275,7 +272,12 @@ contract LaunchEvent is Ownable {
 
         UserAllocation storage user = users[msg.sender];
 
-        safeTransferAVAX(msg.sender, user.allocation);
+        require(
+            user.allocation > 0,
+            "LaunchEvent: expected user to have non-zero allocation to perform emergency withdraw"
+        );
+
+        _safeTransferAVAX(msg.sender, user.allocation);
 
         user.allocation = 0;
 
@@ -298,23 +300,23 @@ contract LaunchEvent is Ownable {
     /// Internal functions.
 
     /// @dev Transfers `value` AVAX to address.
-    function safeTransferAVAX(address to, uint256 value) internal {
-        (bool success, ) = to.call{value: value}(new bytes(0));
+    function _safeTransferAVAX(address _to, uint256 _value) internal {
+        (bool success, ) = _to.call{value: _value}(new bytes(0));
         require(success, "LaunchEvent: avax transfer failed");
     }
 
     /// @notice Use your allocation credits by sending WAVAX.
-    function _depositWAVAX(address from, uint256 avaxAmount) internal {
+    function _depositAVAX(address _depositor, uint256 _avaxAmount) internal {
         require(!isStopped, "LaunchEvent: stopped");
-        require(avaxAmount >= minAllocation, "LaunchEvent: amount doesnt fulfil min allocation");
+        require(_avaxAmount >= minAllocation, "LaunchEvent: amount doesn't fulfill min allocation");
 
-        UserAllocation storage user = users[from];
-        require(user.allocation + avaxAmount <= maxAllocation, "LaunchEvent: amount exceeds max allocation");
+        UserAllocation storage user = users[_depositor];
+        require(user.allocation + _avaxAmount <= maxAllocation, "LaunchEvent: amount exceeds max allocation");
 
-        uint256 rJoeAmount = getRJoeAmount(avaxAmount);
-        rJoe.transferFrom(from, address(this), rJoeAmount);
+        user.allocation = user.allocation + _avaxAmount;
+
+        uint256 rJoeAmount = getRJoeAmount(_avaxAmount);
+        rJoe.transferFrom(_depositor, address(this), rJoeAmount);
         rJoe.burn(rJoeAmount);
-
-        user.allocation = user.allocation + avaxAmount;
     }
 }
