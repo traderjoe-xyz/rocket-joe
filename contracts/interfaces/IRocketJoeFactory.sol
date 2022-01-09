@@ -3,7 +3,13 @@
 pragma solidity >=0.8.0;
 
 interface IRocketJoeFactory {
-    event RJLaunchEventCreated(address indexed token, address indexed issuer);
+    event RJLaunchEventCreated(
+        address indexed issuer,
+        address indexed token,
+        uint256 phaseOneStartTime,
+        uint256 phaseTwoStartTime,
+        uint256 phaseThreeStartTime
+    );
 
     function eventImplementation() external view returns (address);
 
