@@ -31,7 +31,7 @@ jobs:
         run: yarn
 
       - name: Compile contracts
-        run: node --max-old-space-size=5120 ./node_modules/.bin/hardhat compile  # yarn run hardhat compile
+        run: yarn run hardhat compile
 
       - name: Test
         run: yarn run hardhat test
