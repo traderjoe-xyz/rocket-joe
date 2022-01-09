@@ -33,7 +33,7 @@ jobs:
       - name: Compile contracts
         env:
           HARDHAT_MAX_MEMORY: 4096
-        run: yarn run hardhat compile
+        run: yarn run hardhat compile --verbose
 
       - name: Test
         run: yarn run hardhat test
