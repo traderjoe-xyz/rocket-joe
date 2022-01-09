@@ -160,7 +160,8 @@ contract LaunchEvent is Ownable {
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(
             user.allocation + msg.value <= maxAllocation,
-            "LaunchEvent: amount exceeds max allocation");
+            "LaunchEvent: amount exceeds max allocation"
+        );
 
         user.allocation += msg.value ;
         user.hasWithdrawnPair = false;
