@@ -113,7 +113,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         emit Deposit(msg.sender, _amount);
     }
 
-    /// @notice Withdraw moJOE from RocketJoeStaking
+    /// @notice Withdraw moJOE and accumulated rJOE from RocketJoeStaking
     /// @param _amount amount of moJOE to withdraw
     function withdraw(uint256 _amount) public {
         UserInfo storage user = userInfo[msg.sender];
