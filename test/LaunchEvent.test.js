@@ -79,7 +79,7 @@ describe("Launch event contract initialisation", function () {
           60,
           120
         )
-      ).to.be.revertedWith("RJFactory: token can't be 0 address");
+      ).to.be.revertedWith("Transaction reverted: function call to a non-contract account");
     });
 
     it("should revert initialisation if start time is in the past", async function () {

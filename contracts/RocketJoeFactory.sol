@@ -23,6 +23,9 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override router;
     address public override factory;
 
+    uint256 private PHASE_ONE_DURATION = 3 days;
+    uint256 private PHASE_TWO_DURATION = 1 days;
+
     mapping(address => address) public override getRJLaunchEvent;
     address[] public override allRJLaunchEvents;
 
@@ -57,7 +60,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
     function createRJLaunchEvent(
         address _issuer,
-        uint256 _phaseOne,
+        uint256 _phaseOneStartTime,
         address _token,
         uint256 _tokenAmount,
         uint256 _floorPrice,
@@ -89,7 +92,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
         ILaunchEvent(payable(launchEvent)).initialize(
             _issuer,
-            _phaseOne,
+            _phaseOneStartTime,
             _token,
             _floorPrice,
             _withdrawPenaltyGradient,
@@ -100,8 +103,19 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
             _issuerTimelock
         );
 
-        emit RJLaunchEventCreated(_token, _issuer);
-        return launchEvent;
+        getRJLaunchEvent[_token] = launchEvent;
+        allRJLaunchEvent.push(launchEvent);
+
+        uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
+        uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
+
+        emit RJLaunchEventCreated(
+            _issuer,
+            _token,
+            _phaseOneStartTime,
+            _phaseTwoStartTime,
+            _phaseThreeStartTime
+        );
     }
 
     function setRJoe(address _rJoe) external override onlyOwner {
