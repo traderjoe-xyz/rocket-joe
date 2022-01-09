@@ -375,11 +375,10 @@ contract LaunchEvent is Ownable {
         );
 
         UserAllocation storage user = getUserAllocation[msg.sender];
-        require(!user.hasWithdrawnPair, "LaunchEvent: liquidity already withdrawn");
+        require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
         user.hasWithdrawnPair = true;
 
-        uint balance = pairBalance(msg.sender);
-        pair.transfer(msg.sender, balance);
+        pair.transfer(msg.sender, pairBalance(msg.sender));
         emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
 
         if (tokenReserve > 0) {
