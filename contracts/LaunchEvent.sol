@@ -19,7 +19,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice The phases the launch event can be in
     /// @dev Should these have more semantic names: Bid, Cancel, Withdraw
-    enum Phases {
+    enum Phase {
         NotStarted,
         PhaseOne,
         PhaseTwo,
@@ -61,6 +61,7 @@ contract LaunchEvent is Ownable {
     IJoeFactory public factory;
     IRocketJoeFactory public rocketJoeFactory;
 
+    bool internal initialized;
     bool internal isStopped;
 
     uint256 public minAllocation;
@@ -93,15 +94,15 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Modifier which ensures contract is in a defined phase
-    modifier atPhase(Phases _phase) {
-        if (_phase == Phases.NotStarted) {
-            require(currentPhase() == Phases.NotStarted, "LaunchEvent: Not in not started");
-        } else if (_phase == Phases.PhaseOne) {
-            require(currentPhase() == Phases.PhaseOne, "LaunchEvent: Not in phase one");
-        } else if (_phase == Phases.PhaseTwo) {
-            require(currentPhase() == Phases.PhaseTwo, "LaunchEvent: Not in phase two");
-        } else if (_phase == Phases.PhaseThree) {
-            require(currentPhase() == Phases.PhaseThree, "LaunchEvent: Not in phase three");
+    modifier atPhase(Phase _phase) {
+        if (_phase == Phase.NotStarted) {
+            require(currentPhase() == Phase.NotStarted, "LaunchEvent: Not in not started");
+        } else if (_phase == Phase.PhaseOne) {
+            require(currentPhase() == Phase.PhaseOne, "LaunchEvent: Not in phase one");
+        } else if (_phase == Phase.PhaseTwo) {
+            require(currentPhase() == Phase.PhaseTwo, "LaunchEvent: Not in phase two");
+        } else if (_phase == Phase.PhaseThree) {
+            require(currentPhase() == Phase.PhaseThree, "LaunchEvent: Not in phase three");
         }
         _;
     }
@@ -110,7 +111,7 @@ contract LaunchEvent is Ownable {
     /// @dev This essentially checks we are in phase one or two
     modifier withdrawable() {
         require(
-            currentPhase() == Phases.PhaseOne || currentPhase() == Phases.PhaseTwo,
+            currentPhase() == Phase.PhaseOne || currentPhase() == Phase.PhaseTwo,
             "LaunchEvent: Unable to withdraw"
         );
         _;
@@ -153,7 +154,8 @@ contract LaunchEvent is Ownable {
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock
-    ) external atPhase(Phases.NotStarted) {
+    ) external atPhase(Phase.NotStarted) {
+        require(!initialized, "LaunchEvent: Already initialized");
 
         rocketJoeFactory = IRocketJoeFactory(msg.sender);
         WAVAX = IWAVAX(rocketJoeFactory.wavax());
@@ -174,7 +176,7 @@ contract LaunchEvent is Ownable {
             _issuerTimelock > _userTimelock,
             "LaunchEvent: issuer can't withdraw before users"
         );
-        require(_auctionStart> block.timestamp, "LaunchEvent: phase 1 has not started");
+        require(_auctionStart > block.timestamp, "LaunchEvent: phase 1 has not started");
 
         issuer = _issuer;
 
@@ -193,23 +195,24 @@ contract LaunchEvent is Ownable {
 
         userTimelock = _userTimelock;
         issuerTimelock = _issuerTimelock;
+        initialized = true;
     }
 
     /// @notice The current phase the auction is in
-    function currentPhase() public view returns (Phases) {
+    function currentPhase() public view returns (Phase) {
         if (block.timestamp < auctionStart || auctionStart == 0) {
-            return Phases.NotStarted;
+            return Phase.NotStarted;
         } else if (block.timestamp < auctionStart + PHASE_ONE_DURATION) {
-            return Phases.PhaseOne;
+            return Phase.PhaseOne;
         } else if (block.timestamp < auctionStart + PHASE_ONE_DURATION + PHASE_TWO_DURATION) {
-            return Phases.PhaseTwo;
+            return Phase.PhaseTwo;
         }
-        return Phases.PhaseThree;
+        return Phase.PhaseThree;
     }
 
     /// @notice Deposits AVAX and burns rJoe
     /// @dev Checks are done in the `_depositWAVAX` function
-    function depositAVAX() external payable atPhase(Phases.PhaseOne) {
+    function depositAVAX() external payable atPhase(Phase.PhaseOne) {
         require(!isStopped, "LaunchEvent: stopped");
         WAVAX.deposit{value: msg.value}();
         _depositWAVAX(msg.sender, msg.value); // checks are done here
@@ -217,7 +220,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice Create the uniswap pair
     /// @dev Can only be called once after phase 3 has started
-    function createPair() external atPhase(Phases.PhaseThree)  {
+    function createPair() external atPhase(Phase.PhaseThree)  {
         require(!isStopped, "LaunchEvent: stopped");
         require(
             factory.getPair(address(WAVAX), address(token)) == address(0),

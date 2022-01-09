@@ -98,6 +98,24 @@ describe("Launch event contract phase one", function () {
   });
 
   describe("Interacting with phase one", function () {
+
+    it("should rever if initialised twice", async function () {
+      expect(
+        this.LaunchEvent.connect(this.bob).initialize(
+            this.bob.address,
+            block.timestamp,
+            this.AUCTOK.address,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        )
+      ).to.be.revertedWith('LaunchEvent: Already initialized')
+    });
+
     it("It should revert if sale has not started yet", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({
