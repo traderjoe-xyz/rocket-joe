@@ -334,8 +334,8 @@ contract LaunchEvent is Ownable {
             tokenBalance = (avaxBalance * 1e18) / floorPrice;
         }
 
-        IERC20(wavaxAddress).approve(address(router), avaxBalance);
-        IERC20(tokenAddress).approve(address(router), tokenBalance);
+        WAVAX.approve(address(router), avaxBalance);
+        token.approve(address(router), tokenBalance);
 
         /// We can't trust the output cause of reflect tokens
         (, , lpSupply) = router.addLiquidity(
@@ -373,14 +373,15 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: pair does not exist"
         );
 
+        UserAllocation storage user = getUserAllocation[msg.sender];
+        require(!user.hasWithdrawnPair, "LaunchEvent: liquidity already withdrawn");
+        user.hasWithdrawnPair = true;
+
         uint balance = pairBalance(msg.sender);
         pair.transfer(msg.sender, balance);
         emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
 
         if (tokenReserve > 0) {
-            UserAllocation storage user = getUserAllocation[msg.sender];
-            require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
-            user.hasWithdrawnPair = true;
             token.transfer(
                 msg.sender,
                 (user.allocation * tokenReserve) / avaxAllocated / 2

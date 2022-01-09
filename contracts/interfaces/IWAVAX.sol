@@ -10,4 +10,6 @@ interface IWAVAX {
     function withdraw(uint256) external;
 
     function balanceOf(address account) external returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
 }
