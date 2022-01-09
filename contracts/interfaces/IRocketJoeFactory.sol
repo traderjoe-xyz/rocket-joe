@@ -19,9 +19,9 @@ interface IRocketJoeFactory {
 
     function getRJLaunchEvent(address token) external view returns (address launchEvent);
 
-    function allRJLaunchEvent(uint256) external view returns (address pair);
+    function allRJLaunchEvents(uint256) external view returns (address pair);
 
-    function allRJLaunchEventLength() external view returns (uint256);
+    function numLaunchEvents() external view returns (uint256);
 
     function createRJLaunchEvent(
         address _issuer,
