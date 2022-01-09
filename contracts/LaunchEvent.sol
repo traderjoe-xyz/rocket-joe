@@ -234,10 +234,8 @@ contract LaunchEvent is Ownable {
     function withdrawLiquidity() external {
         require(!isStopped, "LaunchEvent: stopped");
         require(address(pair) != address(0), "LaunchEvent: pair does not exist");
-        require(
-            block.timestamp > phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION + userTimelock,
-            "LaunchEvent: can't withdraw before user's timelock"
-        );
+
+        UserAllocation storage user = getUserAllocation[msg.sender];
 
         if (msg.sender == issuer) {
             // TODO: require or simple check ?
@@ -245,6 +243,8 @@ contract LaunchEvent is Ownable {
                 block.timestamp > phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION + issuerTimelock,
                 "LaunchEvent: can't withdraw before issuer's timelock"
             );
+            require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
+            user.hasWithdrawnPair = true;
 
             pair.transfer(issuer, lpSupply / 2);
 
@@ -252,10 +252,13 @@ contract LaunchEvent is Ownable {
                 token.transfer(issuer, (tokenReserve * 1e18) / avaxAllocated / 2);
             }
         } else {
+            require(
+                block.timestamp > phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION + userTimelock,
+                "LaunchEvent: can't withdraw before user's timelock"
+            );
             pair.transfer(msg.sender, pairBalance(msg.sender));
 
             if (tokenReserve > 0) {
-                UserAllocation storage user = getUserAllocation[msg.sender];
                 require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
                 user.hasWithdrawnPair = true;
                 token.transfer(msg.sender, (user.allocation * tokenReserve) / avaxAllocated / 2);

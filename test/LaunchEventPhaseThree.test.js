@@ -1,6 +1,8 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
 
+const ISSUER_TIMELOCK = 60 * 60 * 24 * 8;
+
 describe("Launch event contract phase three", function () {
   before(async function () {
     this.signers = await ethers.getSigners();
@@ -77,7 +79,7 @@ describe("Launch event contract phase three", function () {
       5000, // min allocation
       ethers.utils.parseEther("5.0"), // max allocation
       60 * 60 * 24 * 7 - 1, // User timelock
-      60 * 60 * 24 * 8 // Issuer timelock
+      ISSUER_TIMELOCK // Issuer timelock
     );
 
     // Get a reference to the acutal launch event contract.
@@ -143,6 +145,21 @@ describe("Launch event contract phase three", function () {
       expect(
         this.LaunchEvent.connect(this.bob).createPair()
       ).to.be.revertedWith("LaunchEvent: pair already created");
+    });
+
+    it("should revert if issuer tries to withdraw liquidity more than once", async function () {
+      await this.LaunchEvent.connect(this.bob).createPair();
+
+      // increase time to allow issuer to withdraw liquidity
+      await network.provider.send("evm_increaseTime", [ISSUER_TIMELOCK]);
+      await network.provider.send("evm_mine");
+
+      // issuer withdraws liquidity
+      await this.LaunchEvent.connect(this.alice).withdrawLiquidity();
+
+      expect(
+        this.LaunchEvent.connect(this.alice).withdrawLiquidity()
+      ).to.be.revertedWith("LaunchEvent: liquidity already withdrawn");
     });
   });
 

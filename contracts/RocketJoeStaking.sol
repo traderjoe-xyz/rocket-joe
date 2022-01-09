@@ -38,7 +38,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     RocketJoeToken public rJOE;
     uint256 public rJoePerSec;
 
-    /// @dev Info of each user that stakes LP tokens.
+    /// @dev Info of each user that stakes LP tokens
     mapping(address => UserInfo) public userInfo;
 
     event Deposit(address indexed user, uint256 amount);
