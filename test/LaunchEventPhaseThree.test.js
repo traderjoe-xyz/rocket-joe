@@ -133,12 +133,12 @@ describe("Launch event contract phase three", function () {
       ).to.be.revertedWith("LaunchEvent: pair is 0 address");
     });
 
-    it("should create a uniswap pair", async function () {
+    it("should create a JoePair", async function () {
       await this.LaunchEvent.connect(this.bob).createPair();
       // TODO: assert event emitted.
     });
 
-    it("should revert if uniswap pair already created", async function () {
+    it("should revert if JoePair already created", async function () {
       await this.LaunchEvent.connect(this.bob).createPair();
       expect(
         this.LaunchEvent.connect(this.bob).createPair()

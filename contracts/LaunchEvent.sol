@@ -70,7 +70,7 @@ contract LaunchEvent is Ownable {
     /// @dev mapping of users to allocation record.
     mapping(address => UserAllocation) public users;
 
-    /// @dev the address of the uniswap pair. Only set after createLiquidityPool is called.
+    /// @dev the address of the JoePair. Only set after createLiquidityPool is called.
     IJoePair private pair;
 
     /// @dev pool information
