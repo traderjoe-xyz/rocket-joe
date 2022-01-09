@@ -8,17 +8,9 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "./RocketJoeToken.sol";
 
-// RocketJoeStaking is a boss. He says "go f your blocks lego boy, I'm gonna use timestamp instead".
-// And to top it off, it takes no risks. Because the biggest risk is operator error.
-// So we make it virtually impossible for the operator of this contract to cause a bug with people's harvests.
-//
-// Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once JOE is sufficiently
-// distributed and the community can show to govern itself.
-//
-// With thanks to the Lydia Finance team.
-//
-// Godspeed and may the 10x be with you.
+/// @title Rocket Joe Staking
+/// @author traderjoexyz
+/// @notice Stake moJOE to earn rJOE
 contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -39,13 +31,11 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     }
 
     IERC20Upgradeable moJOE;
-    /// @dev Last timestamp that rJOEs distribution occurs
     uint256 lastRewardTimestamp;
     /// @dev Accumulated JOEs per share, times 1e12. See below
     uint256 accRJoePerShare;
 
     RocketJoeToken public rJOE;
-    /// @dev amount of rJOE tokens created per second.
     uint256 public rJoePerSec;
 
     /// @dev Info of each user that stakes LP tokens.
@@ -56,6 +46,10 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     event EmergencyWithdraw(address indexed user, uint256 amount);
     event UpdateEmissionRate(address indexed user, uint256 _rJoePerSec);
 
+    /// @notice Initialise with needed paramaters
+    /// @param _moJOE address of the moJOE token contract
+    /// @param _rJOE address of the rJOE token contract
+    /// @param _rJoePerSec number of rJOE tokens created per second
     function initialize(
         IERC20Upgradeable _moJOE,
         RocketJoeToken _rJOE,
