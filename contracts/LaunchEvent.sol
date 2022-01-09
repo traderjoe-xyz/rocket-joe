@@ -289,6 +289,7 @@ contract LaunchEvent is Ownable {
         WAVAX.deposit{value: msg.value}();
         rJoe.transferFrom(msg.sender, address(this), rJoeAmount);
         rJoe.burn(rJoeAmount);
+        emit UserParticipated(msg.sender, msg.value, rJoeAmount);
     }
 
     /// @notice Withdraw AVAX only during phase 1 and 2
