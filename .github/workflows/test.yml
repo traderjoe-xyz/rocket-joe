@@ -24,7 +24,7 @@ jobs:
       - name: Install nodejs
         uses: actions/setup-node@v2
         with:
-          node-version: "14.x"
+          node-version: "16.x"
           check-latest: true
 
       - name: Install dependencies
@@ -32,7 +32,7 @@ jobs:
 
       - name: Compile contracts
         env:
-          NODE_OPTIONS: '--max-old-space-size=6144'
+          HARDHAT_MAX_MEMORY: 4096
         run: yarn run hardhat compile
 
       - name: Test
