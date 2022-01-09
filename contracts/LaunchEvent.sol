@@ -248,12 +248,14 @@ contract LaunchEvent is Ownable {
             block.timestamp > phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION + userTimelock,
             "LaunchEvent: can't withdraw before user's timelock"
         );
+
+        UserAllocation storage user = getUserAllocation[msg.sender];
+        require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
+        user.hasWithdrawnPair = true;
+
         pair.transfer(msg.sender, pairBalance(msg.sender));
 
         if (tokenReserve > 0) {
-            UserAllocation storage user = getUserAllocation[msg.sender];
-            require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
-            user.hasWithdrawnPair = true;
             token.transfer(
                 msg.sender,
                 (user.allocation * tokenReserve) / avaxAllocated / 2
@@ -270,7 +272,7 @@ contract LaunchEvent is Ownable {
             pair.transfer(issuer, lpSupply / 2);
 
             if (tokenReserve > 0) {
-                token.transfer(issuer, (tokenReserve * 1e18) / avaxAllocated / 2);
+                token.transfer(issuer, tokenReserve / 2);
             }
         }
     }
@@ -327,7 +329,7 @@ contract LaunchEvent is Ownable {
     /// @notice The total amount of liquidity pool tokens the user can withdraw
     /// @param _user The address of the user to check
     function pairBalance(address _user) public view returns (uint256) {
-        if (avaxAllocated == 0 || getUserAllocation[_user].hasWithdrawnPair == true) {
+        if (avaxAllocated == 0 || getUserAllocation[_user].hasWithdrawnPair) {
             return 0;
         }
         return (getUserAllocation[_user].allocation * lpSupply) / avaxAllocated / 2;
