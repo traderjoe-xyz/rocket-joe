@@ -36,6 +36,9 @@ describe("Launch event contract phase two", function () {
     this.ROUTER = "0x60aE616a2155Ee3d9A68541Ba4544862310933d4";
     this.FACTORY = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
 
+    this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
+    this.LaunchEventPrototype = await this.LaunchEventCF.deploy()
+
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.rJOE = await this.RocketJoeTokenCF.deploy();
     this.AUCTOK = await this.RocketJoeTokenCF.deploy();
@@ -57,6 +60,7 @@ describe("Launch event contract phase two", function () {
     this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
     this.RocketFactoryCF = await ethers.getContractFactory("RocketJoeFactory");
     this.RocketFactory = await this.RocketFactoryCF.deploy(
+      this.LaunchEventPrototype.address,
       this.rJOE.address,
       this.WAVAX,
       this.PENALTY_COLLECTOR,
@@ -110,7 +114,7 @@ describe("Launch event contract phase two", function () {
     it("should revert if try do withdraw liquidity", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).withdrawLiquidity()
-      ).to.be.revertedWith("LaunchEvent: pair does not exist");
+      ).to.be.revertedWith("LaunchEvent: can't withdraw before user's timelock");
     });
 
     it("should revert if deposited", async function () {
@@ -121,7 +125,7 @@ describe("Launch event contract phase two", function () {
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("LaunchEvent: phase 1 is over");
+      ).to.be.revertedWith("LaunchEvent: not in phase one");
     });
 
     it("should revert try to create pool", async function () {

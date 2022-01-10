@@ -2,16 +2,21 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/proxy/Clones.sol";
+
 import "./interfaces/IRocketJoeFactory.sol";
+import "./interfaces/IJoeFactory.sol";
+import "./interfaces/ILaunchEvent.sol";
 
 import "./RocketJoeToken.sol";
-import "./LaunchEvent.sol";
+
 
 /// @title Rocket Joe Factory
 /// @author traderjoexyz
 /// @notice Factory that creates Rocket Joe events.
 contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override penaltyCollector;
+    address public override eventImplementation;
 
     address public override rJoe;
     uint256 public override rJoePerAvax;
@@ -23,6 +28,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address[] public override allRJLaunchEvents;
 
     constructor(
+        address _eventImplementation,
         address _rJoe,
         address _wavax,
         address _penaltyCollector,
@@ -37,6 +43,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
                 _factory != address(0),
             "RJFactory: Addresses can't be null address"
         );
+        eventImplementation = _eventImplementation;
         rJoe = _rJoe;
         wavax = _wavax;
         penaltyCollector = _penaltyCollector;
@@ -61,17 +68,13 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock
-    ) external override returns (address launchEvent) {
+    ) external override returns (address) {
         require(getRJLaunchEvent[_token] == address(0), "RJFactory: token has already been issued");
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
         require(IJoeFactory(factory).getPair(wavax, _token) == address(0), "RJFactory: pair already exists");
 
-        bytes memory bytecode = type(LaunchEvent).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(_token));
-        assembly {
-            launchEvent := create2(0, add(bytecode, 32), mload(bytecode), salt)
-        }
+        address launchEvent = Clones.clone(eventImplementation);
 
         getRJLaunchEvent[_token] = launchEvent;
         allRJLaunchEvents.push(launchEvent);
@@ -79,7 +82,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         // msg.sender needs to approve RocketJoeFactory
         IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount);
 
-        LaunchEvent(payable(launchEvent)).initialize(
+        ILaunchEvent(payable(launchEvent)).initialize(
             _issuer,
             _phaseOne,
             _token,
@@ -93,6 +96,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         );
 
         emit RJLaunchEventCreated(_token, _issuer);
+        return launchEvent;
     }
 
     function setRJoe(address _rJoe) external override onlyOwner {

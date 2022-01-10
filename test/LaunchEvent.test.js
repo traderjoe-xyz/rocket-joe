@@ -32,6 +32,9 @@ describe("Launch event contract initialisation", function () {
     ROUTER = "0x60aE616a2155Ee3d9A68541Ba4544862310933d4";
     FACTORY = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
 
+    this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
+    this.LaunchEventPrototype = await this.LaunchEventCF.deploy()
+
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.rJOE = await this.RocketJoeTokenCF.deploy();
     this.rJOE2 = await this.RocketJoeTokenCF.deploy();
@@ -41,18 +44,21 @@ describe("Launch event contract initialisation", function () {
     await this.rJOE2
       .connect(this.dev)
       .mint(this.dev.address, "1000000000000000000000000");
-    this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
     this.RocketFactoryCF = await ethers.getContractFactory("RocketJoeFactory");
     this.RocketFactory = await this.RocketFactoryCF.deploy(
+      this.LaunchEventPrototype.address,
       this.rJOE.address,
       WAVAX,
       PENALTY_COLLECTOR,
       ROUTER,
       FACTORY
     );
+
+    this.LaunchEventPrototype.connect(this.dev).transferOwnership(this.RocketFactory.address)
     await this.rJOE2
       .connect(this.dev)
       .approve(this.RocketFactory.address, "1000000000000000000000000");
+    this.block = await ethers.provider.getBlock();
   });
 
   describe("Initialising the contract", function () {
@@ -60,7 +66,7 @@ describe("Launch event contract initialisation", function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           ethers.constants.AddressZero,
-          Math.floor(Date.now() / 1000),
+          this.block.timestamp + 60, // Start time (60 seconds from now)
           ethers.constants.AddressZero,
           100,
           1,
@@ -78,7 +84,7 @@ describe("Launch event contract initialisation", function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.alice.address,
-          Math.floor(Date.now() / 1000) - 60 * 60 * 24,
+          this.block.timestamp - 60, // Start time (60 seconds in past)
           this.rJOE2.address,
           100,
           1,
@@ -96,7 +102,7 @@ describe("Launch event contract initialisation", function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.alice.address,
-          Math.floor(Date.now() / 1000),
+          this.block.timestamp + 60, // Start time (60 seconds from now)
           "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
           100,
           1,
@@ -114,7 +120,7 @@ describe("Launch event contract initialisation", function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.alice.address,
-          Math.floor(Date.now() / 1000),
+          this.block.timestamp + 60, // Start time (60 seconds from now)
           "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
           100,
           1,
@@ -132,7 +138,7 @@ describe("Launch event contract initialisation", function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.alice.address,
-          Math.floor(Date.now() / 1000) + 60,
+          this.block.timestamp + 60, // Start time (60 seconds from now)
           this.rJOE2.address,
           100,
           1,
@@ -150,7 +156,7 @@ describe("Launch event contract initialisation", function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.alice.address,
-          Math.floor(Date.now() / 1000) + 60,
+          this.block.timestamp + 60, // Start time (60 seconds from now)
           this.rJOE2.address,
           100,
           1,
@@ -168,7 +174,7 @@ describe("Launch event contract initialisation", function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.alice.address,
-          Math.floor(Date.now() / 1000) + 60,
+          this.block.timestamp + 60, // Start time (60 seconds from now)
           this.rJOE2.address,
           100,
           1,
@@ -186,7 +192,7 @@ describe("Launch event contract initialisation", function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.alice.address,
-          Math.floor(Date.now() / 1000) + 60,
+          this.block.timestamp + 60, // Start time (60 seconds from now)
           this.rJOE2.address,
           100,
           1,
@@ -206,7 +212,7 @@ describe("Launch event contract initialisation", function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.alice.address,
-          Math.floor(Date.now() / 1000) + 60,
+          this.block.timestamp + 60, // Start time (60 seconds from now)
           this.rJOE2.address,
           100,
           1,
@@ -223,7 +229,7 @@ describe("Launch event contract initialisation", function () {
     it("should deploy with correct paramaters", async function () {
       this.RocketFactory.createRJLaunchEvent(
         this.alice.address,
-        Math.floor(Date.now() / 1000) + 60,
+        this.block.timestamp + 60, // Start time (60 seconds from now)
         this.rJOE2.address,
         100,
         1,

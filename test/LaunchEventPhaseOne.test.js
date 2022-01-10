@@ -36,6 +36,9 @@ describe("Launch event contract phase one", function () {
     this.ROUTER = "0x60aE616a2155Ee3d9A68541Ba4544862310933d4";
     this.FACTORY = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
 
+    this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
+    this.LaunchEventPrototype = await this.LaunchEventCF.deploy()
+
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.rJOE = await this.RocketJoeTokenCF.deploy();
     this.AUCTOK = await this.RocketJoeTokenCF.deploy();
@@ -57,12 +60,15 @@ describe("Launch event contract phase one", function () {
     this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
     this.RocketFactoryCF = await ethers.getContractFactory("RocketJoeFactory");
     this.RocketFactory = await this.RocketFactoryCF.deploy(
+      this.LaunchEventPrototype.address,
       this.rJOE.address,
       this.WAVAX,
       this.PENALTY_COLLECTOR,
       this.ROUTER,
       this.FACTORY
     );
+    this.LaunchEventPrototype.connect(this.dev).transferOwnership(this.RocketFactory.address)
+
     await this.AUCTOK.connect(this.dev).approve(
       this.RocketFactory.address,
       "1000000000000000000000000"
@@ -92,7 +98,27 @@ describe("Launch event contract phase one", function () {
   });
 
   describe("Interacting with phase one", function () {
+
+    it("should rever if initialised twice", async function () {
+      expect(
+        this.LaunchEvent.connect(this.bob).initialize(
+            this.bob.address,  // _issuer
+            block.timestamp,   // _auctionStart
+            this.AUCTOK.address,  // _token
+            0,  // _floorPrice
+            0,  // _withdrawPenaltyGradient
+            0,  // _fixedWithdrawPenalty
+            0,  // _minAllocation
+            0,  // _maxAllocation
+            0,  // _userTimelock
+            0  // _issuerTimelock
+        )
+      ).to.be.revertedWith('LaunchEvent: already initialized')
+    });
+
     it("should revert if issuer tries to participate", async function () {
+      await network.provider.send("evm_increaseTime", [120]);
+      await network.provider.send("evm_mine");
       expect(
         this.LaunchEvent.connect(this.alice).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
@@ -105,7 +131,7 @@ describe("Launch event contract phase one", function () {
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("LaunchEvent: phase 1 is over");
+      ).to.be.revertedWith("LaunchEvent: not in phase one");
     });
 
     it("should revert if rJOE not approved", async function () {
