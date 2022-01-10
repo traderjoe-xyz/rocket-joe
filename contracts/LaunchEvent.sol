@@ -240,7 +240,6 @@ contract LaunchEvent is Ownable {
         user.hasWithdrawnPair = true;
 
         if (msg.sender == issuer) {
-            // TODO: require or simple check ?
             require(
                 block.timestamp > phaseOne + PHASE_ONE_DURATION + PHASE_TWO_DURATION + issuerTimelock,
                 "LaunchEvent: can't withdraw before issuer's timelock"
@@ -249,7 +248,7 @@ contract LaunchEvent is Ownable {
             pair.transfer(issuer, lpSupply / 2);
 
             if (tokenReserve > 0) {
-                token.transfer(issuer, (tokenReserve * 1e18) / avaxAllocated / 2);
+                token.transfer(issuer, tokenReserve / 2);
             }
         } else {
             require(
@@ -321,7 +320,7 @@ contract LaunchEvent is Ownable {
     /// @notice The total amount of liquidity pool tokens the user can withdraw
     /// @param _user The address of the user to check
     function pairBalance(address _user) public view returns (uint256) {
-        if (avaxAllocated == 0 || getUserAllocation[_user].hasWithdrawnPair == true) {
+        if (avaxAllocated == 0 || getUserAllocation[_user].hasWithdrawnPair) {
             return 0;
         }
         return (getUserAllocation[_user].allocation * lpSupply) / avaxAllocated / 2;
