@@ -25,7 +25,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override factory;
 
     mapping(address => address) public override getRJLaunchEvent;
-    address[] public override allRJLaunchEvent;
+    address[] public override allRJLaunchEvents;
 
     constructor(
         address _eventImplementation,
@@ -52,8 +52,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         rJoePerAvax = 100;
     }
 
-    function allRJLaunchEventLength() external view override returns (uint256) {
-        return allRJLaunchEvent.length;
+    function numLaunchEvents() external view override returns (uint256) {
+        return allRJLaunchEvents.length;
     }
 
     function createRJLaunchEvent(
@@ -76,7 +76,11 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
         address launchEvent = Clones.clone(eventImplementation);
 
-        IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount); // msg.sender needs to approve RocketJoeFactory
+        getRJLaunchEvent[_token] = launchEvent;
+        allRJLaunchEvents.push(launchEvent);
+
+        // msg.sender needs to approve RocketJoeFactory
+        IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount);
 
         ILaunchEvent(payable(launchEvent)).initialize(
             _issuer,
@@ -90,9 +94,6 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
             _userTimelock,
             _issuerTimelock
         );
-
-        getRJLaunchEvent[_token] = launchEvent;
-        allRJLaunchEvent.push(launchEvent);
 
         emit RJLaunchEventCreated(_token, _issuer);
         return launchEvent;

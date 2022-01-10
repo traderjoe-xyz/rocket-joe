@@ -1,7 +1,9 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
 
-describe("Launch event contract phase two", function () {
+const ISSUER_TIMELOCK = 60 * 60 * 24 * 8;
+
+describe("Launch event contract phase three", function () {
   before(async function () {
     this.signers = await ethers.getSigners();
     this.dev = this.signers[0];
@@ -26,18 +28,11 @@ describe("Launch event contract phase two", function () {
   });
 
   beforeEach(async function () {
-    // We want to setup
-    // The Rocket factory contract
-    // A new ERC20 for the auction
-    // rocket-joe token
     this.WAVAX = "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7";
     this.wavax = ethers.getContractAt("IWAVAX", this.WAVAX);
     this.PENALTY_COLLECTOR = this.carol.address;
     this.ROUTER = "0x60aE616a2155Ee3d9A68541Ba4544862310933d4";
     this.FACTORY = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
-
-    this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
-    this.LaunchEventPrototype = await this.LaunchEventCF.deploy()
 
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.rJOE = await this.RocketJoeTokenCF.deploy();
@@ -59,6 +54,8 @@ describe("Launch event contract phase two", function () {
 
     this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
     this.RocketFactoryCF = await ethers.getContractFactory("RocketJoeFactory");
+    this.LaunchEventPrototype = await this.LaunchEventCF.deploy()
+
     this.RocketFactory = await this.RocketFactoryCF.deploy(
       this.LaunchEventPrototype.address,
       this.rJOE.address,
@@ -85,7 +82,7 @@ describe("Launch event contract phase two", function () {
       5000, // min allocation
       ethers.utils.parseEther("5.0"), // max allocation
       60 * 60 * 24 * 7 - 1, // User timelock
-      60 * 60 * 24 * 8 // Issuer timelock
+      ISSUER_TIMELOCK // Issuer timelock
     );
 
     // Get a reference to the acutal launch event contract.
@@ -106,41 +103,66 @@ describe("Launch event contract phase two", function () {
       this.LaunchEvent.getUserAllocation(this.bob.address).amount
     ).to.equal(ethers.utils.parseEther("1.0").number);
     // increase time by 3 days.
-    await network.provider.send("evm_increaseTime", [60 * 60 * 24 * 3]);
+    await network.provider.send("evm_increaseTime", [60 * 60 * 24 * 4]);
     await network.provider.send("evm_mine");
   });
 
-  describe("Interacting with phase two", function () {
+  describe("Interacting with phase three", function () {
     it("should revert if try do withdraw liquidity", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).withdrawLiquidity()
       ).to.be.revertedWith("LaunchEvent: can't withdraw before user's timelock");
     });
 
+    it("should revert if try do withdraw WAVAX", async function () {
+      expect(
+        this.LaunchEvent.connect(this.bob).withdrawAVAX(
+          ethers.utils.parseEther("1")
+        )
+      ).to.be.revertedWith("LaunchEvent: unable to withdraw");
+    });
+
     it("should revert if deposited", async function () {
-      await this.rJOE
-        .connect(this.bob)
-        .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({
-          value: ethers.utils.parseEther("1.0"),
+          value: ethers.utils.parseEther("1"),
         })
       ).to.be.revertedWith("LaunchEvent: not in phase one");
     });
 
-    it("should revert try to create pool", async function () {
+    it("should revert when withdraw liquidity if pair not created", async function () {
+      await network.provider.send("evm_increaseTime", [60 * 60 * 24 * 8]);
+      await network.provider.send("evm_mine");
       expect(
-        this.LaunchEvent.connect(this.bob).createPair()
-      ).to.be.revertedWith("LaunchEvent: not in phase three");
+        this.LaunchEvent.connect(this.bob).withdrawLiquidity()
+      ).to.be.revertedWith("LaunchEvent: pair does not exist");
     });
 
-    it("should charge a fixed withdraw penalty", async function () {
-      await this.LaunchEvent.connect(this.bob).withdrawAVAX(
-        ethers.utils.parseEther("1.0")
-      );
-      expect(await this.carol.getBalance()).to.be.above(
-        "10000390000000000000000"
-      );
+    it("should create a JoePair", async function () {
+      await this.LaunchEvent.connect(this.bob).createPair();
+      // TODO: assert event emitted.
+    });
+
+    it("should revert if JoePair already created", async function () {
+      await this.LaunchEvent.connect(this.bob).createPair();
+      expect(
+        this.LaunchEvent.connect(this.bob).createPair()
+      ).to.be.revertedWith("LaunchEvent: pair already created");
+    });
+
+    it("should revert if issuer tries to withdraw liquidity more than once", async function () {
+      await this.LaunchEvent.connect(this.bob).createPair();
+
+      // increase time to allow issuer to withdraw liquidity
+      await network.provider.send("evm_increaseTime", [ISSUER_TIMELOCK]);
+      await network.provider.send("evm_mine");
+
+      // issuer withdraws liquidity
+      await this.LaunchEvent.connect(this.alice).withdrawLiquidity();
+
+      expect(
+        this.LaunchEvent.connect(this.alice).withdrawLiquidity()
+      ).to.be.revertedWith("LaunchEvent: liquidity already withdrawn");
     });
   });
 

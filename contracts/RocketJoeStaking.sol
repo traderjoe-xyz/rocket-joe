@@ -8,21 +8,12 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "./RocketJoeToken.sol";
 
-// MasterChefJoe is a boss. He says "go f your blocks lego boy, I'm gonna use timestamp instead".
-// And to top it off, it takes no risks. Because the biggest risk is operator error.
-// So we make it virtually impossible for the operator of this contract to cause a bug with people's harvests.
-//
-// Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transferred to a governance smart contract once JOE is sufficiently
-// distributed and the community can show to govern itself.
-//
-// With thanks to the Lydia Finance team.
-//
-// Godspeed and may the 10x be with you.
-contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
+/// @title Rocket Joe Staking
+/// @author traderjoexyz
+/// @notice Stake moJOE to earn rJOE
+contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    // Info of each user.
     struct UserInfo {
         uint256 amount; // How many moJOE tokens the user has provided.
         uint256 rewardDebt; // Reward debt. See explanation below.
@@ -39,17 +30,15 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         //   4. User's `rewardDebt` gets updated.
     }
 
-    // Info.
-    IERC20Upgradeable moJOE; // Address of moJOE token contract.
-    uint256 lastRewardTimestamp; // Last timestamp that rJOEs distribution occurs.
-    uint256 accRJoePerShare; // Accumulated JOEs per share, times 1e12. See below.
+    IERC20Upgradeable moJOE;
+    uint256 lastRewardTimestamp;
+    /// @dev Accumulated JOEs per share, times 1e12. See below
+    uint256 accRJoePerShare;
 
-    // The rJOE TOKEN!
     RocketJoeToken public rJOE;
-    // rJOE tokens created per second.
     uint256 public rJoePerSec;
 
-    // Info of each user that stakes LP tokens.
+    /// @dev Info of each user that stakes LP tokens
     mapping(address => UserInfo) public userInfo;
 
     event Deposit(address indexed user, uint256 amount);
@@ -57,6 +46,10 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
     event EmergencyWithdraw(address indexed user, uint256 amount);
     event UpdateEmissionRate(address indexed user, uint256 _rJoePerSec);
 
+    /// @notice Initialise with needed paramaters
+    /// @param _moJOE address of the moJOE token contract
+    /// @param _rJOE address of the rJOE token contract
+    /// @param _rJoePerSec number of rJOE tokens created per second
     function initialize(
         IERC20Upgradeable _moJOE,
         RocketJoeToken _rJOE,
@@ -69,7 +62,9 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         rJoePerSec = _rJoePerSec;
     }
 
-    // View function to see pending JOEs on frontend.
+    /// @notice Get pending rJOE for a given `_user`
+    /// @param _user the user to lookup
+    /// @return the number of pending rJOE tokens for `_user`
     function pendingRJoe(address _user) external view returns (uint256) {
         UserInfo storage user = userInfo[_user];
         uint256 moJoeSupply = moJOE.balanceOf(address(this));
@@ -83,7 +78,7 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         return (user.amount * _accRJoePerShare) / 1e12 - user.rewardDebt;
     }
 
-    // Update reward variables of the given pool to be up-to-date.
+    /// @notice Update reward variables of the given pool with latest data
     function updatePool() public {
         if (block.timestamp <= lastRewardTimestamp) {
             return;
@@ -101,7 +96,8 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         rJOE.mint(address(this), rJoeReward);
     }
 
-    // Deposit moJOE to RocketJoeStakingContract for rJOE allocation.
+    /// @notice Deposit moJOE to RocketJoeStaking for rJOE allocation
+    /// @param _amount amount of moJOE to deposit
     function deposit(uint256 _amount) public {
         UserInfo storage user = userInfo[msg.sender];
 
@@ -117,7 +113,8 @@ contract RocketJoeStakingContract is Initializable, OwnableUpgradeable {
         emit Deposit(msg.sender, _amount);
     }
 
-    // Withdraw moJOE from RocketJoeStakingContract.
+    /// @notice Withdraw moJOE and accumulated rJOE from RocketJoeStaking
+    /// @param _amount amount of moJOE to withdraw
     function withdraw(uint256 _amount) public {
         UserInfo storage user = userInfo[msg.sender];
         require(user.amount >= _amount, "withdraw: not good");

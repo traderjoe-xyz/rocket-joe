@@ -3,8 +3,8 @@ const { expect } = require("chai");
 
 describe("Rocket Joe Staking Contract", function () {
   before(async function () {
-    this.RocketJoeStakingContractCF = await ethers.getContractFactory(
-      "RocketJoeStakingContract"
+    this.RocketJoeStakingCF = await ethers.getContractFactory(
+      "RocketJoeStaking"
     );
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
 
@@ -30,10 +30,11 @@ describe("Rocket Joe Staking Contract", function () {
       .connect(this.dev)
       .mint(this.carol.address, "1000000000000000000000");
 
-    this.RJStaking = await upgrades.deployProxy(
-      this.RocketJoeStakingContractCF,
-      [this.moJOE.address, this.rJOE.address, "10000000000000000"]
-    );
+    this.RJStaking = await upgrades.deployProxy(this.RocketJoeStakingCF, [
+      this.moJOE.address,
+      this.rJOE.address,
+      "10000000000000000",
+    ]);
     await this.rJOE.transferOwnership(this.RJStaking.address);
   });
 

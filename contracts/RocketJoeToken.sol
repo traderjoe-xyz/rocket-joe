@@ -5,11 +5,11 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-// RocketJoeToken, rJoe.
+/// @title Rocket Joe Token, rJOE
+/// @author traderjoexyz
+/// @notice Infinite supply, but burned to join IDO
 contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
-    /// @notice Infinite supply, but burned to join IDO.
-
-    /// @dev Creates `_amount` token to `_to`. Must only be called by the owner (RocketJoeStakingContract).
+    /// @dev Creates `_amount` token to `_to`. Must only be called by the owner (RocketJoeStaking)
     function mint(address _to, uint256 _amount) external onlyOwner {
         _mint(_to, _amount);
     }
