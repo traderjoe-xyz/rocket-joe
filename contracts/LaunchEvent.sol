@@ -103,6 +103,8 @@ contract LaunchEvent is Ownable {
             require(currentPhase() == Phase.PhaseTwo, "LaunchEvent: not in phase two");
         } else if (_phase == Phase.PhaseThree) {
             require(currentPhase() == Phase.PhaseThree, "LaunchEvent: not in phase three");
+        } else {
+            revert("LaunchEvent: unknown state")
         }
         _;
     }
