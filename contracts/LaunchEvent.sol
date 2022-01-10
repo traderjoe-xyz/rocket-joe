@@ -96,13 +96,13 @@ contract LaunchEvent is Ownable {
     /// @notice Modifier which ensures contract is in a defined phase
     modifier atPhase(Phase _phase) {
         if (_phase == Phase.NotStarted) {
-            require(currentPhase() == Phase.NotStarted, "LaunchEvent: Not in not started");
+            require(currentPhase() == Phase.NotStarted, "LaunchEvent: not in not started");
         } else if (_phase == Phase.PhaseOne) {
-            require(currentPhase() == Phase.PhaseOne, "LaunchEvent: Not in phase one");
+            require(currentPhase() == Phase.PhaseOne, "LaunchEvent: not in phase one");
         } else if (_phase == Phase.PhaseTwo) {
-            require(currentPhase() == Phase.PhaseTwo, "LaunchEvent: Not in phase two");
+            require(currentPhase() == Phase.PhaseTwo, "LaunchEvent: not in phase two");
         } else if (_phase == Phase.PhaseThree) {
-            require(currentPhase() == Phase.PhaseThree, "LaunchEvent: Not in phase three");
+            require(currentPhase() == Phase.PhaseThree, "LaunchEvent: not in phase three");
         }
         _;
     }
@@ -112,7 +112,7 @@ contract LaunchEvent is Ownable {
     modifier withdrawable() {
         require(
             currentPhase() == Phase.PhaseOne || currentPhase() == Phase.PhaseTwo,
-            "LaunchEvent: Unable to withdraw"
+            "LaunchEvent: unable to withdraw"
         );
         _;
     }
@@ -155,7 +155,7 @@ contract LaunchEvent is Ownable {
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external atPhase(Phase.NotStarted) {
-        require(!initialized, "LaunchEvent: Already initialized");
+        require(!initialized, "LaunchEvent: already initialized");
 
         rocketJoeFactory = IRocketJoeFactory(msg.sender);
         WAVAX = IWAVAX(rocketJoeFactory.wavax());
