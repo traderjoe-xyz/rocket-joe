@@ -92,7 +92,15 @@ describe("Launch event contract phase one", function () {
   });
 
   describe("Interacting with phase one", function () {
-    it("It should revert if sale has not started yet", async function () {
+    it("should revert if issuer tries to participate", async function () {
+      expect(
+        this.LaunchEvent.connect(this.alice).depositAVAX({
+          value: ethers.utils.parseEther("1.0"),
+        })
+      ).to.be.revertedWith("LaunchEvent: issuer cannot participate");
+    });
+
+    it("should revert if sale has not started yet", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
@@ -100,7 +108,7 @@ describe("Launch event contract phase one", function () {
       ).to.be.revertedWith("LaunchEvent: phase 1 is over");
     });
 
-    it("It should revert if rJOE not approved", async function () {
+    it("should revert if rJOE not approved", async function () {
       await network.provider.send("evm_increaseTime", [120]);
       await network.provider.send("evm_mine");
       expect(
@@ -130,11 +138,13 @@ describe("Launch event contract phase one", function () {
       await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 4999);
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({ value: 4999 })
-      ).to.be.revertedWith("LaunchEvent: amount doesn't fulfil min allocation");
+      ).to.be.revertedWith(
+        "LaunchEvent: amount doesn't fulfill min allocation"
+      );
     });
 
     it("Should only be stopped by RJFactory owner", async function () {
-      //issuer of the LaunchEvent
+      // issuer of the LaunchEvent
       await expect(
         this.LaunchEvent.connect(this.alice).allowEmergencyWithdraw()
       ).to.be.revertedWith("LaunchEvent: caller is not RocketJoeFactory owner");
@@ -155,6 +165,17 @@ describe("Launch event contract phase one", function () {
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({ value: 6000 })
       ).to.be.revertedWith("LaunchEvent: stopped");
+    });
+
+    it("Should revert if trying to emergency withdraw with 0 allocation", async function () {
+      await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
+
+      // any user
+      expect(
+        this.LaunchEvent.connect(this.bob).emergencyWithdraw()
+      ).to.be.revertedWith(
+        "LaunchEvent: expected user to have non-zero allocation to perform emergency withdraw"
+      );
     });
 
     it("should revert if AVAX sent more than max allocation", async function () {
@@ -246,7 +267,7 @@ describe("Launch event contract phase one", function () {
           value: ethers.utils.parseEther("1.0"),
         })
       ).to.be.revertedWith(
-        "LaunchEvent: You can't send AVAX directly to this contract"
+        "LaunchEvent: you can't send AVAX directly to this contract"
       );
     });
   });
