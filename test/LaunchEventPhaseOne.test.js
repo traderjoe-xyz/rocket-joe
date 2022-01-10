@@ -102,18 +102,18 @@ describe("Launch event contract phase one", function () {
     it("should rever if initialised twice", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).initialize(
-            this.bob.address,
-            block.timestamp,
-            this.AUCTOK.address,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
+            this.bob.address,  // _issuer
+            block.timestamp,   // _auctionStart
+            this.AUCTOK.address,  // _token
+            0,  // _floorPrice
+            0,  // _withdrawPenaltyGradient
+            0,  // _fixedWithdrawPenalty
+            0,  // _minAllocation
+            0,  // _maxAllocation
+            0,  // _userTimelock
+            0  // _issuerTimelock
         )
-      ).to.be.revertedWith('LaunchEvent: Already initialized')
+      ).to.be.revertedWith('LaunchEvent: already initialized')
     });
 
     it("It should revert if sale has not started yet", async function () {
@@ -121,7 +121,7 @@ describe("Launch event contract phase one", function () {
         this.LaunchEvent.connect(this.bob).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("LaunchEvent: Not in phase one");
+      ).to.be.revertedWith("LaunchEvent: not in phase one");
     });
 
     it("It should revert if rJOE not approved", async function () {
@@ -260,7 +260,7 @@ describe("Launch event contract phase one", function () {
       await network.provider.send("evm_mine");
       expect(
         this.LaunchEvent.connect(this.dev).createPair()
-      ).to.be.revertedWith("LaunchEvent: Not in phase three");
+      ).to.be.revertedWith("LaunchEvent: not in phase three");
     });
 
     it("should revert trying to send AVAX to the contract", async function () {
