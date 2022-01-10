@@ -33,7 +33,7 @@ describe("Launch event contract initialisation", function () {
     FACTORY = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
 
     this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
-    this.LaunchEventPrototype = await this.LaunchEventCF.deploy()
+    this.LaunchEventPrototype = await this.LaunchEventCF.deploy();
 
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.rJOE = await this.RocketJoeTokenCF.deploy();
@@ -54,7 +54,9 @@ describe("Launch event contract initialisation", function () {
       FACTORY
     );
 
-    this.LaunchEventPrototype.connect(this.dev).transferOwnership(this.RocketFactory.address)
+    this.LaunchEventPrototype.connect(this.dev).transferOwnership(
+      this.RocketFactory.address
+    );
     await this.rJOE2
       .connect(this.dev)
       .approve(this.RocketFactory.address, "1000000000000000000000000");

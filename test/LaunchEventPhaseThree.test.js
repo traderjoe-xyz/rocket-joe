@@ -54,7 +54,7 @@ describe("Launch event contract phase three", function () {
 
     this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
     this.RocketFactoryCF = await ethers.getContractFactory("RocketJoeFactory");
-    this.LaunchEventPrototype = await this.LaunchEventCF.deploy()
+    this.LaunchEventPrototype = await this.LaunchEventCF.deploy();
 
     this.RocketFactory = await this.RocketFactoryCF.deploy(
       this.LaunchEventPrototype.address,
@@ -111,7 +111,9 @@ describe("Launch event contract phase three", function () {
     it("should revert if try do withdraw liquidity", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).withdrawLiquidity()
-      ).to.be.revertedWith("LaunchEvent: can't withdraw before user's timelock");
+      ).to.be.revertedWith(
+        "LaunchEvent: can't withdraw before user's timelock"
+      );
     });
 
     it("should revert if try do withdraw WAVAX", async function () {

@@ -86,10 +86,7 @@ contract LaunchEvent is Ownable {
     /// @notice Receive AVAX from the WAVAX contract
     /// @dev Needed for withdrawing from WAVAX contract
     receive() external payable {
-        require(
-            msg.sender == address(WAVAX),
-            "LaunchEvent: you can't send AVAX directly to this contract"
-        );
+        require(msg.sender == address(WAVAX), "LaunchEvent: you can't send AVAX directly to this contract");
     }
 
     /// @notice Modifier which ensures contract is in a defined phase
@@ -125,9 +122,8 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: can't withdraw before user's timelock"
         );
         if (msg.sender == issuer) {
-             require(
-                block.timestamp >
-                    auctionStart + PHASE_ONE_DURATION + PHASE_TWO_DURATION + issuerTimelock,
+            require(
+                block.timestamp > auctionStart + PHASE_ONE_DURATION + PHASE_TWO_DURATION + issuerTimelock,
                 "LaunchEvent: can't withdraw before issuer's timelock"
             );
         }
@@ -166,17 +162,11 @@ contract LaunchEvent is Ownable {
         rJoePerAvax = rocketJoeFactory.rJoePerAvax();
 
         require(msg.sender == address(rocketJoeFactory), "LaunchEvent: forbidden");
-        require(
-            _withdrawPenaltyGradient < 5e11 / uint256(2 days),
-            "LaunchEvent: withdrawPenaltyGradient too big"
-        ); // 50%
+        require(_withdrawPenaltyGradient < 5e11 / uint256(2 days), "LaunchEvent: withdrawPenaltyGradient too big"); // 50%
         require(_fixedWithdrawPenalty < 5e11, "LaunchEvent: fixedWithdrawPenalty too big"); // 50%
         require(_maxAllocation >= _minAllocation, "LaunchEvent: max allocation less than min");
         require(_userTimelock < 7 days, "LaunchEvent: can't lock user LP for more than 7 days");
-        require(
-            _issuerTimelock > _userTimelock,
-            "LaunchEvent: issuer can't withdraw before users"
-        );
+        require(_issuerTimelock > _userTimelock, "LaunchEvent: issuer can't withdraw before users");
         require(_auctionStart > block.timestamp, "LaunchEvent: phase 1 has not started");
 
         issuer = _issuer;
@@ -254,11 +244,9 @@ contract LaunchEvent is Ownable {
 
     /// @notice Create the uniswap pair
     /// @dev Can only be called once after phase 3 has started
-    function createPair() external atPhase(Phase.PhaseThree)  {
+    function createPair() external atPhase(Phase.PhaseThree) {
         require(!isStopped, "LaunchEvent: stopped");
-        require(
-            factory.getPair(address(WAVAX), address(token)) == address(0),
-            "LaunchEvent: pair already created");
+        require(factory.getPair(address(WAVAX), address(token)) == address(0), "LaunchEvent: pair already created");
 
         (address wavaxAddress, address tokenAddress) = (address(WAVAX), address(token));
         (uint256 avaxBalance, uint256 tokenBalance) = getReserves();

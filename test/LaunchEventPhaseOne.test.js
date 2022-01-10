@@ -37,7 +37,7 @@ describe("Launch event contract phase one", function () {
     this.FACTORY = "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10";
 
     this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
-    this.LaunchEventPrototype = await this.LaunchEventCF.deploy()
+    this.LaunchEventPrototype = await this.LaunchEventCF.deploy();
 
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.rJOE = await this.RocketJoeTokenCF.deploy();
@@ -67,7 +67,9 @@ describe("Launch event contract phase one", function () {
       this.ROUTER,
       this.FACTORY
     );
-    this.LaunchEventPrototype.connect(this.dev).transferOwnership(this.RocketFactory.address)
+    this.LaunchEventPrototype.connect(this.dev).transferOwnership(
+      this.RocketFactory.address
+    );
 
     await this.AUCTOK.connect(this.dev).approve(
       this.RocketFactory.address,
@@ -98,22 +100,21 @@ describe("Launch event contract phase one", function () {
   });
 
   describe("Interacting with phase one", function () {
-
     it("should rever if initialised twice", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).initialize(
-            this.bob.address,  // _issuer
-            block.timestamp,   // _auctionStart
-            this.AUCTOK.address,  // _token
-            0,  // _floorPrice
-            0,  // _withdrawPenaltyGradient
-            0,  // _fixedWithdrawPenalty
-            0,  // _minAllocation
-            0,  // _maxAllocation
-            0,  // _userTimelock
-            0  // _issuerTimelock
+          this.bob.address, // _issuer
+          block.timestamp, // _auctionStart
+          this.AUCTOK.address, // _token
+          0, // _floorPrice
+          0, // _withdrawPenaltyGradient
+          0, // _fixedWithdrawPenalty
+          0, // _minAllocation
+          0, // _maxAllocation
+          0, // _userTimelock
+          0 // _issuerTimelock
         )
-      ).to.be.revertedWith('LaunchEvent: already initialized')
+      ).to.be.revertedWith("LaunchEvent: already initialized");
     });
 
     it("should revert if issuer tries to participate", async function () {

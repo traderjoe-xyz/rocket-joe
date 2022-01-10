@@ -10,7 +10,6 @@ import "./interfaces/ILaunchEvent.sol";
 
 import "./RocketJoeToken.sol";
 
-
 /// @title Rocket Joe Factory
 /// @author traderjoexyz
 /// @notice Factory that creates Rocket Joe events.
