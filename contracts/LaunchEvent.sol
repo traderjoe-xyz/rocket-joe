@@ -375,20 +375,6 @@ contract LaunchEvent is Ownable {
         );
 
         UserAllocation storage user = getUserAllocation[msg.sender];
-        require(user.hasWithdrawnPair == false, "LaunchEvent: liquidity already withdrawn");
-        user.hasWithdrawnPair = true;
-
-        pair.transfer(msg.sender, pairBalance(msg.sender));
-        emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
-
-        if (tokenReserve > 0) {
-            token.transfer(
-                msg.sender,
-                (user.allocation * tokenReserve) / avaxAllocated / 2
-            );
-        }
-
-        UserAllocation storage user = getUserAllocation[msg.sender];
         require(
             !user.hasWithdrawnPair,
             "LaunchEvent: liquidity already withdrawn"
@@ -407,6 +393,11 @@ contract LaunchEvent is Ownable {
             if (tokenReserve > 0) {
                 token.transfer(
                     msg.sender,
+                    (user.allocation * tokenReserve) / avaxAllocated / 2
+                );
+                emit UserLiquidityWithdrawn(
+                    msg.sender,
+                    address(pair),
                     (user.allocation * tokenReserve) / avaxAllocated / 2
                 );
             }

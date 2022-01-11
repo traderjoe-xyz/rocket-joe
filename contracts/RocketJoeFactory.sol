@@ -104,18 +104,18 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         );
 
         getRJLaunchEvent[_token] = launchEvent;
-        allRJLaunchEvent.push(launchEvent);
+        allRJLaunchEvents.push(launchEvent);
 
-        uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
-        uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
+        //uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
+        //uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
 
-        emit RJLaunchEventCreated(
-            _issuer,
-            _token,
-            _phaseOneStartTime,
-            _phaseTwoStartTime,
-            _phaseThreeStartTime
-        );
+        //emit RJLaunchEventCreated(
+        //    _issuer,
+        //    _token,
+        //    _phaseOneStartTime,
+        //    _phaseTwoStartTime,
+        //    _phaseThreeStartTime
+        //);
     }
 
     function setRJoe(address _rJoe) external override onlyOwner {
