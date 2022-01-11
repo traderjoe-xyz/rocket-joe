@@ -85,15 +85,22 @@ contract LaunchEvent is Ownable {
 
     event IssuingTokenDeposited(address token, uint amount);
 
-    event UserParticipated(address user, uint AVAXamount, uint RJOEAmount);
+    event UserParticipated(address user, uint avaxAmount, uint rJoeAmount);
 
-    event UserWithdrawn(address user, uint AVAXamount);
+    event UserWithdrawn(address user, uint avaxAmount);
 
     event LiquidityPoolCreated(address pair, address token0, address token1, uint amount0, uint amount1);
 
     event UserLiquidityWithdrawn(address user, address pair, uint amount);
 
     event IssuerLiquidityWithdrawn(address issuer, address pair, uint amount);
+
+    event Stopped();
+
+    event AvaxEmergencyWithdraw(address user, uint amount);
+
+    event TokenEmergencyWithdraw(address user, uint amount);
+
 
     /// @notice Receive AVAX from the WAVAX contract
     /// @dev Needed for withdrawing from WAVAX contract
@@ -408,19 +415,22 @@ contract LaunchEvent is Ownable {
     function emergencyWithdraw() external {
         require(isStopped, "LaunchEvent: is still running");
 
-        UserAllocation storage user = getUserAllocation[msg.sender];
+        if (msg.sender != issuer) {
+            UserAllocation storage user = getUserAllocation[msg.sender];
+            require(
+                user.allocation > 0,
+                "LaunchEvent: expected user to have non-zero allocation to perform emergency withdraw"
+            );
 
-        require(
-            user.allocation > 0,
-            "LaunchEvent: expected user to have non-zero allocation to perform emergency withdraw"
-        );
+            _safeTransferAVAX(msg.sender, user.allocation);
+            emit AvaxEmergencyWithdraw(msg.sender, user.allocation);
 
-        _safeTransferAVAX(msg.sender, user.allocation);
-
-        user.allocation = 0;
+            user.allocation = 0;
+        }
 
         if (msg.sender == issuer) {
             token.transfer(issuer, token.balanceOf(issuer));
+            emit TokenEmergencyWithdraw(msg.sender, token.balanceOf(issuer));
         }
     }
 
@@ -431,6 +441,7 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: caller is not RocketJoeFactory owner"
         );
         isStopped = true;
+        emit Stopped();
     }
 
     /// @notice Returns the current penalty for early withdrawal
