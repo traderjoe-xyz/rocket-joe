@@ -144,14 +144,14 @@ describe("Launch event contract initialisation", function () {
           this.rJOE2.address,
           100,
           1,
-          2893519,
+          5e11,
           1,
           100,
           10000,
           60,
           120
         )
-      ).to.be.revertedWith("LaunchEvent: withdrawPenaltyGradient too big");
+      ).to.be.revertedWith("LaunchEvent: maxWithdrawPenalty too big");
     });
 
     it("should revert initialisation if fixed withdraw penalty is too high", async function () {
