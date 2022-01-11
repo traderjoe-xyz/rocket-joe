@@ -50,7 +50,9 @@ describe("Rocket Joe Staking Contract", function () {
         .connect(this.carol)
         .approve(this.RJStaking.address, ethers.utils.parseEther("100000"));
 
-      await this.RJStaking.connect(this.alice).deposit(ethers.utils.parseEther("100"));
+      await this.RJStaking.connect(this.alice).deposit(
+        ethers.utils.parseEther("100")
+      );
       expect(
         (await this.joe.balanceOf(this.alice.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("900"));
@@ -58,7 +60,9 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("100"));
 
-      await this.RJStaking.connect(this.bob).deposit(ethers.utils.parseEther("200"));
+      await this.RJStaking.connect(this.bob).deposit(
+        ethers.utils.parseEther("200")
+      );
       expect(
         (await this.joe.balanceOf(this.bob.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("800"));
@@ -66,7 +70,9 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("300"));
 
-      await this.RJStaking.connect(this.carol).deposit(ethers.utils.parseEther("300"));
+      await this.RJStaking.connect(this.carol).deposit(
+        ethers.utils.parseEther("300")
+      );
       expect(
         (await this.joe.balanceOf(this.carol.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("700"));
@@ -114,7 +120,9 @@ describe("Rocket Joe Staking Contract", function () {
         .connect(this.carol)
         .approve(this.RJStaking.address, ethers.utils.parseEther("100000"));
 
-      await this.RJStaking.connect(this.alice).deposit(ethers.utils.parseEther("100"));
+      await this.RJStaking.connect(this.alice).deposit(
+        ethers.utils.parseEther("100")
+      );
       expect(
         (await this.joe.balanceOf(this.alice.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("900"));
@@ -122,7 +130,9 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("100"));
 
-      await this.RJStaking.connect(this.bob).deposit(ethers.utils.parseEther("200"));
+      await this.RJStaking.connect(this.bob).deposit(
+        ethers.utils.parseEther("200")
+      );
       expect(
         (await this.joe.balanceOf(this.bob.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("800"));
@@ -130,7 +140,9 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("300"));
 
-      await this.RJStaking.connect(this.carol).deposit(ethers.utils.parseEther("300"));
+      await this.RJStaking.connect(this.carol).deposit(
+        ethers.utils.parseEther("300")
+      );
       expect(
         (await this.joe.balanceOf(this.carol.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("700"));
@@ -189,8 +201,12 @@ describe("Rocket Joe Staking Contract", function () {
         .connect(this.carol)
         .approve(this.RJStaking.address, ethers.utils.parseEther("100000"));
 
-      await this.RJStaking.connect(this.alice).deposit(ethers.utils.parseEther("300"));
-      await this.RJStaking.connect(this.carol).deposit(ethers.utils.parseEther("300"));
+      await this.RJStaking.connect(this.alice).deposit(
+        ethers.utils.parseEther("300")
+      );
+      await this.RJStaking.connect(this.carol).deposit(
+        ethers.utils.parseEther("300")
+      );
       expect(
         (await this.joe.balanceOf(this.alice.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("700"));
@@ -203,7 +219,9 @@ describe("Rocket Joe Staking Contract", function () {
 
       await increase(60 * 60 * 24);
 
-      await this.RJStaking.connect(this.bob).deposit(ethers.utils.parseEther("300")); // bob enters after the distribution, he shouldn't receive any reward
+      await this.RJStaking.connect(this.bob).deposit(
+        ethers.utils.parseEther("300")
+      ); // bob enters after the distribution, he shouldn't receive any reward
       await this.RJStaking.connect(this.bob).withdraw("0"); // 1 seconds has passed, so bob receives 1/3rd of the token per second
       expect(
         (await this.rJOE.balanceOf(this.bob.address)).toString()
@@ -215,7 +233,9 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("900"));
 
-      await this.RJStaking.connect(this.alice).deposit(ethers.utils.parseEther("300")); // alice enters again to try to get more rewards
+      await this.RJStaking.connect(this.alice).deposit(
+        ethers.utils.parseEther("300")
+      ); // alice enters again to try to get more rewards
       await this.RJStaking.connect(this.alice).withdraw(
         ethers.utils.parseEther("600")
       );
@@ -272,7 +292,9 @@ describe("Rocket Joe Staking Contract", function () {
         .connect(this.alice)
         .approve(this.RJStaking.address, ethers.utils.parseEther("100000"));
 
-      await this.RJStaking.connect(this.alice).deposit(ethers.utils.parseEther("300"));
+      await this.RJStaking.connect(this.alice).deposit(
+        ethers.utils.parseEther("300")
+      );
       expect(
         (await this.joe.balanceOf(this.alice.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("700"));
@@ -290,9 +312,11 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.alice.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("700"));
       expect(
-        pendingReward.add(ethers.utils.parseEther("0.01")).sub(
-            await this.rJOE.balanceOf(this.alice.address)
-        ).toNumber()).to.be.greaterThan(0); // We add 0.01 as 1 second elapsed between calls to pending rewards and deposit
+        pendingReward
+          .add(ethers.utils.parseEther("0.01"))
+          .sub(await this.rJOE.balanceOf(this.alice.address))
+          .toNumber()
+      ).to.be.greaterThan(0); // We add 0.01 as 1 second elapsed between calls to pending rewards and deposit
       expect(
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("300"));
@@ -303,7 +327,9 @@ describe("Rocket Joe Staking Contract", function () {
         .connect(this.alice)
         .approve(this.RJStaking.address, ethers.utils.parseEther("100000"));
 
-      await this.RJStaking.connect(this.alice).deposit(ethers.utils.parseEther("300"));
+      await this.RJStaking.connect(this.alice).deposit(
+        ethers.utils.parseEther("300")
+      );
       expect(
         (await this.joe.balanceOf(this.alice.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("700"));
@@ -343,7 +369,9 @@ describe("Rocket Joe Staking Contract", function () {
       await this.RJStaking.connect(this.alice).withdraw("0");
       const balance = await this.rJOE.balanceOf(this.alice.address);
 
-      await this.RJStaking.updateEmissionRate(ethers.utils.parseEther("0.0011"));
+      await this.RJStaking.updateEmissionRate(
+        ethers.utils.parseEther("0.0011")
+      );
 
       await increase(60 * 60 * 24);
 

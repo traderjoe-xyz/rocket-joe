@@ -61,7 +61,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         __Ownable_init();
 
         PRECISION = 1e18;
-        
+
         joe = _joe;
         rJoe = _rJoe;
         rJoePerSec = _rJoePerSec;
@@ -110,7 +110,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         updatePool();
 
         uint256 pending = (user.amount * accRJoePerShare) / PRECISION - user.rewardDebt;
-        
+
         user.amount = user.amount - _amount;
         user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
 
