@@ -148,7 +148,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         rJoe.mint(address(this), rJoeReward);
     }
 
-    /// @notice Update reward variables of the given pool with latest data
+    /// @notice Update emission rate
     /// @param _rJoePerSec the new value for rJoePerSec
     function updateEmissionRate(uint256 _rJoePerSec) public onlyOwner {
         updatePool();
