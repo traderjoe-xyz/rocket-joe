@@ -48,9 +48,8 @@ contract LaunchEvent is Ownable {
     /// @notice Timelock duration post phase 3 When can issuer withdraw their LP tokens
     uint256 public issuerTimelock;
 
-    /// @notice The withdraw penalty gradient in bps per sec, in parts per 1e12 (phase 1)
-    /// e.g. linearly reach 50% in 2 days `withdrawPenaltyGradient = 50 * 100 * 1e12 / 2 days`
-    uint256 public withdrawPenaltyGradient;
+    /// @notice The max withdraw penalty during phase 1, in parts per 1e12 (phase 1)
+    uint256 public maxWithdrawPenalty;
 
     /// @notice The fixed withdraw penalty, in parts per 1e12 (phase 2)
     /// e.g. fixed penalty of 20% `fixedWithdrawPenalty = 20e11`
@@ -194,7 +193,7 @@ contract LaunchEvent is Ownable {
         uint256 _auctionStart,
         address _token,
         uint256 _floorPrice,
-        uint256 _withdrawPenaltyGradient,
+        uint256 _maxWithdrawPenalty,
         uint256 _fixedWithdrawPenalty,
         uint256 _minAllocation,
         uint256 _maxAllocation,
@@ -215,8 +214,8 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: forbidden"
         );
         require(
-            _withdrawPenaltyGradient < 5e11 / uint256(2 days),
-            "LaunchEvent: withdrawPenaltyGradient too big"
+            _maxWithdrawPenalty < 5e11,
+            "LaunchEvent: maxWithdrawPenalty too big"
         ); // 50%
         require(
             _fixedWithdrawPenalty < 5e11,
@@ -248,7 +247,7 @@ contract LaunchEvent is Ownable {
         tokenReserve = token.balanceOf(address(this));
         floorPrice = _floorPrice;
 
-        withdrawPenaltyGradient = _withdrawPenaltyGradient;
+        maxWithdrawPenalty = _maxWithdrawPenalty;
         fixedWithdrawPenalty = _fixedWithdrawPenalty;
 
         minAllocation = _minAllocation;
@@ -457,7 +456,7 @@ contract LaunchEvent is Ownable {
         if (timeElapsed < 1 days) {
             return 0;
         } else if (timeElapsed < PHASE_ONE_DURATION) {
-            return (timeElapsed - 1 days) * withdrawPenaltyGradient;
+            return (timeElapsed - 1 days) * maxWithdrawPenalty / uint256(2 days);
         }
         return fixedWithdrawPenalty;
     }
