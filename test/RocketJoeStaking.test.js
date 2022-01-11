@@ -363,6 +363,6 @@ describe("Rocket Joe Staking Contract", function () {
 });
 
 const increase = (seconds) => {
-  ethers.provider.send("evm_increaseTime", [60 * 60 * 24]);
+  ethers.provider.send("evm_increaseTime", [seconds]);
   ethers.provider.send("evm_mine", []);
 };

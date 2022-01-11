@@ -33,10 +33,10 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     IERC20Upgradeable public joe;
     uint256 public lastRewardTimestamp;
 
-    /// @dev Accumulated rJOE per share, times DECIMALS. See above
+    /// @dev Accumulated rJOE per share, times PRECISION. See above
     uint256 public accRJoePerShare;
-    /// @notice Number of decimals of accRJoePerShare
-    uint256 private DECIMALS;
+    /// @notice Precision of accRJoePerShare
+    uint256 private PRECISION;
 
     RocketJoeToken public rJoe;
     uint256 public rJoePerSec;
@@ -60,7 +60,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     ) public initializer {
         __Ownable_init();
 
-        DECIMALS = 1e18;
+        PRECISION = 1e18;
         
         joe = _joe;
         rJoe = _rJoe;
@@ -78,9 +78,9 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         if (block.timestamp > lastRewardTimestamp && joeSupply != 0) {
             uint256 multiplier = block.timestamp - lastRewardTimestamp;
             uint256 rJoeReward = multiplier * rJoePerSec;
-            _accRJoePerShare += (rJoeReward * DECIMALS) / joeSupply;
+            _accRJoePerShare += (rJoeReward * PRECISION) / joeSupply;
         }
-        return (user.amount * _accRJoePerShare) / DECIMALS - user.rewardDebt;
+        return (user.amount * _accRJoePerShare) / PRECISION - user.rewardDebt;
     }
 
     /// @notice Deposit joe to RocketJoeStaking for rJoe allocation
@@ -91,11 +91,11 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         updatePool();
 
         if (user.amount > 0) {
-            uint256 pending = (user.amount * accRJoePerShare) / DECIMALS - user.rewardDebt;
+            uint256 pending = (user.amount * accRJoePerShare) / PRECISION - user.rewardDebt;
             _safeRJoeTransfer(msg.sender, pending);
         }
         user.amount = user.amount + _amount;
-        user.rewardDebt = (user.amount * accRJoePerShare) / DECIMALS;
+        user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
 
         joe.safeTransferFrom(address(msg.sender), address(this), _amount);
         emit Deposit(msg.sender, _amount);
@@ -109,10 +109,10 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
 
         updatePool();
 
-        uint256 pending = (user.amount * accRJoePerShare) / DECIMALS - user.rewardDebt;
+        uint256 pending = (user.amount * accRJoePerShare) / PRECISION - user.rewardDebt;
         
         user.amount = user.amount - _amount;
-        user.rewardDebt = (user.amount * accRJoePerShare) / DECIMALS;
+        user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
 
         _safeRJoeTransfer(msg.sender, pending);
         joe.safeTransfer(address(msg.sender), _amount);
@@ -143,7 +143,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         }
         uint256 multiplier = block.timestamp - lastRewardTimestamp;
         uint256 rJoeReward = multiplier * rJoePerSec;
-        accRJoePerShare = accRJoePerShare + (rJoeReward * DECIMALS) / joeSupply;
+        accRJoePerShare = accRJoePerShare + (rJoeReward * PRECISION) / joeSupply;
         lastRewardTimestamp = block.timestamp;
 
         rJoe.mint(address(this), rJoeReward);
