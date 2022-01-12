@@ -9,7 +9,7 @@ interface IRocketJoeFactory {
         uint256 phaseOneStartTime,
         uint256 phaseTwoStartTime,
         uint256 phaseThreeStartTime,
-        uint256 rJoe,
+        address rJoe,
         uint256 rJoePerAvax
     );
     event SetRJoe(address indexed token);
