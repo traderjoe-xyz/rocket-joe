@@ -84,9 +84,6 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
         address launchEvent = Clones.clone(eventImplementation);
 
-        getRJLaunchEvent[_token] = launchEvent;
-        allRJLaunchEvents.push(launchEvent);
-
         // msg.sender needs to approve RocketJoeFactory
         IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount);
 
@@ -106,17 +103,9 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         getRJLaunchEvent[_token] = launchEvent;
         allRJLaunchEvents.push(launchEvent);
 
-        //uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
-        //uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
+        emitLaunchedEvent(_issuer, _token, _phaseOneStartTime);
 
-        //emit RJLaunchEventCreated(
-        //    _issuer,
-        //    _token,
-        //    _phaseOneStartTime,
-        //    _phaseTwoStartTime,
-        //    _phaseThreeStartTime
-        //);
-    }
+       }
 
     function setRJoe(address _rJoe) external override onlyOwner {
         rJoe = _rJoe;
@@ -145,5 +134,20 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     function setRJoePerAvax(uint256 _rJoePerAvax) external override onlyOwner {
         rJoePerAvax = _rJoePerAvax;
         emit SetRJoePerAvax(_rJoePerAvax);
+    }
+
+    function emitLaunchedEvent(address _issuer, address _token, uint256 _phaseOneStartTime) internal {
+        uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
+        uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
+
+        emit RJLaunchEventCreated(
+            _issuer,
+            _token,
+            _phaseOneStartTime,
+            _phaseTwoStartTime,
+            _phaseThreeStartTime,
+            rJoe,
+            rJoePerAvax
+        );
     }
 }
