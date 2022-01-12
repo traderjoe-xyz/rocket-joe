@@ -136,6 +136,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         emit SetRJoePerAvax(_rJoePerAvax);
     }
 
+    /// @dev This function emits an event after a new launch event has been created
+    /// @dev It is only seperated out due to `createRJLaunchEvent` having too many local variables
     function emitLaunchedEvent(address _issuer, address _token, uint256 _phaseOneStartTime) internal {
         uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
         uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
