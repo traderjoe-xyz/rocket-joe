@@ -99,13 +99,13 @@ contract LaunchEvent is Ownable {
 
     event UserLiquidityWithdrawn(address indexed user, address indexed pair, uint amount);
 
-    event IssuerLiquidityWithdrawn(address issuer, address pair, uint amount);
+    event IssuerLiquidityWithdrawn(address indexed issuer, address indexed pair, uint amount);
 
     event Stopped();
 
-    event AvaxEmergencyWithdraw(address user, uint amount);
+    event AvaxEmergencyWithdraw(address indexed user, uint amount);
 
-    event TokenEmergencyWithdraw(address user, uint amount);
+    event TokenEmergencyWithdraw(address indexed user, uint amount);
 
 
     /// @notice Receive AVAX from the WAVAX contract
