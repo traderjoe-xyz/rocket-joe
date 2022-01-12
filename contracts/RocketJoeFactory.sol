@@ -103,7 +103,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         getRJLaunchEvent[_token] = launchEvent;
         allRJLaunchEvents.push(launchEvent);
 
-        emitLaunchedEvent(_issuer, _token, _phaseOneStartTime);
+        _emitLaunchedEvent(_issuer, _token, _phaseOneStartTime);
 
        }
 
@@ -137,8 +137,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     }
 
     /// @dev This function emits an event after a new launch event has been created
-    /// @dev It is only seperated out due to `createRJLaunchEvent` having too many local variables
-    function emitLaunchedEvent(address _issuer, address _token, uint256 _phaseOneStartTime) internal {
+    /// It is only seperated out due to `createRJLaunchEvent` having too many local variables
+    function _emitLaunchedEvent(address _issuer, address _token, uint256 _phaseOneStartTime) internal {
         uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
         uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
 
