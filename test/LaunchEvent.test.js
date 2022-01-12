@@ -136,7 +136,7 @@ describe("Launch event contract initialisation", function () {
       ).to.be.revertedWith("RJFactory: pair already exists");
     });
 
-    it("should revert initialisation if withdraw penalty gradient is too high", async function () {
+    it("should revert initialisation if max withdraw penalty is too high", async function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.alice.address,
@@ -144,7 +144,7 @@ describe("Launch event contract initialisation", function () {
           this.rJOE2.address,
           100,
           1,
-          5e11,
+          ethers.utils.parseEther("0.5"),
           1,
           100,
           10000,
@@ -162,8 +162,8 @@ describe("Launch event contract initialisation", function () {
           this.rJOE2.address,
           100,
           1,
-          2893517,
-          6e11,
+          1,
+          ethers.utils.parseEther("0.5"),
           100,
           10000,
           60,

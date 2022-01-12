@@ -48,11 +48,12 @@ contract LaunchEvent is Ownable {
     /// @notice Timelock duration post phase 3 When can issuer withdraw their LP tokens
     uint256 public issuerTimelock;
 
-    /// @notice The max withdraw penalty during phase 1, in parts per 1e12 (phase 1)
+    /// @notice The max withdraw penalty during phase 1, in parts per 1e18
+    /// e.g. max penalty of 50% `maxWithdrawPenalty`= 5e17
     uint256 public maxWithdrawPenalty;
 
-    /// @notice The fixed withdraw penalty, in parts per 1e12 (phase 2)
-    /// e.g. fixed penalty of 20% `fixedWithdrawPenalty = 20e11`
+    /// @notice The fixed withdraw penalty during phase 2, in parts per 1e18
+    /// e.g. fixed penalty of 20% `fixedWithdrawPenalty = 2e17`
     uint256 public fixedWithdrawPenalty;
 
     IRocketJoeToken public rJoe;
@@ -183,6 +184,8 @@ contract LaunchEvent is Ownable {
     /// @param _auctionStart The start time of the auction
     /// @param _token The contract address of auctioned token
     /// @param _floorPrice The minimum price the token is sold at
+    /// @param _maxWithdrawPenalty The max withdraw penalty during phase 1, in parts per 1e18
+    /// @param _fixedWithdrawPenalty The fixed withdraw penalty during phase 2, in parts per 1e18
     /// @param _minAllocation The minimum amount of AVAX depositable
     /// @param _maxAllocation The maximum amount of AVAX depositable
     /// @param _userTimelock The time a user must wait after auction ends to withdraw liquidity
@@ -214,11 +217,11 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: forbidden"
         );
         require(
-            _maxWithdrawPenalty < 5e11,
+            _maxWithdrawPenalty < 5e17,
             "LaunchEvent: maxWithdrawPenalty too big"
         ); // 50%
         require(
-            _fixedWithdrawPenalty < 5e11,
+            _fixedWithdrawPenalty < 5e17,
             "LaunchEvent: fixedWithdrawPenalty too big"
         ); // 50%
         require(
@@ -316,7 +319,7 @@ contract LaunchEvent is Ownable {
         );
         user.allocation -= _amount;
 
-        uint256 feeAmount = (_amount * getPenalty()) / 1e12;
+        uint256 feeAmount = (_amount * getPenalty()) / 1e18;
         uint256 amountMinusFee = _amount - feeAmount;
 
         WAVAX.withdraw(_amount);
@@ -456,7 +459,7 @@ contract LaunchEvent is Ownable {
         if (timeElapsed < 1 days) {
             return 0;
         } else if (timeElapsed < PHASE_ONE_DURATION) {
-            return (timeElapsed - 1 days) * maxWithdrawPenalty / uint256(2 days);
+            return (timeElapsed - 1 days) * maxWithdrawPenalty / uint256(PHASE_ONE_DURATION - 1 days);
         }
         return fixedWithdrawPenalty;
     }
