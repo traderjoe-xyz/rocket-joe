@@ -83,15 +83,21 @@ contract LaunchEvent is Ownable {
 
     uint256 private tokenReserve;
 
-    event IssuingTokenDeposited(address token, uint amount);
+    event IssuingTokenDeposited(address indexed token, uint amount);
 
-    event UserParticipated(address user, uint avaxAmount, uint rJoeAmount);
+    event UserParticipated(address indexed user, uint avaxAmount, uint rJoeAmount);
 
-    event UserWithdrawn(address user, uint avaxAmount);
+    event UserWithdrawn(address indexed user, uint avaxAmount);
 
-    event LiquidityPoolCreated(address pair, address token0, address token1, uint amount0, uint amount1);
+    event LiquidityPoolCreated(
+        address indexed pair,
+        address indexed token0,
+        address indexed token1,
+        uint amount0,
+        uint amount1
+    );
 
-    event UserLiquidityWithdrawn(address user, address pair, uint amount);
+    event UserLiquidityWithdrawn(address indexed user, address indexed pair, uint amount);
 
     event IssuerLiquidityWithdrawn(address issuer, address pair, uint amount);
 
