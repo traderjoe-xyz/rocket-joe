@@ -8,8 +8,15 @@ interface IRocketJoeFactory {
         address indexed token,
         uint256 phaseOneStartTime,
         uint256 phaseTwoStartTime,
-        uint256 phaseThreeStartTime
+        uint256 phaseThreeStartTime,
+        uint256 rJoe,
+        uint256 rJoePerAvax
     );
+    event SetRJoe(address indexed token);
+    event SetPenaltyCollector(address indexed collector);
+    event SetRouter(address indexed router);
+    event SetFactory(address indexed factory);
+    event SetRJoePerAvax(uint rJoePerAvax);
 
     function eventImplementation() external view returns (address);
 
