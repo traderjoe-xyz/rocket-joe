@@ -120,6 +120,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
     function setRJoe(address _rJoe) external override onlyOwner {
         rJoe = _rJoe;
+        emit SetRJoe(_rJoe);
     }
 
     function setPenaltyCollector(address _penaltyCollector)
@@ -128,17 +129,21 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         onlyOwner
     {
         penaltyCollector = _penaltyCollector;
+        emit SetPenaltyCollector(_penaltyCollector);
     }
 
     function setRouter(address _router) external override onlyOwner {
         router = _router;
+        emit SetRouter(_router);
     }
 
     function setFactory(address _factory) external override onlyOwner {
         factory = _factory;
+        emit SetFactory(_factory);
     }
 
     function setRJoePerAvax(uint256 _rJoePerAvax) external override onlyOwner {
         rJoePerAvax = _rJoePerAvax;
+        emit SetRJoePerAvax(_rJoePerAvax);
     }
 }
