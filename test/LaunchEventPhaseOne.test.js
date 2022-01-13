@@ -235,7 +235,7 @@ describe("launch event contract phase one", function () {
 
 	  });
 
-    it("should only be stopped by RJFactory owner", async function () {
+    it("should revert if not stopped by RJFactory owner", async function () {
       // issuer of the LaunchEvent
       await expect(
         this.LaunchEvent.connect(this.issuer).allowEmergencyWithdraw()
