@@ -38,7 +38,7 @@ describe("Rocket Joe Staking Contract", function () {
     await this.rJOE.transferOwnership(this.RJStaking.address);
   });
 
-  describe("should allow deposits and withdraws", function () {
+  describe("Should allow deposits and withdraws", function () {
     it("should allow deposits and withdraws of multiple users", async function () {
       await this.joe
         .connect(this.alice)
