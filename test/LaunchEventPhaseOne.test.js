@@ -84,8 +84,8 @@ describe("Launch event contract phase one", function () {
       this.AUCTOK.address, // Address of the token being auctioned
       100, // Floor price (100 Wei)
       1000, // Amount of tokens for auction
-      2893517, // Withdraw penalty gradient
-      4e11, // Fixed withdraw penalty
+      ethers.utils.parseEther("0.5").sub("1"), // Max withdraw penalty
+      ethers.utils.parseEther("0.4"), // Fixed withdraw penalty
       5000, // min allocation
       ethers.utils.parseEther("5.0"), // max allocation
       60 * 60 * 24 * 7 - 1, // User timelock
@@ -107,7 +107,7 @@ describe("Launch event contract phase one", function () {
           block.timestamp, // _auctionStart
           this.AUCTOK.address, // _token
           0, // _floorPrice
-          0, // _withdrawPenaltyGradient
+          0, // _maxWithdrawPenalty
           0, // _fixedWithdrawPenalty
           0, // _minAllocation
           0, // _maxAllocation
