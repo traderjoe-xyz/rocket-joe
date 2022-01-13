@@ -415,12 +415,12 @@ contract LaunchEvent is Ownable {
             if (tokenReserve > 0) {
                 token.transfer(
                     msg.sender,
-                    (user.allocation * tokenReserve) / avaxAllocated / 2
+                    (user.balance * tokenReserve) / avaxAllocated / 2
                 );
                 emit UserLiquidityWithdrawn(
                     msg.sender,
                     address(pair),
-                    (user.allocation * tokenReserve) / avaxAllocated / 2
+                    (user.balance * tokenReserve) / avaxAllocated / 2
                 );
             }
         }
@@ -433,14 +433,14 @@ contract LaunchEvent is Ownable {
         if (msg.sender != issuer) {
             UserAllocation storage user = getUserAllocation[msg.sender];
             require(
-                user.allocation > 0,
-                "LaunchEvent: expected user to have non-zero allocation to perform emergency withdraw"
+                user.balance > 0,
+                "LaunchEvent: expected user to have non-zero balance to perform emergency withdraw"
             );
 
-            _safeTransferAVAX(msg.sender, user.allocation);
-            emit AvaxEmergencyWithdraw(msg.sender, user.allocation);
+            _safeTransferAVAX(msg.sender, user.balance);
+            emit AvaxEmergencyWithdraw(msg.sender, user.balance);
 
-            user.allocation = 0;
+            user.balance = 0;
         }
 
         if (msg.sender == issuer) {
@@ -496,7 +496,7 @@ contract LaunchEvent is Ownable {
             return 0;
         }
         return
-            (getUserAllocation[_user].allocation * lpSupply) /
+            (getUserAllocation[_user].balance * lpSupply) /
             avaxAllocated /
             2;
     }
