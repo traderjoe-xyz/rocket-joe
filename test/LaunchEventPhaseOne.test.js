@@ -2,6 +2,7 @@ const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
 const { advanceTimeAndBlock, duration } = require("./utils/time");
 const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat")
+const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
 
 describe("launch event contract phase one", function () {
 
@@ -14,26 +15,7 @@ describe("launch event contract phase one", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    // The contracts we interact with.
-    this.wavax = await ethers.getContractAt(
-      "IWAVAX",
-      "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"
-    );
-    this.router = await ethers.getContractAt(
-      "IJoeRouter02",
-      "0x60aE616a2155Ee3d9A68541Ba4544862310933d4"
-    );
-    this.factory = await ethers.getContractAt(
-      "IJoeFactory",
-      "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10"
-    );
-
-    // Factories for deploying our contracts.
-    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
-    this.RocketJoeFactoryCF = await ethers.getContractFactory(
-      "RocketJoeFactory"
-    );
-    this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
+    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
 
     // Fork the avalanche network to work with WAVAX.
     await network.provider.request({
@@ -49,22 +31,13 @@ describe("launch event contract phase one", function () {
     // XXX: Should we replace this with a standard ERC20?
     this.AUCTOK = await this.RocketJoeTokenCF.deploy();
 
-    // Deploy the rocket joe contracts.
-    this.LaunchEventPrototype = await this.LaunchEventCF.deploy();
-    this.RocketFactory = await this.RocketJoeFactoryCF.deploy(
-      this.LaunchEventPrototype.address,
-      this.rJOE.address,
-      this.wavax.address,
-      this.penaltyCollector.address,
-      this.router.address,
-      this.factory.address
-    );
-    await this.LaunchEventPrototype.connect(this.dev).transferOwnership(
-      this.RocketFactory.address
-    );
-
     // Keep a reference to the current block.
     this.block = await ethers.provider.getBlock();
+
+    this.RocketFactory = await deployRocketFactory(
+      this.dev,
+      this.rJOE,
+      this.penaltyCollector);
 
     // Send the tokens used to the issuer and approve spending to the factory.
     await this.AUCTOK.connect(this.dev).mint(
@@ -80,26 +53,11 @@ describe("launch event contract phase one", function () {
       ethers.utils.parseEther("1000000")
     ); // 1_000_000 tokens
 
-    // Deploy the launch event contract
-    await this.RocketFactory.createRJLaunchEvent(
-      this.issuer.address, // Issuer
-      this.block.timestamp + 60, // Start time (60 seconds from now)
-      this.AUCTOK.address, // Address of the token being auctioned
-      1000000, // Amount of tokens for auction
-      1000, // Floor price (100 Wei)
-      ethers.utils.parseEther("0.5"), // Max withdraw penalty
-      ethers.utils.parseEther("0.4"), // Fixed withdraw penalty
-      5000, // min allocation
-      ethers.utils.parseEther("5.0"), // max allocation
-      60 * 60 * 24 * 7, // User timelock
-      60 * 60 * 24 * 8 // Issuer timelock
-    );
-
-    // Get a reference to the acutal launch event contract.
-    this.LaunchEvent = await ethers.getContractAt(
-      "LaunchEvent",
-      this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
-    );
+    this.LaunchEvent = await createLaunchEvent(
+      this.RocketFactory,
+      this.issuer,
+      this.block,
+      this.AUCTOK);
   });
 
   describe("interacting with phase one", function () {
