@@ -291,19 +291,27 @@ contract LaunchEvent is Ownable {
 
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(
-            user.allocation + msg.value <= maxAllocation,
+            user.balance + msg.value <= maxAllocation,
             "LaunchEvent: amount exceeds max allocation"
         );
 
-        user.allocation += msg.value;
-        user.hasWithdrawnPair = false;
+        uint256 rJoeNeeded;
+        // check if additional allocation is required.
+        if ((user.balance + msg.value) > user.allocation) {
+            // Burn tokens and update allocation.
+            rJoeNeeded = getRJoeAmount((user.balance + msg.value) - user.allocation);
+            rJoe.transferFrom(msg.sender, address(this), rJoeNeeded);
+            // Set allocation to the current balance as its impossible
+            // to buy more allocation without sending AVAX too.
+            user.allocation = user.balance + msg.value;
+        }
 
-        uint256 rJoeAmount = getRJoeAmount(msg.value);
-
+        user.balance += msg.value;
         WAVAX.deposit{value: msg.value}();
-        rJoe.transferFrom(msg.sender, address(this), rJoeAmount);
-        rJoe.burn(rJoeAmount);
-        emit UserParticipated(msg.sender, msg.value, rJoeAmount);
+        if (rJoeNeeded > 0) {
+            rJoe.burn(rJoeNeeded);
+        }
+        emit UserParticipated(msg.sender, msg.value, rJoeNeeded);
     }
 
     /// @notice Withdraw AVAX only during phase 1 and 2
@@ -313,10 +321,10 @@ contract LaunchEvent is Ownable {
 
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(
-            user.allocation >= _amount,
+            user.balance >= _amount,
             "LaunchEvent: withdrawn amount exceeds balance"
         );
-        user.allocation -= _amount;
+        user.balance -= _amount;
 
         uint256 feeAmount = (_amount * getPenalty()) / 1e18;
         uint256 amountMinusFee = _amount - feeAmount;
