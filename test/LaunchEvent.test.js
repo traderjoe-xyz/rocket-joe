@@ -1,6 +1,7 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
-const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat")
+const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat");
+const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
 
 
 describe("launch event contract initialisation", function () {
@@ -12,28 +13,8 @@ describe("launch event contract initialisation", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    // The contracts we interact with.
-    this.wavax = await ethers.getContractAt(
-      "IWAVAX",
-      "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"
-    );
-    this.router = await ethers.getContractAt(
-      "IJoeRouter02",
-      "0x60aE616a2155Ee3d9A68541Ba4544862310933d4"
-    );
-    this.factory = await ethers.getContractAt(
-      "IJoeFactory",
-      "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10"
-    );
+    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
 
-    // Factories for deploying our contracts.
-    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
-    this.RocketJoeFactoryCF = await ethers.getContractFactory(
-      "RocketJoeFactory"
-    );
-    this.LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
-
-    // Fork the avalanche network to work with WAVAX.
     await network.provider.request({
       method: "hardhat_reset",
       params: HARDHAT_FORK_CURRENT_PARAMS,
@@ -41,24 +22,14 @@ describe("launch event contract initialisation", function () {
   });
 
   beforeEach(async function () {
+
     // Deploy the tokens used for tests.
     this.rJOE = await this.RocketJoeTokenCF.deploy();
     // XXX: Should we replace this with a standard ERC20?
     this.AUCTOK = await this.RocketJoeTokenCF.deploy();
 
-    // Deploy the rocket joe contracts.
-    this.LaunchEventPrototype = await this.LaunchEventCF.deploy();
-    this.RocketFactory = await this.RocketJoeFactoryCF.deploy(
-      this.LaunchEventPrototype.address,
-      this.rJOE.address,
-      this.wavax.address,
-      this.penaltyCollector.address,
-      this.router.address,
-      this.factory.address
-    );
-    await this.LaunchEventPrototype.connect(this.dev).transferOwnership(
-      this.RocketFactory.address
-    );
+    this.RocketFactory = await deployRocketFactory(
+      this.dev, this.rJOE, this.penaltyCollector);
 
     // Keep a reference to the current block.
     this.block = await ethers.provider.getBlock();
@@ -136,7 +107,7 @@ describe("launch event contract initialisation", function () {
     it("should revert if token is wavax", async function () {
       const args = {
         ...this.validParams,
-        _token: this.wavax.address,
+        _token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
       };
       await testReverts(
         this.RocketFactory,
@@ -238,6 +209,7 @@ describe("launch event contract initialisation", function () {
     });
 
     it("should revert if initialised twice", async function () {
+
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.validParams._issuer,
@@ -253,13 +225,16 @@ describe("launch event contract initialisation", function () {
           this.validParams._issuerTimelock
         )
       );
+      LaunchEvent = await ethers.getContractAt(
+        "LaunchEvent",
+        this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
+      );
 
       expect(
-        this.RocketFactory.createRJLaunchEvent(
+        LaunchEvent.initialize(
           this.validParams._issuer,
           this.validParams._auctionStart,
           this.validParams._token,
-          this.validParams._tokenAmount,
           this.validParams._floorPrice,
           this.validParams._withdrawPenaltyGradient,
           this.validParams._fixedWithdrawPenalty,
