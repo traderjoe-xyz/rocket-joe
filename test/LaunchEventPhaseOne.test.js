@@ -102,16 +102,6 @@ describe("launch event contract phase one", function () {
         ).to.equal(ethers.utils.parseEther("1.0").number);
       });
 
-      it("should revert if AVAX sent less than min allocation", async function () {
-        await advanceTimeAndBlock(duration.seconds(120));
-        await this.rJOE.connect(this.participant).approve(this.LaunchEvent.address, 4999);
-        expect(
-          this.LaunchEvent.connect(this.participant).depositAVAX({ value: 4999 })
-        ).to.be.revertedWith(
-          "LaunchEvent: amount doesn't fulfill min allocation"
-        );
-      });
-
       it("should revert on deposit if stopped", async function () {
         await advanceTimeAndBlock(duration.seconds(120));
         await this.rJOE

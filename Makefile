@@ -8,6 +8,7 @@ test:
 
 clean:
 	yarn run hardhat clean
+	rm -rf coverage
 
 coverage:
 	yarn run hardhat coverage

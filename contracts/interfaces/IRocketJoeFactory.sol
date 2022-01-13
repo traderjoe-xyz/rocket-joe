@@ -49,7 +49,6 @@ interface IRocketJoeFactory {
         uint256 _floorPrice,
         uint256 _maxWithdrawPenalty,
         uint256 _fixedWithdrawPenalty,
-        uint256 _minAllocation,
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock

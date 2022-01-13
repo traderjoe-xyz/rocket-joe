@@ -27,6 +27,7 @@ contract LaunchEvent is Ownable {
 
     struct UserAllocation {
         uint256 allocation;
+        uint256 balance;
         bool hasWithdrawnPair;
     }
 
@@ -68,8 +69,6 @@ contract LaunchEvent is Ownable {
     bool internal initialized;
     bool internal isStopped;
 
-    /// @dev max and min allocation limits in AVAX
-    uint256 public minAllocation;
     uint256 public maxAllocation;
 
     mapping(address => UserAllocation) public getUserAllocation;
@@ -197,7 +196,6 @@ contract LaunchEvent is Ownable {
     /// @param _floorPrice The minimum price the token is sold at
     /// @param _maxWithdrawPenalty The max withdraw penalty during phase 1, in parts per 1e18
     /// @param _fixedWithdrawPenalty The fixed withdraw penalty during phase 2, in parts per 1e18
-    /// @param _minAllocation The minimum amount of AVAX depositable
     /// @param _maxAllocation The maximum amount of AVAX depositable
     /// @param _userTimelock The time a user must wait after auction ends to withdraw liquidity
     /// @param _issuerTimelock The time the issuer must wait after auction ends to withdraw liquidity
@@ -209,7 +207,6 @@ contract LaunchEvent is Ownable {
         uint256 _floorPrice,
         uint256 _maxWithdrawPenalty,
         uint256 _fixedWithdrawPenalty,
-        uint256 _minAllocation,
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock
@@ -236,10 +233,6 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: fixedWithdrawPenalty too big"
         ); // 50%
         require(
-            _maxAllocation >= _minAllocation,
-            "LaunchEvent: max allocation less than min"
-        );
-        require(
             _userTimelock <= 7 days,
             "LaunchEvent: can't lock user LP for more than 7 days"
         );
@@ -264,7 +257,6 @@ contract LaunchEvent is Ownable {
         maxWithdrawPenalty = _maxWithdrawPenalty;
         fixedWithdrawPenalty = _fixedWithdrawPenalty;
 
-        minAllocation = _minAllocation;
         maxAllocation = _maxAllocation;
 
         userTimelock = _userTimelock;
@@ -295,10 +287,6 @@ contract LaunchEvent is Ownable {
         require(
             msg.value > 0,
             "LaunchEvent: expected non-zero AVAX to deposit"
-        );
-        require(
-            msg.value >= minAllocation,
-            "LaunchEvent: amount doesn't fulfill min allocation"
         );
 
         UserAllocation storage user = getUserAllocation[msg.sender];
