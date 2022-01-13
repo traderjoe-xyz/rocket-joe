@@ -1,6 +1,6 @@
 const { ethers, network, upgrades } = require("hardhat");
 const { expect } = require("chai");
-const { duration, increase } = require("./utils/time");
+const { advanceTimeAndBlock, duration } = require("./utils/time");
 
 describe("Rocket Joe Staking Contract", function () {
   before(async function () {
@@ -151,7 +151,7 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("600"));
 
-      increase(duration.days(1));
+      await advanceTimeAndBlock(duration.days(1));
 
       await this.RJStaking.connect(this.alice).withdraw(
         ethers.utils.parseEther("100")
@@ -218,7 +218,7 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("600"));
 
-      increase(duration.days(1));
+      await advanceTimeAndBlock(duration.days(1));
 
       await this.RJStaking.connect(this.bob).deposit(
         ethers.utils.parseEther("300")
@@ -250,7 +250,7 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("600"));
 
-      increase(duration.days(2));
+      await advanceTimeAndBlock(duration.days(2));
 
       await this.RJStaking.connect(this.bob).withdraw("0"); // bob should only receive half of the last reward
       expect(
@@ -303,7 +303,7 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("300"));
 
-      increase(duration.days(1));
+      await advanceTimeAndBlock(duration.days(1));
 
       const pendingReward = await this.RJStaking.pendingRJoe(
         this.alice.address
@@ -338,7 +338,7 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("300"));
 
-      increase(duration.days(1));
+      await advanceTimeAndBlock(duration.days(1));
 
       await this.RJStaking.connect(this.alice).emergencyWithdraw(); // alice shouldn't receive any token of the last reward
       expect(
@@ -365,7 +365,7 @@ describe("Rocket Joe Staking Contract", function () {
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal("1");
 
-      increase(duration.days(1));
+      await advanceTimeAndBlock(duration.days(1));
 
       await this.RJStaking.connect(this.alice).withdraw("0");
       const balance = await this.rJOE.balanceOf(this.alice.address);
@@ -374,7 +374,7 @@ describe("Rocket Joe Staking Contract", function () {
         ethers.utils.parseEther("0.0011")
       );
 
-      increase(duration.days(1));
+      await advanceTimeAndBlock(duration.days(1));
 
       await this.RJStaking.connect(this.alice).withdraw("0");
       expect(

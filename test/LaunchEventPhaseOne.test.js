@@ -1,6 +1,6 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
-const { duration, increase } = require("./utils/time");
+const { advanceTimeAndBlock, duration } = require("./utils/time");
 
 describe("Launch event contract phase one", function () {
   before(async function () {
@@ -119,7 +119,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should revert if issuer tries to participate", async function () {
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       expect(
         this.LaunchEvent.connect(this.alice).depositAVAX({
@@ -137,7 +137,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should revert if rJOE not approved", async function () {
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       expect(
         this.LaunchEvent.connect(this.bob).depositAVAX({
@@ -147,7 +147,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should be payable with AVAX", async function () {
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       await this.rJOE
         .connect(this.bob)
@@ -161,7 +161,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should revert if AVAX sent less than min allocation", async function () {
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       await this.rJOE.connect(this.bob).approve(this.LaunchEvent.address, 4999);
       expect(
@@ -184,7 +184,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should revert if stopped", async function () {
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       await this.rJOE
         .connect(this.bob)
@@ -207,7 +207,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should revert if AVAX sent more than max allocation", async function () {
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       await this.rJOE
         .connect(this.bob)
@@ -222,7 +222,7 @@ describe("Launch event contract phase one", function () {
     it("should burn rJOE on succesful deposit", async function () {
       let rJOEBefore = await this.rJOE.totalSupply();
 
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       await this.rJOE
         .connect(this.bob)
@@ -238,7 +238,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should apply no fee if withdraw in first day", async function () {
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       await this.rJOE
         .connect(this.bob)
@@ -259,7 +259,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should apply gradient fee if withdraw in second day", async function () {
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       await this.rJOE
         .connect(this.bob)
@@ -269,7 +269,7 @@ describe("Launch event contract phase one", function () {
         value: ethers.utils.parseEther("1.0"),
       });
 
-      increase(duration.hours(36));
+      await advanceTimeAndBlock(duration.hours(36));
 
       await this.LaunchEvent.connect(this.bob).withdrawAVAX(
         ethers.utils.parseEther("1.0")
@@ -282,7 +282,7 @@ describe("Launch event contract phase one", function () {
     });
 
     it("should revert try to create pool during phase one", async function () {
-      increase(duration.seconds(120));
+      await advanceTimeAndBlock(duration.seconds(120));
 
       expect(
         this.LaunchEvent.connect(this.dev).createPair()

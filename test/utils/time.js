@@ -12,11 +12,6 @@ async function advanceBlockTo(blockNumber) {
   }
 }
 
-async function increase(value) {
-  await ethers.provider.send("evm_increaseTime", [value.toNumber()]);
-  await advanceBlock();
-}
-
 async function latest() {
   const block = await ethers.provider.getBlock("latest");
   return BigNumber.from(block.timestamp);
@@ -28,7 +23,7 @@ async function advanceTimeAndBlock(time) {
 }
 
 async function advanceTime(time) {
-  await ethers.provider.send("evm_increaseTime", [time]);
+  await ethers.provider.send("evm_increaseTime", [time.toNumber()]);
 }
 
 const duration = {
