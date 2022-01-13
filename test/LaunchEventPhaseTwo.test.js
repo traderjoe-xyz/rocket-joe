@@ -81,8 +81,8 @@ describe("Launch event contract phase two", function () {
       this.AUCTOK.address, // Address of the token being auctioned
       100, // Floor price (100 Wei)
       1000, // Amount of tokens for auction
-      2893517, // Withdraw penalty gradient
-      4e11, // Fixed withdraw penalty
+      ethers.utils.parseEther("0.5"), // Max withdraw penalty
+      ethers.utils.parseEther("0.4"), // Fixed withdraw penalty
       5000, // min allocation
       ethers.utils.parseEther("5.0"), // max allocation
       60 * 60 * 24 * 7, // User timelock
@@ -141,7 +141,7 @@ describe("Launch event contract phase two", function () {
         ethers.utils.parseEther("1.0")
       );
       expect(await this.carol.getBalance()).to.be.above(
-        "10000390000000000000000"
+        "1000040000000000000000"
       );
     });
   });
