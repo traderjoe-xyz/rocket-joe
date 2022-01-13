@@ -1,16 +1,7 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
+const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat")
 
-const HARDHAT_FORK_CURRENT_PARAMS = [
-  {
-    forking: {
-      jsonRpcUrl: "https://api.avax.network/ext/bc/C/rpc",
-    },
-    live: false,
-    saveDeployments: true,
-    tags: ["test", "local"],
-  },
-];
 
 describe("launch event contract initialisation", function () {
   before(async function () {
@@ -245,6 +236,41 @@ describe("launch event contract initialisation", function () {
         )
       );
     });
+
+    it("should revert if initialised twice", async function () {
+      await expect(
+        this.RocketFactory.createRJLaunchEvent(
+          this.validParams._issuer,
+          this.validParams._auctionStart,
+          this.validParams._token,
+          this.validParams._tokenAmount,
+          this.validParams._floorPrice,
+          this.validParams._withdrawPenaltyGradient,
+          this.validParams._fixedWithdrawPenalty,
+          this.validParams._minAllocation,
+          this.validParams._maxAllocation,
+          this.validParams._userTimelock,
+          this.validParams._issuerTimelock
+        )
+      );
+
+      expect(
+        this.RocketFactory.createRJLaunchEvent(
+          this.validParams._issuer,
+          this.validParams._auctionStart,
+          this.validParams._token,
+          this.validParams._tokenAmount,
+          this.validParams._floorPrice,
+          this.validParams._withdrawPenaltyGradient,
+          this.validParams._fixedWithdrawPenalty,
+          this.validParams._minAllocation,
+          this.validParams._maxAllocation,
+          this.validParams._userTimelock,
+          this.validParams._issuerTimelock
+        )
+      ).to.be.revertedWith("LaunchEvent: already initialized");
+    });
+
   });
 
   after(async function () {
