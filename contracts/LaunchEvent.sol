@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import "./interfaces/IJoeFactory.sol";
 import "./interfaces/IJoePair.sol";
@@ -60,7 +60,7 @@ contract LaunchEvent is Ownable {
     IRocketJoeToken public rJoe;
     uint256 public rJoePerAvax;
     IWAVAX public WAVAX;
-    IERC20 public token;
+    IERC20Metadata public token;
 
     IJoeRouter02 public router;
     IJoeFactory public factory;
@@ -77,10 +77,11 @@ contract LaunchEvent is Ownable {
     IJoePair private pair;
 
     uint256 private avaxAllocated;
-    uint256 private tokenAllocated;
     uint256 private lpSupply;
 
     uint256 private tokenReserve;
+    uint256 private tokenBalance;
+    uint256 private wavaxBalance;
 
     event IssuingTokenDeposited(address indexed token, uint256 amount);
 
@@ -221,10 +222,6 @@ contract LaunchEvent is Ownable {
         rJoePerAvax = rocketJoeFactory.rJoePerAvax();
 
         require(
-            msg.sender == address(rocketJoeFactory),
-            "LaunchEvent: forbidden"
-        );
-        require(
             _maxWithdrawPenalty <= 5e17,
             "LaunchEvent: maxWithdrawPenalty too big"
         ); // 50%
@@ -250,8 +247,9 @@ contract LaunchEvent is Ownable {
         auctionStart = _auctionStart;
         PHASE_ONE_DURATION = 3 days;
         PHASE_TWO_DURATION = 1 days;
-        token = IERC20(_token);
+        token = IERC20Metadata(_token);
         tokenReserve = token.balanceOf(address(this));
+        tokenBalance = tokenReserve;
         floorPrice = _floorPrice;
 
         maxWithdrawPenalty = _maxWithdrawPenalty;
@@ -308,6 +306,8 @@ contract LaunchEvent is Ownable {
 
         user.balance += msg.value;
         WAVAX.deposit{value: msg.value}();
+        wavaxBalance += msg.value;
+
         if (rJoeNeeded > 0) {
             rJoe.burn(rJoeNeeded);
         }
@@ -332,6 +332,8 @@ contract LaunchEvent is Ownable {
         WAVAX.withdraw(_amount);
 
         _safeTransferAVAX(msg.sender, amountMinusFee);
+        wavaxBalance -= _amount;
+
         if (feeAmount > 0) {
             _safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
         }
@@ -350,40 +352,41 @@ contract LaunchEvent is Ownable {
             address(WAVAX),
             address(token)
         );
-        (uint256 avaxBalance, uint256 tokenBalance) = getReserves();
+
+        uint256 tokenAllocated = tokenBalance;
 
         // Adjust the amount of tokens sent to the pool if floor price not met
-        if (floorPrice > (avaxBalance * 1e18) / tokenBalance) {
-            tokenBalance = (avaxBalance * 1e18) / floorPrice;
+        if (floorPrice > (wavaxBalance * 1e18) / tokenAllocated) {
+            tokenAllocated = (wavaxBalance * 10**token.decimals()) / floorPrice;
         }
 
-        WAVAX.approve(address(router), avaxBalance);
-        token.approve(address(router), tokenBalance);
+        WAVAX.approve(address(router), wavaxBalance);
+        token.approve(address(router), tokenAllocated);
 
         /// We can't trust the output cause of reflect tokens
         (, , lpSupply) = router.addLiquidity(
             wavaxAddress, // tokenA
             tokenAddress, // tokenB
-            avaxBalance, // amountADesired
-            tokenBalance, // amountBDesired
-            avaxBalance, // amountAMin
-            tokenBalance, // amountBMin
+            wavaxBalance, // amountADesired
+            tokenAllocated, // amountBDesired
+            wavaxBalance, // amountAMin
+            tokenAllocated, // amountBMin
             address(this), // to
             block.timestamp // deadline
         );
 
         pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
-
-        tokenAllocated = token.balanceOf(address(pair));
-        avaxAllocated = IERC20(address(WAVAX)).balanceOf(address(pair));
+        avaxAllocated = WAVAX.balanceOf(address(pair));
+        wavaxBalance -= avaxAllocated;
 
         tokenReserve -= tokenAllocated;
+        tokenBalance = tokenReserve;
 
         emit LiquidityPoolCreated(
             address(pair),
             pair.token0(),
             pair.token1(),
-            avaxBalance,
+            wavaxBalance,
             tokenBalance
         );
     }
@@ -401,26 +404,31 @@ contract LaunchEvent is Ownable {
             !user.hasWithdrawnPair,
             "LaunchEvent: liquidity already withdrawn"
         );
+        uint256 balance = pairBalance(msg.sender);
         user.hasWithdrawnPair = true;
 
         if (msg.sender == issuer) {
             pair.transfer(issuer, lpSupply / 2);
             emit IssuerLiquidityWithdrawn(issuer, address(pair), lpSupply / 2);
             if (tokenReserve > 0) {
-                token.transfer(issuer, tokenReserve / 2);
+                uint256 amount = tokenReserve / 2;
+                token.transfer(issuer, amount);
+                tokenBalance -= amount;
             }
         } else {
-            pair.transfer(msg.sender, pairBalance(msg.sender));
+            pair.transfer(msg.sender, balance);
 
             if (tokenReserve > 0) {
+                uint256 amount = (user.allocation * tokenReserve) / avaxAllocated / 2;
                 token.transfer(
                     msg.sender,
-                    (user.balance * tokenReserve) / avaxAllocated / 2
+                    amount
                 );
+                tokenBalance -= amount;
                 emit UserLiquidityWithdrawn(
                     msg.sender,
                     address(pair),
-                    (user.balance * tokenReserve) / avaxAllocated / 2
+                    balance
                 );
             }
         }
@@ -437,15 +445,17 @@ contract LaunchEvent is Ownable {
                 "LaunchEvent: expected user to have non-zero balance to perform emergency withdraw"
             );
 
-            _safeTransferAVAX(msg.sender, user.balance);
-            emit AvaxEmergencyWithdraw(msg.sender, user.balance);
-
+            uint256 balance = user.balance;
             user.balance = 0;
-        }
+            _safeTransferAVAX(msg.sender, balance);
+            wavaxBalance -= balance;
 
-        if (msg.sender == issuer) {
-            token.transfer(issuer, token.balanceOf(issuer));
-            emit TokenEmergencyWithdraw(msg.sender, token.balanceOf(issuer));
+            emit AvaxEmergencyWithdraw(msg.sender, balance);
+        } else {
+            uint256 balance = tokenBalance;
+            tokenBalance = 0;
+            token.transfer(issuer, balance);
+            emit TokenEmergencyWithdraw(msg.sender, balance);
         }
     }
 
@@ -459,6 +469,32 @@ contract LaunchEvent is Ownable {
         emit Stopped();
     }
 
+    /// @notice force balances to match token that were deposited, not sent directly
+    /// token, wavax or avax are sent to the penaltyCollector
+    function skim() external {
+        address penaltyCollector = rocketJoeFactory.penaltyCollector();
+
+        uint256 excessToken = token.balanceOf(address(this)) - tokenBalance;
+        if (excessToken > 0) {
+            token.transfer(
+                penaltyCollector,
+                token.balanceOf(address(this)) - tokenBalance
+            );
+        }
+
+        uint256 excessWavax = WAVAX.balanceOf(address(this)) - wavaxBalance;
+        if (excessWavax > 0) {
+            WAVAX.transfer(
+                penaltyCollector,
+                excessWavax
+            );
+        }
+
+        uint256 excessAvax = address(this).balance;
+        if (excessAvax > 0)
+            _safeTransferAVAX(penaltyCollector, excessAvax);
+    }
+
     /// @notice Returns the current penalty for early withdrawal
     /// @return The penalty to apply to a withdrawal amount
     function getPenalty() public view returns (uint256) {
@@ -467,8 +503,8 @@ contract LaunchEvent is Ownable {
             return 0;
         } else if (timeElapsed < PHASE_ONE_DURATION) {
             return
-                ((timeElapsed - 1 days) * maxWithdrawPenalty) /
-                uint256(PHASE_ONE_DURATION - 1 days);
+            ((timeElapsed - 1 days) * maxWithdrawPenalty) /
+            uint256(PHASE_ONE_DURATION - 1 days);
         }
         return fixedWithdrawPenalty;
     }
@@ -477,8 +513,8 @@ contract LaunchEvent is Ownable {
     /// @return The balances of WAVAX and distribution token held by the launch contract
     function getReserves() public view returns (uint256, uint256) {
         return (
-            IERC20(address(WAVAX)).balanceOf(address(this)),
-            token.balanceOf(address(this))
+        wavaxBalance,
+        tokenBalance
         );
     }
 
@@ -496,9 +532,9 @@ contract LaunchEvent is Ownable {
             return 0;
         }
         return
-            (getUserAllocation[_user].balance * lpSupply) /
-            avaxAllocated /
-            2;
+        (getUserAllocation[_user].balance * lpSupply) /
+        avaxAllocated /
+        2;
     }
 
     /// @notice Send AVAX
