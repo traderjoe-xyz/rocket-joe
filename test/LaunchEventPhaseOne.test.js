@@ -100,7 +100,7 @@ describe("Launch event contract phase one", function () {
   });
 
   describe("Interacting with phase one", function () {
-    it("should rever if initialised twice", async function () {
+    it("should revert if initialised twice", async function () {
       expect(
         this.LaunchEvent.connect(this.bob).initialize(
           this.bob.address, // _issuer
@@ -170,7 +170,7 @@ describe("Launch event contract phase one", function () {
       );
     });
 
-    it("Should only be stopped by RJFactory owner", async function () {
+    it("should only be stopped by RJFactory owner", async function () {
       // issuer of the LaunchEvent
       await expect(
         this.LaunchEvent.connect(this.alice).allowEmergencyWithdraw()
@@ -194,7 +194,7 @@ describe("Launch event contract phase one", function () {
       ).to.be.revertedWith("LaunchEvent: stopped");
     });
 
-    it("Should revert if trying to emergency withdraw with 0 allocation", async function () {
+    it("should revert if trying to emergency withdraw with 0 allocation", async function () {
       await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
 
       // any user
