@@ -70,7 +70,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock
-    ) external override returns (address launchEvent) {
+    ) external override returns (address) {
         require(
             getRJLaunchEvent[_token] == address(0),
             "RJFactory: token has already been issued"
@@ -82,7 +82,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
             "RJFactory: pair already exists"
         );
 
-        launchEvent = Clones.clone(eventImplementation);
+        address launchEvent = Clones.clone(eventImplementation);
 
         // msg.sender needs to approve RocketJoeFactory
         IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount);
@@ -105,6 +105,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
         _emitLaunchedEvent(_issuer, _token, _phaseOneStartTime);
 
+        return launchEvent;
        }
 
     function setRJoe(address _rJoe) external override onlyOwner {
