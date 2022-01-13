@@ -47,7 +47,7 @@ interface IRocketJoeFactory {
         address _token,
         uint256 _tokenAmount,
         uint256 _floorPrice,
-        uint256 _withdrawPenatlyGradient,
+        uint256 _maxWithdrawPenalty,
         uint256 _fixedWithdrawPenalty,
         uint256 _minAllocation,
         uint256 _maxAllocation,
