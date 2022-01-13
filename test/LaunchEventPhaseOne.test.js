@@ -1,4 +1,5 @@
 const { ethers, network } = require("hardhat");
+const { BigNumber } = ethers;
 const { expect } = require("chai");
 const { advanceTimeAndBlock, duration } = require("./utils/time");
 const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat")
@@ -181,7 +182,53 @@ describe("launch event contract phase one", function () {
         );
       });
 
-	  });
+      it("should keep allocation after withdraw", async function () {
+        await advanceTimeAndBlock(duration.hours(36));
+        const allocationBefore = this.LaunchEvent.getUserAllocation(this.participant.address);
+        await this.LaunchEvent.connect(this.participant).withdrawAVAX(
+          ethers.utils.parseEther("1.0")
+        );
+        const allocation = this.LaunchEvent.getUserAllocation(this.participant.address);
+        expect(allocation.allocation).to.be.equal(allocationBefore.allocation);
+      });
+
+      it("can deposit when have excess allocation", async function () {
+        await advanceTimeAndBlock(duration.hours(36));
+        await this.LaunchEvent.connect(this.participant).withdrawAVAX(
+          ethers.utils.parseEther("1.0")
+        );
+        await this.LaunchEvent.connect(this.participant).depositAVAX({
+          value: ethers.utils.parseEther("1.0")
+        });
+      });
+
+      it("reverts if insufficient rjoe are approved when reentering", async function () {
+        await this.LaunchEvent.connect(this.participant).withdrawAVAX(
+          ethers.utils.parseEther("0.5")
+        );
+        await this.rJOE
+          .connect(this.participant)
+          .approve(this.LaunchEvent.address, ethers.utils.parseEther("0"));
+
+        await expect(this.LaunchEvent.connect(this.participant).depositAVAX({
+          value: ethers.utils.parseEther("1.0"),
+        })).to.be.revertedWith('ERC20: transfer amount exceeds allowance');
+      });
+
+      it("burns enough joe when re-entering", async function () {
+        await this.LaunchEvent.connect(this.participant).withdrawAVAX(
+          ethers.utils.parseEther("0.5")
+        );
+        await this.rJOE
+          .connect(this.participant)
+          .approve(this.LaunchEvent.address, ethers.utils.parseEther("50"));
+
+        await this.LaunchEvent.connect(this.participant).depositAVAX({
+          value: ethers.utils.parseEther("1.0"),
+        });
+      });
+
+    });
 
     it("should revert if not stopped by RJFactory owner", async function () {
       // issuer of the LaunchEvent
