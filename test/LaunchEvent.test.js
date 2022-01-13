@@ -54,7 +54,6 @@ describe("launch event contract initialisation", function () {
       _floorPrice: 1,
       _withdrawPenaltyGradient: 2893517,
       _fixedWithdrawPenalty: 4e11,
-      _minAllocation: 100,
       _maxAllocation: 100,
       _userTimelock: 60 * 60 * 24 * 7,
       _issuerTimelock: 60 * 60 * 24 * 8,
@@ -72,7 +71,6 @@ describe("launch event contract initialisation", function () {
           args._floorPrice,
           args._withdrawPenaltyGradient,
           args._fixedWithdrawPenalty,
-          args._minAllocation,
           args._maxAllocation,
           args._userTimelock,
           args._issuerTimelock
@@ -152,19 +150,6 @@ describe("launch event contract initialisation", function () {
       );
     });
 
-    it("should revert if min allocation is greater than max", async function () {
-      const args = {
-        ...this.validParams,
-        _minAllocation: 1001,
-        _maxAllocation: 1000,
-      };
-      await testReverts(
-        this.RocketFactory,
-        args,
-        "LaunchEvent: max allocation less than min"
-      );
-    });
-
     it("should revert initialisation if user timelock is too long", async function () {
       const args = {
         ...this.validParams,
@@ -200,7 +185,6 @@ describe("launch event contract initialisation", function () {
           this.validParams._floorPrice,
           this.validParams._withdrawPenaltyGradient,
           this.validParams._fixedWithdrawPenalty,
-          this.validParams._minAllocation,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
           this.validParams._issuerTimelock
@@ -219,7 +203,6 @@ describe("launch event contract initialisation", function () {
           this.validParams._floorPrice,
           this.validParams._withdrawPenaltyGradient,
           this.validParams._fixedWithdrawPenalty,
-          this.validParams._minAllocation,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
           this.validParams._issuerTimelock
@@ -238,7 +221,6 @@ describe("launch event contract initialisation", function () {
           this.validParams._floorPrice,
           this.validParams._withdrawPenaltyGradient,
           this.validParams._fixedWithdrawPenalty,
-          this.validParams._minAllocation,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
           this.validParams._issuerTimelock
