@@ -1,5 +1,6 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
+const { advanceTimeAndBlock, duration } = require("./utils/time");
 
 describe("Launch event contract phase three", function () {
   before(async function () {
@@ -89,8 +90,7 @@ describe("Launch event contract phase three", function () {
       this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
     );
 
-    await network.provider.send("evm_increaseTime", [120]);
-    await network.provider.send("evm_mine");
+    await advanceTimeAndBlock(duration.seconds(120));
     await this.rJOE
       .connect(this.bob)
       .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
@@ -100,9 +100,8 @@ describe("Launch event contract phase three", function () {
     expect(
       this.LaunchEvent.getUserAllocation(this.bob.address).amount
     ).to.equal(ethers.utils.parseEther("1.0").number);
-    // increase time by 3 days.
-    await network.provider.send("evm_increaseTime", [60 * 60 * 24 * 4]);
-    await network.provider.send("evm_mine");
+    // increase time by 4 days
+    await advanceTimeAndBlock(duration.days(4));
   });
 
   describe("Interacting with phase three", function () {
@@ -131,8 +130,7 @@ describe("Launch event contract phase three", function () {
     });
 
     it("should revert when withdraw liquidity if pair not created", async function () {
-      await network.provider.send("evm_increaseTime", [60 * 60 * 24 * 8]);
-      await network.provider.send("evm_mine");
+      await advanceTimeAndBlock(duration.days(8));
       expect(
         this.LaunchEvent.connect(this.bob).withdrawLiquidity()
       ).to.be.revertedWith("LaunchEvent: pair does not exist");
@@ -154,8 +152,7 @@ describe("Launch event contract phase three", function () {
       await this.LaunchEvent.connect(this.bob).createPair();
 
       // increase time to allow issuer to withdraw liquidity
-      await network.provider.send("evm_increaseTime", [60 * 60 * 24 * 8]);
-      await network.provider.send("evm_mine");
+      await advanceTimeAndBlock(duration.days(8));
 
       // issuer withdraws liquidity
       await this.LaunchEvent.connect(this.alice).withdrawLiquidity();
