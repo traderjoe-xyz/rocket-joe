@@ -39,7 +39,8 @@
     "hardhat-contract-sizer": "^2.3.0",
     "husky": "^4.2.5",
     "prettier": "^2.5.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.19"
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "solidity-coverage": "^0.7.17"
   },
   "resolutions": {
     "**/colors": "1.4.0"

@@ -1,7 +1,8 @@
+.PHONY: test coverage
+
 compile:
 	yarn run hardhat compile
 
-.PHONY: test
 test:
 	yarn run hardhat test
 
