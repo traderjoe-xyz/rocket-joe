@@ -83,30 +83,41 @@ contract LaunchEvent is Ownable {
 
     uint256 private tokenReserve;
 
-    event IssuingTokenDeposited(address indexed token, uint amount);
+    event IssuingTokenDeposited(address indexed token, uint256 amount);
 
-    event UserParticipated(address indexed user, uint avaxAmount, uint rJoeAmount);
+    event UserParticipated(
+        address indexed user,
+        uint256 avaxAmount,
+        uint256 rJoeAmount
+    );
 
-    event UserWithdrawn(address indexed user, uint avaxAmount);
+    event UserWithdrawn(address indexed user, uint256 avaxAmount);
 
     event LiquidityPoolCreated(
         address indexed pair,
         address indexed token0,
         address indexed token1,
-        uint amount0,
-        uint amount1
+        uint256 amount0,
+        uint256 amount1
     );
 
-    event UserLiquidityWithdrawn(address indexed user, address indexed pair, uint amount);
+    event UserLiquidityWithdrawn(
+        address indexed user,
+        address indexed pair,
+        uint256 amount
+    );
 
-    event IssuerLiquidityWithdrawn(address indexed issuer, address indexed pair, uint amount);
+    event IssuerLiquidityWithdrawn(
+        address indexed issuer,
+        address indexed pair,
+        uint256 amount
+    );
 
     event Stopped();
 
-    event AvaxEmergencyWithdraw(address indexed user, uint amount);
+    event AvaxEmergencyWithdraw(address indexed user, uint256 amount);
 
-    event TokenEmergencyWithdraw(address indexed user, uint amount);
-
+    event TokenEmergencyWithdraw(address indexed user, uint256 amount);
 
     /// @notice Receive AVAX from the WAVAX contract
     /// @dev Needed for withdrawing from WAVAX contract
@@ -229,7 +240,7 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: max allocation less than min"
         );
         require(
-            _userTimelock < 7 days,
+            _userTimelock <= 7 days,
             "LaunchEvent: can't lock user LP for more than 7 days"
         );
         require(
@@ -459,7 +470,9 @@ contract LaunchEvent is Ownable {
         if (timeElapsed < 1 days) {
             return 0;
         } else if (timeElapsed < PHASE_ONE_DURATION) {
-            return (timeElapsed - 1 days) * maxWithdrawPenalty / uint256(PHASE_ONE_DURATION - 1 days);
+            return
+                ((timeElapsed - 1 days) * maxWithdrawPenalty) /
+                uint256(PHASE_ONE_DURATION - 1 days);
         }
         return fixedWithdrawPenalty;
     }

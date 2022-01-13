@@ -239,7 +239,7 @@ describe("Launch event contract initialisation", function () {
         4e11,
         5000,
         10000,
-        60 * 60 * 24 * 7 - 1,
+        60 * 60 * 24 * 7,
         60 * 60 * 24 * 8
       );
     });
