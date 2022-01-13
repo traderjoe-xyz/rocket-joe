@@ -1,6 +1,6 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
-const { duration, increase } = require("./utils/time");
+const { advanceTimeAndBlock, duration } = require("./utils/time");
 
 describe("Launch event contract phase three", function () {
   before(async function () {
@@ -90,7 +90,7 @@ describe("Launch event contract phase three", function () {
       this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
     );
 
-    increase(duration.seconds(120));
+    await advanceTimeAndBlock(duration.seconds(120));
     await this.rJOE
       .connect(this.bob)
       .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
@@ -100,8 +100,8 @@ describe("Launch event contract phase three", function () {
     expect(
       this.LaunchEvent.getUserAllocation(this.bob.address).amount
     ).to.equal(ethers.utils.parseEther("1.0").number);
-    // increase time by 4 days.
-    increase(duration.days(4));
+    // await advanceTimeAndBlock time by 4 days.
+    await advanceTimeAndBlock(duration.days(4));
   });
 
   describe("Interacting with phase three", function () {
@@ -130,7 +130,7 @@ describe("Launch event contract phase three", function () {
     });
 
     it("should revert when withdraw liquidity if pair not created", async function () {
-      increase(duration.days(8));
+      await advanceTimeAndBlock(duration.days(8));
 
       expect(
         this.LaunchEvent.connect(this.bob).withdrawLiquidity()
@@ -152,8 +152,8 @@ describe("Launch event contract phase three", function () {
     it("should revert if issuer tries to withdraw liquidity more than once", async function () {
       await this.LaunchEvent.connect(this.bob).createPair();
 
-      // increase time to allow issuer to withdraw liquidity
-      increase(duration.days(8));
+      // await advanceTimeAndBlock time to allow issuer to withdraw liquidity
+      await advanceTimeAndBlock(duration.days(8));
 
       // issuer withdraws liquidity
       await this.LaunchEvent.connect(this.alice).withdrawLiquidity();

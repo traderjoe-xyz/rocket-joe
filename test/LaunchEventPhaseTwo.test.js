@@ -1,6 +1,6 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
-const { duration, increase } = require("./utils/time");
+const { advanceTimeAndBlock, duration } = require("./utils/time");
 
 describe("Launch event contract phase two", function () {
   before(async function () {
@@ -95,7 +95,7 @@ describe("Launch event contract phase two", function () {
       this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
     );
 
-    increase(duration.seconds(120));
+    await advanceTimeAndBlock(duration.seconds(120));
 
     await this.rJOE
       .connect(this.bob)
@@ -106,8 +106,8 @@ describe("Launch event contract phase two", function () {
     expect(
       this.LaunchEvent.getUserAllocation(this.bob.address).amount
     ).to.equal(ethers.utils.parseEther("1.0").number);
-    // increase time by 3 days.
-    increase(duration.days(3));
+    // await advanceTimeAndBlock time by 3 days.
+    await advanceTimeAndBlock(duration.days(3));
   });
 
   describe("Interacting with phase two", function () {
