@@ -77,7 +77,7 @@ describe("Launch event contract phase three", function () {
       this.AUCTOK.address, // Address of the token being auctioned
       100, // Floor price (100 Wei)
       1000, // Amount of tokens for auction
-      ethers.utils.parseEther("0.5").sub("1"), // Max withdraw penalty
+      ethers.utils.parseEther("0.5"), // Max withdraw penalty
       ethers.utils.parseEther("0.4"), // Fixed withdraw penalty
       5000, // min allocation
       ethers.utils.parseEther("5.0"), // max allocation

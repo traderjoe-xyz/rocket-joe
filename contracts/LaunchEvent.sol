@@ -217,11 +217,11 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: forbidden"
         );
         require(
-            _maxWithdrawPenalty < 5e17,
+            _maxWithdrawPenalty <= 5e17,
             "LaunchEvent: maxWithdrawPenalty too big"
         ); // 50%
         require(
-            _fixedWithdrawPenalty < 5e17,
+            _fixedWithdrawPenalty <= 5e17,
             "LaunchEvent: fixedWithdrawPenalty too big"
         ); // 50%
         require(
