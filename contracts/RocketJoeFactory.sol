@@ -27,6 +27,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     uint256 private PHASE_TWO_DURATION = 1 days;
 
     mapping(address => address) public override getRJLaunchEvent;
+    mapping(address => bool) public override isLaunchEvent;
     address[] public override allRJLaunchEvents;
 
     constructor(
@@ -48,6 +49,10 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         );
         eventImplementation = _eventImplementation;
         rJoe = _rJoe;
+
+        (bool success, ) = address(_rJoe).call(abi.encodeWithSignature("initialize()", 0));
+        require(success, "JoeBarV2: Failed to initialize rewarder");
+
         wavax = _wavax;
         penaltyCollector = _penaltyCollector;
         router = _router;
@@ -104,6 +109,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         );
 
         getRJLaunchEvent[_token] = launchEvent;
+        isLaunchEvent[launchEvent] = true;
         allRJLaunchEvents.push(launchEvent);
 
         _emitLaunchedEvent(_issuer, _token, _phaseOneStartTime);

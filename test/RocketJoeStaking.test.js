@@ -8,6 +8,7 @@ describe("Rocket Joe Staking Contract", function () {
       "RocketJoeStaking"
     );
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
+    this.ERC20TokenCF = await ethers.getContractFactory("ERC20Token");
 
     this.signers = await ethers.getSigners();
     this.dev = this.signers[0];
@@ -17,7 +18,7 @@ describe("Rocket Joe Staking Contract", function () {
   });
 
   beforeEach(async function () {
-    this.joe = await this.RocketJoeTokenCF.deploy();
+    this.joe = await this.ERC20TokenCF.deploy();
     await this.joe.transferOwnership(this.dev.address);
     this.rJOE = await this.RocketJoeTokenCF.deploy();
 

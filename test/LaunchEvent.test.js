@@ -12,7 +12,8 @@ describe("launch event contract initialisation", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
+    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
+    this.ERC20TokenCF = await ethers.getContractFactory("ERC20Token");
 
     await network.provider.request({
       method: "hardhat_reset",
@@ -24,7 +25,7 @@ describe("launch event contract initialisation", function () {
     // Deploy the tokens used for tests.
     this.rJOE = await this.RocketJoeTokenCF.deploy();
     // XXX: Should we replace this with a standard ERC20?
-    this.AUCTOK = await this.RocketJoeTokenCF.deploy();
+    this.AUCTOK = await this.ERC20TokenCF.deploy();
 
     this.RocketFactory = await deployRocketFactory(
       this.dev,
@@ -174,6 +175,11 @@ describe("launch event contract initialisation", function () {
         args,
         "LaunchEvent: issuer can't withdraw before users"
       );
+    });
+
+    it("should revert if user tries to send rJOE", async function () {
+      await this.rJOE.mint(this.participant.address, ethers.utils.parseEther("1000"))
+      await expect(this.rJOE.connect(this.participant).transfer(this.RocketFactory.address, 1)).to.be.revertedWith("rJOE: can't send token")
     });
 
     it("should deploy with correct paramaters", async function () {
