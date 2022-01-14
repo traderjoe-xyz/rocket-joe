@@ -389,7 +389,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Withdraw liquidity pool tokens
-    function withdrawLiquidity() external timelockElapsed {
+    function withdrawLiquidity() external atPhase(Phase.PhaseThree) timelockElapsed {
         require(!isStopped, "LaunchEvent: stopped");
         require(
             address(pair) != address(0),

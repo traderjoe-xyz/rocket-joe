@@ -260,6 +260,10 @@ describe("launch event contract phase one", function () {
       );
     });
 
+    it("should report it is in the correct phase", async function () {
+      await expect(this.LaunchEvent.currentPhase() == 1);
+    });
+
   });
 
   after(async function () {
