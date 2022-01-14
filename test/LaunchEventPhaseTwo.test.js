@@ -4,7 +4,7 @@ const { advanceTimeAndBlock, duration } = require("./utils/time");
 const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat")
 const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
 
-describe("Launch event contract phase two", function () {
+describe("launch event contract phase two", function () {
   before(async function () {
     this.signers = await ethers.getSigners();
     this.dev = this.signers[0];
