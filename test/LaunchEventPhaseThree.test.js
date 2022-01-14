@@ -4,7 +4,6 @@ const { advanceTimeAndBlock, duration } = require("./utils/time");
 const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat")
 const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
 
-
 describe("launch event contract phase three", function () {
   before(async function () {
 
@@ -26,7 +25,7 @@ describe("launch event contract phase three", function () {
   });
 
   beforeEach(async function () {
-    // Deploy the tokens used for tests.
+    // Deploy the tokens used for tests
     this.rJOE = await this.RocketJoeTokenCF.deploy();
     // XXX: Should we replace this with a standard ERC20?
     this.AUCTOK = await this.RocketJoeTokenCF.deploy();
@@ -39,7 +38,7 @@ describe("launch event contract phase three", function () {
       this.rJOE,
       this.penaltyCollector);
 
-    // Send the tokens used to the issuer and approve spending to the factory.
+    // Send the tokens used to the issuer and approve spending to the factory
     await this.AUCTOK.connect(this.dev).mint(
       this.dev.address,
       ethers.utils.parseEther("1000000")
@@ -74,7 +73,7 @@ describe("launch event contract phase three", function () {
     await advanceTimeAndBlock(duration.days(4));
   });
 
-  describe("Interacting with phase three", function () {
+  describe("interacting with phase three", function () {
     it("should revert if try do withdraw liquidity", async function () {
       expect(
         this.LaunchEvent.connect(this.participant).withdrawLiquidity()
