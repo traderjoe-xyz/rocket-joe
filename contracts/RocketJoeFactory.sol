@@ -76,6 +76,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         );
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
+        require(_tokenAmount > 0, "RJFactory: token amount needs to be greater than 0");
         require(
             IJoeFactory(factory).getPair(wavax, _token) == address(0),
             "RJFactory: pair already exists"
