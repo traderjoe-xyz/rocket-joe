@@ -228,6 +228,26 @@ describe("launch event contract initialisation", function () {
       ).to.be.revertedWith("LaunchEvent: already initialized");
     });
 
+    it("should report it is in the correct phase", async function () {
+      this.RocketFactory.createRJLaunchEvent(
+        this.validParams._issuer,
+        this.validParams._auctionStart,
+        this.validParams._token,
+        this.validParams._tokenAmount,
+        this.validParams._floorPrice,
+        this.validParams._withdrawPenaltyGradient,
+        this.validParams._fixedWithdrawPenalty,
+        this.validParams._maxAllocation,
+        this.validParams._userTimelock,
+        this.validParams._issuerTimelock
+      );
+      LaunchEvent = await ethers.getContractAt(
+        "LaunchEvent",
+        this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
+      );
+      await expect(LaunchEvent.currentPhase() == 0);
+    });
+
   });
 
   after(async function () {
