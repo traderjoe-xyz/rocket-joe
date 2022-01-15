@@ -29,6 +29,7 @@ contract LaunchEvent is Ownable {
         uint256 allocation;
         uint256 balance;
         bool hasWithdrawnPair;
+        bool hasWithdrawnIncentives;
     }
 
     /// @notice Issuer of sale tokens
@@ -92,7 +93,13 @@ contract LaunchEvent is Ownable {
     /// tokenReserve will be equal to 0)
     uint256 private tokenReserve;
 
-    /// @dev wavaxReserve is the exact amount of WAVAX that needs to be kept inside the contract in order to send everyone's
+    uint256 private tokenIncentivesForUsers;
+    uint256 private tokenIncentivesForIssuer;
+    /// @dev keep track of amount of token incentives that needs to be kept by contract in order to send the right
+    /// amounts to issuer and users
+    uint256 private tokenIncentivesBalance;
+
+    /// @dev wavaxBalance is the exact amount of WAVAX that needs to be kept inside the contract in order to send everyone's
     /// WAVAX. If there is some excess (because someone sent token directly to the contract), the
     /// penaltyCollector can collect the excess using `skim()`
     uint256 private wavaxReserve;
@@ -236,7 +243,16 @@ contract LaunchEvent is Ownable {
         PHASE_TWO_DURATION = rocketJoeFactory.PHASE_TWO_DURATION();
 
         token = IERC20Metadata(_token);
-        tokenReserve = token.balanceOf(address(this));
+        uint256 balance = token.balanceOf(address(this));
+
+        /// @dev so that `tokenIncentivesForUsers + tokenReserve = tokenSent`
+        /// and `tokenIncentivesForUsers = tokenReserve * 0.05`
+        /// e.g, if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
+        tokenReserve = balance * 100 / 105;
+        tokenBalance = tokenReserve;
+        tokenIncentivesForUsers = balance - tokenReserve;
+        tokenIncentivesBalance = tokenIncentivesForUsers;
+
         floorPrice = _floorPrice;
 
         maxWithdrawPenalty = _maxWithdrawPenalty;
@@ -351,8 +367,10 @@ contract LaunchEvent is Ownable {
         uint256 tokenAllocated = tokenReserve;
 
         // Adjust the amount of tokens sent to the pool if floor price not met
-        if (floorPrice > (wavaxReserve * 1e18) / tokenAllocated) {
-            tokenAllocated = (wavaxReserve * 10**token.decimals()) / floorPrice;
+        if (floorPrice > (wavaxBalance * 1e18) / tokenAllocated) {
+            tokenAllocated = (wavaxBalance * 10**token.decimals()) / floorPrice;
+            tokenIncentivesForUsers *= tokenAllocated / tokenBalance;
+            tokenIncentivesForIssuer = tokenIncentivesBalance - tokenIncentivesForUsers;
         }
 
         WAVAX.approve(address(router), wavaxReserve);
@@ -404,7 +422,7 @@ contract LaunchEvent is Ownable {
     {
         require(
             address(pair) != address(0),
-            "LaunchEvent: pair does not exist"
+            "LaunchEvent: pair does not exists"
         );
 
         UserInfo storage user = getUserInfo[msg.sender];
@@ -412,6 +430,7 @@ contract LaunchEvent is Ownable {
             !user.hasWithdrawnPair,
             "LaunchEvent: liquidity already withdrawn"
         );
+        user.hasWithdrawnPair = true;
 
         uint256 balance = pairBalance(msg.sender);
         user.hasWithdrawnPair = true;
@@ -433,6 +452,35 @@ contract LaunchEvent is Ownable {
         }
     }
 
+    /// @notice Withdraw incentives tokens
+    function withdrawIncentives() external {
+        require(!isStopped, "LaunchEvent: stopped");
+        require(
+            address(pair) != address(0),
+            "LaunchEvent: pair does not exist"
+        );
+
+        UserAllocation storage user = getUserAllocation[msg.sender];
+        require(
+            !user.hasWithdrawnIncentives,
+            "LaunchEvent: incentives already withdrawn"
+        );
+
+        user.hasWithdrawnIncentives = true;
+        uint256 amount = (user.balance * tokenIncentivesForUsers) / avaxAllocated;
+
+        if (msg.sender == issuer) {
+            amount = tokenIncentivesForIssuer;
+        }
+
+        tokenIncentivesBalance -= amount;
+
+        token.transfer(
+            msg.sender,
+            amount
+        );
+    }
+
     /// @notice Withdraw AVAX if launch has been cancelled
     function emergencyWithdraw() external isStopped(true) {
         if (msg.sender != issuer) {
@@ -451,8 +499,9 @@ contract LaunchEvent is Ownable {
 
             emit AvaxEmergencyWithdraw(msg.sender, balance);
         } else {
-            uint256 balance = tokenReserve;
-            tokenReserve = 0;
+            uint256 balance = tokenBalance + tokenIncentivesBalance;
+            tokenBalance = 0;
+            tokenIncentivesBalance = 0;
             token.transfer(issuer, balance);
             emit TokenEmergencyWithdraw(msg.sender, balance);
         }
@@ -473,7 +522,7 @@ contract LaunchEvent is Ownable {
     function skim() external {
         address penaltyCollector = rocketJoeFactory.penaltyCollector();
 
-        uint256 excessToken = token.balanceOf(address(this)) - tokenReserve;
+        uint256 excessToken = token.balanceOf(address(this)) - tokenBalance - tokenIncentivesBalance;
         if (excessToken > 0) {
             token.transfer(penaltyCollector, excessToken);
         }
@@ -503,9 +552,9 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Returns the current balance of the pool
-    /// @return The balances of WAVAX and distribution token held by the launch contract
-    function getReserves() public view returns (uint256, uint256) {
-        return (wavaxReserve, tokenReserve);
+    /// @return The balances of WAVAX and issued token held by the launch contract
+    function getReserves() external view returns (uint256, uint256) {
+        return (wavaxBalance, tokenBalance + tokenIncentivesBalance);
     }
 
     /// @notice Get the rJOE amount needed to deposit AVAX
