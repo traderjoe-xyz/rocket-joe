@@ -135,6 +135,14 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         emit EmergencyWithdraw(msg.sender, _amount);
     }
 
+    /// @notice Update emission rate
+    /// @param _rJoePerSec The new value for rJoePerSec
+    function updateEmissionRate(uint256 _rJoePerSec) external onlyOwner {
+        updatePool();
+        rJoePerSec = _rJoePerSec;
+        emit UpdateEmissionRate(msg.sender, _rJoePerSec);
+    }
+
     /// @notice Update reward variables of the given pool with latest data
     function updatePool() public {
         if (block.timestamp <= lastRewardTimestamp) {
@@ -154,14 +162,6 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         lastRewardTimestamp = block.timestamp;
 
         rJoe.mint(address(this), rJoeReward);
-    }
-
-    /// @notice Update emission rate
-    /// @param _rJoePerSec The new value for rJoePerSec
-    function updateEmissionRate(uint256 _rJoePerSec) public onlyOwner {
-        updatePool();
-        rJoePerSec = _rJoePerSec;
-        emit UpdateEmissionRate(msg.sender, _rJoePerSec);
     }
 
     /// @notice Safe rJoe transfer function, just in case if rounding error causes pool to not have enough JOEs
