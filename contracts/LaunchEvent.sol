@@ -79,8 +79,23 @@ contract LaunchEvent is Ownable {
     uint256 private avaxAllocated;
     uint256 private lpSupply;
 
+    /// @dev tokenReserve is used to know how much token will be sent when creating the pair. If floor price is not met,
+    /// we will send less token and tokenReserve will keep track of the leftover amount. It's then used to calculate
+    /// how much token needs to be sent to the issuer and the user (if there is some leftovers, if every token is sent
+    /// to the pair, tokenReserve will be equal to 0)
     uint256 private tokenReserve;
+
+    /// @dev tokenBalance is the exact amount of token that needs to be kept inside the contract in order to send
+    /// every one's token. If there is any excess (because someone sent token directly to the contract), the
+    /// penaltyCollector can collect the excess using `skim()`.
+    /// It's always equal to tokenReserve before creating the pair. After pair is created if tokenReserve > 0, i.e.,
+    /// if floor price is not met, we update tokenBalance to be the exact amount of token minus what was already sent to
+    /// user
     uint256 private tokenBalance;
+
+    /// @dev wavaxBalance is the exact amount of wavax that needs to be kept inside the contract in order to send every
+    /// one's wavax. If there is some excess (because someone sent token directly to the contract), the
+    /// penaltyCollector can collect the excess using `skim()`.
     uint256 private wavaxBalance;
 
     event IssuingTokenDeposited(address indexed token, uint256 amount);
@@ -331,8 +346,8 @@ contract LaunchEvent is Ownable {
 
         WAVAX.withdraw(_amount);
 
-        _safeTransferAVAX(msg.sender, amountMinusFee);
         wavaxBalance -= _amount;
+        _safeTransferAVAX(msg.sender, amountMinusFee);
 
         if (feeAmount > 0) {
             _safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
@@ -447,8 +462,8 @@ contract LaunchEvent is Ownable {
 
             uint256 balance = user.balance;
             user.balance = 0;
-            _safeTransferAVAX(msg.sender, balance);
             wavaxBalance -= balance;
+            _safeTransferAVAX(msg.sender, balance);
 
             emit AvaxEmergencyWithdraw(msg.sender, balance);
         } else {
