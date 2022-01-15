@@ -177,11 +177,6 @@ describe("launch event contract initialisation", function () {
       );
     });
 
-    it("should revert if user tries to send rJOE", async function () {
-      await this.rJOE.mint(this.participant.address, ethers.utils.parseEther("1000"))
-      await expect(this.rJOE.connect(this.participant).transfer(this.RocketFactory.address, 1)).to.be.revertedWith("rJOE: can't send token")
-    });
-
     it("should deploy with correct paramaters", async function () {
       await expect(
         this.RocketFactory.createRJLaunchEvent(

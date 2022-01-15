@@ -50,8 +50,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         eventImplementation = _eventImplementation;
         rJoe = _rJoe;
 
-        (bool success, ) = address(_rJoe).call(abi.encodeWithSignature("initialize()", 0));
-        require(success, "JoeBarV2: Failed to initialize rewarder");
+        (bool success, ) = address(_rJoe).call(abi.encodeWithSignature("initialize()"));
+        require(success, "RJFactory: Failed to initialize RocketJoeToken");
 
         wavax = _wavax;
         penaltyCollector = _penaltyCollector;
