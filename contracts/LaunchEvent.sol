@@ -202,6 +202,16 @@ contract LaunchEvent is Ownable {
         _;
     }
 
+    /// @notice Ensures launch event is stopped/running
+    modifier isStopped(bool _stopped) {
+        if (_stopped) {
+            require(stopped, "LaunchEvent: is still running");
+        } else {
+            require(!stopped, "LaunchEvent: stopped");
+        }
+        _;
+    }
+
     /// @notice Initialise the launch event with needed paramaters
     /// @param _issuer Address of the token issuer
     /// @param _auctionStart The start time of the auction
@@ -291,8 +301,12 @@ contract LaunchEvent is Ownable {
 
     /// @notice Deposits AVAX and burns rJoe
     /// @dev Checks are done in the `_depositWAVAX` function
-    function depositAVAX() external payable atPhase(Phase.PhaseOne) {
-        require(!stopped, "LaunchEvent: stopped");
+    function depositAVAX()
+        external
+        payable
+        isStopped(false)
+        atPhase(Phase.PhaseOne)
+    {
         require(msg.sender != issuer, "LaunchEvent: issuer cannot participate");
         require(
             msg.value > 0,
@@ -329,9 +343,11 @@ contract LaunchEvent is Ownable {
 
     /// @notice Withdraw AVAX, only permitted during phase 1 and 2
     /// @param _amount The amount of AVAX to withdraw
-    function withdrawAVAX(uint256 _amount) public withdrawable {
-        require(!stopped, "LaunchEvent: stopped");
-
+    function withdrawAVAX(uint256 _amount)
+        public
+        isStopped(false)
+        withdrawable
+    {
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(
             user.balance >= _amount,
@@ -354,8 +370,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice Create the JoePair
     /// @dev Can only be called once after phase 3 has started
-    function createPair() external atPhase(Phase.PhaseThree) {
-        require(!stopped, "LaunchEvent: stopped");
+    function createPair() external isStopped(false) atPhase(Phase.PhaseThree) {
         require(
             factory.getPair(address(WAVAX), address(token)) == address(0),
             "LaunchEvent: pair already created"
@@ -407,10 +422,10 @@ contract LaunchEvent is Ownable {
     /// @notice Withdraw liquidity pool tokens
     function withdrawLiquidity()
         external
+        isStopped(false)
         atPhase(Phase.PhaseThree)
         timelockElapsed
     {
-        require(!stopped, "LaunchEvent: stopped");
         require(
             address(pair) != address(0),
             "LaunchEvent: pair does not exist"
@@ -454,9 +469,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Withdraw AVAX if launch has been cancelled
-    function emergencyWithdraw() external {
-        require(stopped, "LaunchEvent: is still running");
-
+    function emergencyWithdraw() external isStopped(true) {
         if (msg.sender != issuer) {
             UserAllocation storage user = getUserAllocation[msg.sender];
             require(
