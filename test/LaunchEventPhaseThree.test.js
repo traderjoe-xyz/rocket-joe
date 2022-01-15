@@ -13,7 +13,8 @@ describe("launch event contract phase three", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
+    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
+    this.ERC20TokenCF = await ethers.getContractFactory("ERC20Token");
 
     // Fork the avalanche network to work with WAVAX.
     await network.provider.request({
@@ -23,10 +24,10 @@ describe("launch event contract phase three", function () {
   });
 
   beforeEach(async function () {
-    // Deploy the tokens used for tests
+    // Deploy the tokens used for tests.
     this.rJOE = await this.RocketJoeTokenCF.deploy();
     // XXX: Should we replace this with a standard ERC20?
-    this.AUCTOK = await this.RocketJoeTokenCF.deploy();
+    this.AUCTOK = await this.ERC20TokenCF.deploy();
 
     // Keep a reference to the current block.
     this.block = await ethers.provider.getBlock();
