@@ -38,7 +38,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         address _factory
     ) {
         require(
-            _rJoe != address(0) &&
+            _eventImplementation != address(0) &&
+                _rJoe != address(0) &&
                 _wavax != address(0) &&
                 _penaltyCollector != address(0) &&
                 _router != address(0) &&
