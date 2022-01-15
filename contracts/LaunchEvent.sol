@@ -41,7 +41,7 @@ contract LaunchEvent is Ownable {
     uint256 public PHASE_TWO_DURATION;
 
     /// @notice Floor price in AVAX per token (can be 0)
-    /// @dev floorPrice is scaled to 1e18 (e.g. 1.5e18 is 1.5)
+    /// @dev floorPrice is scaled to 1e18
     uint256 public floorPrice;
 
     /// @notice Timelock duration post phase 3 when can user withdraw their LP tokens
