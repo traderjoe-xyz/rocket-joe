@@ -36,9 +36,7 @@ describe("rocket factory test", function () {
     await expect(
       this.RocketFactory.connect(this.issuer).setRJoe(this.signers[9].address)
     ).to.be.revertedWith("Ownable: caller is not the owner");
-    await this.RocketFactory.connect(this.dev).setRJoe(
-      this.signers[8].address
-    );
+    await this.RocketFactory.connect(this.dev).setRJoe(this.signers[8].address);
     expect(await this.RocketFactory.rJoe()).to.equal(this.signers[8].address);
   });
 
@@ -58,16 +56,12 @@ describe("rocket factory test", function () {
 
   it("should set router token address", async function () {
     await expect(
-      this.RocketFactory.connect(this.issuer).setRouter(
-        this.signers[9].address
-      )
+      this.RocketFactory.connect(this.issuer).setRouter(this.signers[9].address)
     ).to.be.revertedWith("Ownable: caller is not the owner");
     await this.RocketFactory.connect(this.dev).setRouter(
       this.signers[8].address
     );
-    expect(await this.RocketFactory.router()).to.equal(
-      this.signers[8].address
-    );
+    expect(await this.RocketFactory.router()).to.equal(this.signers[8].address);
   });
 
   it("should set factory address", async function () {
@@ -106,10 +100,7 @@ describe("rocket factory test", function () {
       .mint(this.dev.address, ethers.utils.parseEther("1000000"));
     await token1
       .connect(this.dev)
-      .approve(
-        this.RocketFactory.address,
-        ethers.utils.parseEther("1000000")
-      );
+      .approve(this.RocketFactory.address, ethers.utils.parseEther("1000000"));
     await createLaunchEvent(
       this.RocketFactory,
       this.issuer,
@@ -125,10 +116,7 @@ describe("rocket factory test", function () {
       .mint(this.dev.address, ethers.utils.parseEther("1000000"));
     await token2
       .connect(this.dev)
-      .approve(
-        this.RocketFactory.address,
-        ethers.utils.parseEther("1000000")
-      );
+      .approve(this.RocketFactory.address, ethers.utils.parseEther("1000000"));
     await createLaunchEvent(
       this.RocketFactory,
       this.issuer,
