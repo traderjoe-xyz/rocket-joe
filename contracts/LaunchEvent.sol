@@ -92,12 +92,17 @@ contract LaunchEvent is Ownable {
     /// to be sent to both issuer and users (if there are leftovers and every token is sent to the pair,
     /// tokenReserve will be equal to 0)
     uint256 private tokenReserve;
-
-    uint256 private tokenIncentivesForUsers;
-    uint256 private tokenIncentivesForIssuer;
+    
     /// @dev keep track of amount of token incentives that needs to be kept by contract in order to send the right
     /// amounts to issuer and users
     uint256 private tokenIncentivesBalance;
+    /// @dev Total incentives for users. The share of each user is calculated according to their participation in the
+    /// launch event
+    uint256 private tokenIncentivesForUsers;
+    /// @dev The share refunded to the issuer. Users receive 5% of the token that were sent to the Router.
+    /// If the floor price is not met, the incentives still needs to be 5% of the value sent to the Router, so there
+    /// will be an excess of tokens returned to the issuer if he calls `withdrawIncentives()`.
+    uint256 private tokenIncentiveIssuerRefund;
 
     /// @dev wavaxBalance is the exact amount of WAVAX that needs to be kept inside the contract in order to send everyone's
     /// WAVAX. If there is some excess (because someone sent token directly to the contract), the
@@ -245,9 +250,9 @@ contract LaunchEvent is Ownable {
         token = IERC20Metadata(_token);
         uint256 balance = token.balanceOf(address(this));
 
-        /// @dev so that `tokenIncentivesForUsers + tokenReserve = tokenSent`
-        /// and `tokenIncentivesForUsers = tokenReserve * 0.05`
-        /// e.g, if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
+        /// We do this math because `tokenIncentivesForUsers + tokenReserve = tokenSent`
+        /// and `tokenIncentivesForUsers = tokenReserve * 0.05` (i.e. incentives are 5% of reserves for issuing).
+        /// E.g. if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
         tokenReserve = balance * 100 / 105;
         tokenBalance = tokenReserve;
         tokenIncentivesForUsers = balance - tokenReserve;
@@ -295,13 +300,13 @@ contract LaunchEvent is Ownable {
         );
 
         UserInfo storage user = getUserInfo[msg.sender];
+        uint256 rJoeNeeded;
+        uint256 requiredAllocation = user.balance + msg.value;
         require(
-            user.balance + msg.value <= maxAllocation,
+            requiredAllocation <= maxAllocation,
             "LaunchEvent: amount exceeds max allocation"
         );
 
-        uint256 rJoeNeeded;
-        uint256 requiredAllocation = user.balance + msg.value;
         // check if additional allocation is required.
         if (requiredAllocation > user.allocation) {
             // Burn tokens and update allocation.
@@ -310,8 +315,8 @@ contract LaunchEvent is Ownable {
             // to buy more allocation without sending AVAX too.
             user.allocation = requiredAllocation;
         }
-
-        user.balance += msg.value;
+        
+        user.balance = requiredAllocation;
         wavaxReserve += msg.value;
 
         if (rJoeNeeded > 0) {
@@ -370,7 +375,7 @@ contract LaunchEvent is Ownable {
         if (floorPrice > (wavaxBalance * 1e18) / tokenAllocated) {
             tokenAllocated = (wavaxBalance * 10**token.decimals()) / floorPrice;
             tokenIncentivesForUsers *= tokenAllocated / tokenBalance;
-            tokenIncentivesForIssuer = tokenIncentivesBalance - tokenIncentivesForUsers;
+            tokenIncentiveIssuerRefund = tokenIncentivesBalance - tokenIncentivesForUsers;
         }
 
         WAVAX.approve(address(router), wavaxReserve);
@@ -422,7 +427,7 @@ contract LaunchEvent is Ownable {
     {
         require(
             address(pair) != address(0),
-            "LaunchEvent: pair does not exists"
+            "LaunchEvent: pair not created"
         );
 
         UserInfo storage user = getUserInfo[msg.sender];
@@ -447,17 +452,15 @@ contract LaunchEvent is Ownable {
                 token.transfer(issuer, amount);
             }
         } else {
-            pair.transfer(msg.sender, balance);
             emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
         }
     }
 
     /// @notice Withdraw incentives tokens
-    function withdrawIncentives() external {
-        require(!isStopped, "LaunchEvent: stopped");
+    function withdrawIncentives() external isStopped(false) {
         require(
             address(pair) != address(0),
-            "LaunchEvent: pair does not exist"
+            "LaunchEvent: pair not created"
         );
 
         UserAllocation storage user = getUserAllocation[msg.sender];
@@ -467,10 +470,16 @@ contract LaunchEvent is Ownable {
         );
 
         user.hasWithdrawnIncentives = true;
-        uint256 amount = (user.balance * tokenIncentivesForUsers) / avaxAllocated;
+        uint256 amount;
 
         if (msg.sender == issuer) {
-            amount = tokenIncentivesForIssuer;
+            amount = tokenIncentiveIssuerRefund;
+        } else {
+            require(
+                user.balance > 0,
+                "LaunchEvent: user has not participated"
+            );
+            amount = (user.balance * tokenIncentivesForUsers) / wavaxAllocated;
         }
 
         tokenIncentivesBalance -= amount;
