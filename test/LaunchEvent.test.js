@@ -3,7 +3,6 @@ const { expect } = require("chai");
 const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat");
 const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
 
-
 describe("launch event contract initialisation", function () {
   before(async function () {
     // The wallets taking part in tests.
@@ -13,7 +12,7 @@ describe("launch event contract initialisation", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
+    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
 
     await network.provider.request({
       method: "hardhat_reset",
@@ -22,14 +21,16 @@ describe("launch event contract initialisation", function () {
   });
 
   beforeEach(async function () {
-
     // Deploy the tokens used for tests.
     this.rJOE = await this.RocketJoeTokenCF.deploy();
     // XXX: Should we replace this with a standard ERC20?
     this.AUCTOK = await this.RocketJoeTokenCF.deploy();
 
     this.RocketFactory = await deployRocketFactory(
-      this.dev, this.rJOE, this.penaltyCollector);
+      this.dev,
+      this.rJOE,
+      this.penaltyCollector
+    );
 
     // Keep a reference to the current block.
     this.block = await ethers.provider.getBlock();
@@ -98,7 +99,7 @@ describe("launch event contract initialisation", function () {
       await testReverts(
         this.RocketFactory,
         args,
-        "LaunchEvent: phase 1 has not started"
+        "LaunchEvent: start of phase 1 cannot be in the past"
       );
     });
 
@@ -193,7 +194,6 @@ describe("launch event contract initialisation", function () {
     });
 
     it("should revert if initialised twice", async function () {
-
       await expect(
         this.RocketFactory.createRJLaunchEvent(
           this.validParams._issuer,
@@ -247,7 +247,6 @@ describe("launch event contract initialisation", function () {
       );
       await expect(LaunchEvent.currentPhase() == 0);
     });
-
   });
 
   after(async function () {
