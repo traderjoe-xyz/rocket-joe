@@ -4,7 +4,7 @@ const { advanceTimeAndBlock, duration } = require("./utils/time");
 const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
 const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat");
 
-describe("Rocket Joe Staking Contract", function () {
+describe("Rocket Joe Token", function () {
   before(async function () {
     this.RocketJoeStakingCF = await ethers.getContractFactory(
       "RocketJoeStaking"
@@ -50,8 +50,11 @@ describe("Rocket Joe Staking Contract", function () {
         .mint(this.bob.address, ethers.utils.parseEther("100"));
 
       const AUCTOK = await this.ERC20TokenCF.deploy();
-      await AUCTOK.mint(this.dev.address, "1000000");
-      await AUCTOK.approve(this.RocketFactory.address, "1000000");
+      await AUCTOK.mint(this.dev.address, ethers.utils.parseEther("1000000"));
+      await AUCTOK.approve(
+        this.RocketFactory.address,
+        ethers.utils.parseEther("1000000")
+      );
 
       const block = await ethers.provider.getBlock();
 
@@ -85,8 +88,11 @@ describe("Rocket Joe Staking Contract", function () {
         .mint(this.owner.address, ethers.utils.parseEther("1"));
 
       const AUCTOK = await this.ERC20TokenCF.deploy();
-      await AUCTOK.mint(this.dev.address, "1000000");
-      await AUCTOK.approve(this.RocketFactory.address, "1000000");
+      await AUCTOK.mint(this.dev.address, ethers.utils.parseEther("1000000"));
+      await AUCTOK.approve(
+        this.RocketFactory.address,
+        ethers.utils.parseEther("1000000")
+      );
 
       const block = await ethers.provider.getBlock();
 
