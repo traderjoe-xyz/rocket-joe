@@ -471,9 +471,10 @@ contract LaunchEvent is Ownable {
         if (msg.sender == issuer) {
             amount = tokenIncentiveIssuerRefund;
         } else {
-            require(user.balance > 0, "LaunchEvent: user has not participated");
             amount = (user.balance * tokenIncentivesForUsers) / wavaxAllocated;
         }
+
+        require(amount > 0, "LaunchEvent: caller has no incentive to claim");
 
         tokenIncentivesBalance -= amount;
 
