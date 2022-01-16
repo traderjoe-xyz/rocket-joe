@@ -56,5 +56,15 @@ yarn
 To run the tests run:
 
 ```sh
-yarn run hardhat test
+make test
 ```
+
+There is a pending bug with `solidity-coverage`. To get around this bug, you must manually edit `node_modules/solidity-coverage/plugins/hardhat.plugin.js` according to these [edits](https://github.com/sc-forks/solidity-coverage/pull/667/files).
+
+Then to run coverage:
+
+```sh
+make coverage
+```
+
+The coverage report will then be found in `coverage/`.
