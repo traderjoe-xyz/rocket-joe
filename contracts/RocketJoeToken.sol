@@ -12,8 +12,7 @@ import "./interfaces/IRocketJoeFactory.sol";
 contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
     IRocketJoeFactory public rocketJoeFactory;
 
-    /// @notice Modifier which checks we are at a valid state in the auction for a user to withdraw their bid
-    /// @dev This essentially checks we are in phase one or two
+    /// @notice Modifier which checks if message.sender is a launch event
     modifier onlyRJLaunchEvent() {
         require(
             rocketJoeFactory.isRJLaunchEvent(msg.sender),
