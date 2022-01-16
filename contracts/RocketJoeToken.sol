@@ -51,13 +51,16 @@ contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
 
     /// @dev Hook that is called before any transfer of tokens. This includes
     /// minting and burning
+    /// @param _from The address that will transfer the tokens
+    /// @param _to The address that will receive the tokens
+    /// @param _amount The amount of token to send
     function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
+        address _from,
+        address _to,
+        uint256 _amount
     ) internal virtual override {
         require(
-            from == address(0) || to == address(0) || from == owner(),
+            _from == address(0) || _to == address(0) || _from == owner(),
             "RocketJoeToken: can't send token"
         );
     }
