@@ -17,7 +17,6 @@ contract ERC20Token is ERC20("Token", "token"), Ownable {
     }
 
     /// @dev Destroys `_amount` tokens from `msg.sender`
-    /// @param _from The address that will burn tokens
     /// @param _amount The amount to be burned
     function burn(uint256 _amount) external {
         _burn(msg.sender, _amount);
