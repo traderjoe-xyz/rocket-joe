@@ -14,7 +14,7 @@ describe("launch event contract phase one", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
+    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.ERC20TokenCF = await ethers.getContractFactory("ERC20Token");
 
     // Fork the avalanche network to work with WAVAX.
@@ -79,20 +79,15 @@ describe("launch event contract phase one", function () {
         ).to.be.revertedWith("LaunchEvent: not in phase one");
       });
 
-      it("should revert if rJOE not approved", async function () {
+      it("should allow burning of rJOE even if it's not approved", async function () {
         await advanceTimeAndBlock(duration.seconds(120));
-        expect(
-          this.LaunchEvent.connect(this.participant).depositAVAX({
-            value: ethers.utils.parseEther("1.0"),
-          })
-        ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
+        await this.LaunchEvent.connect(this.participant).depositAVAX({
+          value: ethers.utils.parseEther("1.0"),
+        });
       });
 
       it("should be payable with AVAX", async function () {
         await advanceTimeAndBlock(duration.seconds(120));
-        await this.rJOE
-          .connect(this.participant)
-          .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
         await this.LaunchEvent.connect(this.participant).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         });
@@ -103,9 +98,6 @@ describe("launch event contract phase one", function () {
 
       it("should revert on deposit if stopped", async function () {
         await advanceTimeAndBlock(duration.seconds(120));
-        await this.rJOE
-          .connect(this.participant)
-          .approve(this.LaunchEvent.address, 6000 * 100);
         await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
         expect(
           this.LaunchEvent.connect(this.participant).depositAVAX({
@@ -116,9 +108,6 @@ describe("launch event contract phase one", function () {
 
       it("should revert if AVAX sent more than max allocation", async function () {
         await advanceTimeAndBlock(duration.seconds(120));
-        await this.rJOE
-          .connect(this.participant)
-          .approve(this.LaunchEvent.address, ethers.utils.parseEther("6"));
         expect(
           this.LaunchEvent.connect(this.participant).depositAVAX({
             value: ethers.utils.parseEther("6"),
@@ -130,9 +119,6 @@ describe("launch event contract phase one", function () {
         let rJOEBefore = await this.rJOE.totalSupply();
 
         await advanceTimeAndBlock(duration.seconds(120));
-        await this.rJOE
-          .connect(this.participant)
-          .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
 
         await this.LaunchEvent.connect(this.participant).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
@@ -147,9 +133,6 @@ describe("launch event contract phase one", function () {
     describe("withdrawing in phase one", function () {
       beforeEach(async function () {
         await advanceTimeAndBlock(duration.seconds(120));
-        await this.rJOE
-          .connect(this.participant)
-          .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
         await this.LaunchEvent.connect(this.participant).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         });
@@ -204,28 +187,10 @@ describe("launch event contract phase one", function () {
         });
       });
 
-      it("reverts if insufficient rjoe are approved when reentering", async function () {
-        await this.LaunchEvent.connect(this.participant).withdrawAVAX(
-          ethers.utils.parseEther("0.5")
-        );
-        await this.rJOE
-          .connect(this.participant)
-          .approve(this.LaunchEvent.address, ethers.utils.parseEther("0"));
-
-        await expect(
-          this.LaunchEvent.connect(this.participant).depositAVAX({
-            value: ethers.utils.parseEther("1.0"),
-          })
-        ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
-      });
-
       it("burns enough joe when re-entering", async function () {
         await this.LaunchEvent.connect(this.participant).withdrawAVAX(
           ethers.utils.parseEther("0.5")
         );
-        await this.rJOE
-          .connect(this.participant)
-          .approve(this.LaunchEvent.address, ethers.utils.parseEther("50"));
 
         await this.LaunchEvent.connect(this.participant).depositAVAX({
           value: ethers.utils.parseEther("1.0"),

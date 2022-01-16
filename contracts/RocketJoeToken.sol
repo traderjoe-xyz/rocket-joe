@@ -12,9 +12,22 @@ import "./interfaces/IRocketJoeFactory.sol";
 contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
     IRocketJoeFactory public rocketJoeFactory;
 
+    /// @notice Modifier which checks we are at a valid state in the auction for a user to withdraw their bid
+    /// @dev This essentially checks we are in phase one or two
+    modifier onlyRJLaunchEvent() {
+        require(
+            rocketJoeFactory.isRJLaunchEvent(msg.sender),
+            "RocketJoeToken: caller is not a RJLaunchEvent"
+        );
+        _;
+    }
+
     /// @notice Initialise the rocketJoeFactory address
     function initialize() external {
-        require(address(rocketJoeFactory) == address(0), "RocketJoeToken: already initialized");
+        require(
+            address(rocketJoeFactory) == address(0),
+            "RocketJoeToken: already initialized"
+        );
 
         rocketJoeFactory = IRocketJoeFactory(msg.sender);
     }
@@ -24,9 +37,12 @@ contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
         _mint(_to, _amount);
     }
 
-    /// @dev Destroys `_amount` tokens from `msg.sender`
-    function burn(uint256 _amount) external {
-        _burn(msg.sender, _amount);
+    /// @dev Destroys `_amount` tokens from `_from`. Callable only by a RJLaunchEvent
+    function burnFrom(address _from, uint256 _amount)
+        external
+        onlyRJLaunchEvent
+    {
+        _burn(_from, _amount);
     }
 
     /// @dev Hook that is called before any transfer of tokens. This includes
@@ -37,10 +53,7 @@ contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
         uint256 amount
     ) internal virtual override {
         require(
-            from == address(0) ||
-            to == address(0) ||
-            from == owner() ||
-            rocketJoeFactory.isLaunchEvent(to),
+            from == address(0) || to == address(0) || from == owner(),
             "RocketJoeToken: can't send token"
         );
     }

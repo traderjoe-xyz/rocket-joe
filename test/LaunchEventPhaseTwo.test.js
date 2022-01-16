@@ -12,7 +12,7 @@ describe("launch event contract phase two", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
+    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.ERC20TokenCF = await ethers.getContractFactory("ERC20Token");
 
     await network.provider.request({
@@ -57,9 +57,6 @@ describe("launch event contract phase two", function () {
     );
 
     await advanceTimeAndBlock(duration.seconds(120));
-    await this.rJOE
-      .connect(this.participant)
-      .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
     await this.LaunchEvent.connect(this.participant).depositAVAX({
       value: ethers.utils.parseEther("1.0"),
     });
@@ -78,9 +75,6 @@ describe("launch event contract phase two", function () {
     });
 
     it("should revert if deposited", async function () {
-      await this.rJOE
-        .connect(this.participant)
-        .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
       expect(
         this.LaunchEvent.connect(this.participant).depositAVAX({
           value: ethers.utils.parseEther("1.0"),

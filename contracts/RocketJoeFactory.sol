@@ -11,7 +11,7 @@ import "./interfaces/ILaunchEvent.sol";
 import "./RocketJoeToken.sol";
 
 /// @title Rocket Joe Factory
-/// @author traderjoexyz
+/// @author Trader Joe
 /// @notice Factory that creates Rocket Joe events.
 contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override penaltyCollector;
@@ -27,7 +27,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     uint256 private PHASE_TWO_DURATION = 1 days;
 
     mapping(address => address) public override getRJLaunchEvent;
-    mapping(address => bool) public override isLaunchEvent;
+    mapping(address => bool) public override isRJLaunchEvent;
     address[] public override allRJLaunchEvents;
 
     constructor(
@@ -50,8 +50,10 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         eventImplementation = _eventImplementation;
         rJoe = _rJoe;
 
-        (bool success, ) = address(_rJoe).call(abi.encodeWithSignature("initialize()"));
-        require(success, "RJFactory: Failed to initialize RocketJoeToken");
+        (bool success, ) = address(_rJoe).call(
+            abi.encodeWithSignature("initialize()")
+        );
+        require(success, "RJFactory: failed to initialize RocketJoeToken");
 
         wavax = _wavax;
         penaltyCollector = _penaltyCollector;
@@ -109,7 +111,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         );
 
         getRJLaunchEvent[_token] = launchEvent;
-        isLaunchEvent[launchEvent] = true;
+        isRJLaunchEvent[launchEvent] = true;
         allRJLaunchEvents.push(launchEvent);
 
         _emitLaunchedEvent(_issuer, _token, _phaseOneStartTime);

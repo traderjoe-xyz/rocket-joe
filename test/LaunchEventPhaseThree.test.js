@@ -13,7 +13,7 @@ describe("launch event contract phase three", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
+    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.ERC20TokenCF = await ethers.getContractFactory("ERC20Token");
 
     // Fork the avalanche network to work with WAVAX.
@@ -59,9 +59,6 @@ describe("launch event contract phase three", function () {
     );
 
     await advanceTimeAndBlock(duration.seconds(120));
-    await this.rJOE
-      .connect(this.participant)
-      .approve(this.LaunchEvent.address, ethers.utils.parseEther("100.0"));
     await this.LaunchEvent.connect(this.participant).depositAVAX({
       value: ethers.utils.parseEther("1.0"),
     });
