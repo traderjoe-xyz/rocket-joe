@@ -96,12 +96,11 @@ contract LaunchEvent is Ownable {
     /// @dev keep track of amount of token incentives that needs to be kept by contract in order to send the right
     /// amounts to issuer and users
     uint256 private tokenIncentivesBalance;
-    /// @dev Total incentives for users. The share of each user is calculated according to their participation in the
-    /// launch event
+    /// @dev Total incentives for users for locking their LPs for an additional period of time after the pair is created.
     uint256 private tokenIncentivesForUsers;
     /// @dev The share refunded to the issuer. Users receive 5% of the token that were sent to the Router.
     /// If the floor price is not met, the incentives still needs to be 5% of the value sent to the Router, so there
-    /// will be an excess of tokens returned to the issuer if he calls `withdrawIncentives()`.
+    /// will be an excess of tokens returned to the issuer if he calls `withdrawIncentives()`
     uint256 private tokenIncentiveIssuerRefund;
 
     /// @dev wavaxBalance is the exact amount of WAVAX that needs to be kept inside the contract in order to send everyone's
@@ -254,7 +253,6 @@ contract LaunchEvent is Ownable {
         /// and `tokenIncentivesForUsers = tokenReserve * 0.05` (i.e. incentives are 5% of reserves for issuing).
         /// E.g. if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
         tokenReserve = (balance * 100) / 105;
-        tokenBalance = tokenReserve;
         tokenIncentivesForUsers = balance - tokenReserve;
         tokenIncentivesBalance = tokenIncentivesForUsers;
 
@@ -300,13 +298,13 @@ contract LaunchEvent is Ownable {
         );
 
         UserInfo storage user = getUserInfo[msg.sender];
-        uint256 rJoeNeeded;
         uint256 requiredAllocation = user.balance + msg.value;
         require(
             requiredAllocation <= maxAllocation,
             "LaunchEvent: amount exceeds max allocation"
         );
 
+        uint256 rJoeNeeded;
         // check if additional allocation is required.
         if (requiredAllocation > user.allocation) {
             // Burn tokens and update allocation.
@@ -372,9 +370,9 @@ contract LaunchEvent is Ownable {
         uint256 tokenAllocated = tokenReserve;
 
         // Adjust the amount of tokens sent to the pool if floor price not met
-        if (floorPrice > (wavaxBalance * 1e18) / tokenAllocated) {
-            tokenAllocated = (wavaxBalance * 10**token.decimals()) / floorPrice;
-            tokenIncentivesForUsers *= tokenAllocated / tokenBalance;
+        if (floorPrice > (wavaxReserve * 1e18) / tokenAllocated) {
+            tokenAllocated = (wavaxReserve * 10**token.decimals()) / floorPrice;
+            tokenIncentivesForUsers = tokenIncentivesForUsers * tokenAllocated / wavaxReserve;
             tokenIncentiveIssuerRefund =
                 tokenIncentivesBalance -
                 tokenIncentivesForUsers;
@@ -434,7 +432,6 @@ contract LaunchEvent is Ownable {
             !user.hasWithdrawnPair,
             "LaunchEvent: liquidity already withdrawn"
         );
-        user.hasWithdrawnPair = true;
 
         uint256 balance = pairBalance(msg.sender);
         user.hasWithdrawnPair = true;
@@ -459,7 +456,7 @@ contract LaunchEvent is Ownable {
     function withdrawIncentives() external isStopped(false) {
         require(address(pair) != address(0), "LaunchEvent: pair not created");
 
-        UserAllocation storage user = getUserAllocation[msg.sender];
+        UserInfo storage user = getUserInfo[msg.sender];
         require(
             !user.hasWithdrawnIncentives,
             "LaunchEvent: incentives already withdrawn"
@@ -499,8 +496,8 @@ contract LaunchEvent is Ownable {
 
             emit AvaxEmergencyWithdraw(msg.sender, balance);
         } else {
-            uint256 balance = tokenBalance + tokenIncentivesBalance;
-            tokenBalance = 0;
+            uint256 balance = tokenReserve + tokenIncentivesBalance;
+            tokenReserve = 0;
             tokenIncentivesBalance = 0;
             token.transfer(issuer, balance);
             emit TokenEmergencyWithdraw(msg.sender, balance);
@@ -523,7 +520,7 @@ contract LaunchEvent is Ownable {
         address penaltyCollector = rocketJoeFactory.penaltyCollector();
 
         uint256 excessToken = token.balanceOf(address(this)) -
-            tokenBalance -
+            tokenReserve -
             tokenIncentivesBalance;
         if (excessToken > 0) {
             token.transfer(penaltyCollector, excessToken);
@@ -556,7 +553,7 @@ contract LaunchEvent is Ownable {
     /// @notice Returns the current balance of the pool
     /// @return The balances of WAVAX and issued token held by the launch contract
     function getReserves() external view returns (uint256, uint256) {
-        return (wavaxBalance, tokenBalance + tokenIncentivesBalance);
+        return (wavaxReserve, tokenReserve + tokenIncentivesBalance);
     }
 
     /// @notice Get the rJOE amount needed to deposit AVAX
