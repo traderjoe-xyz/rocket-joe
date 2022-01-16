@@ -100,7 +100,7 @@ describe("launch event contract phase three", function () {
       await advanceTimeAndBlock(duration.days(8));
       await expect(
         this.LaunchEvent.connect(this.participant).withdrawLiquidity()
-      ).to.be.revertedWith("LaunchEvent: pair does not exist");
+      ).to.be.revertedWith("LaunchEvent: pair not created");
     });
 
     it("should create a JoePair", async function () {
