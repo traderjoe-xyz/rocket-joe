@@ -1,7 +1,7 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
 const { advanceTimeAndBlock, duration } = require("./utils/time");
-const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat")
+const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat");
 const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
 
 describe("launch event contract phase two", function () {
@@ -12,7 +12,7 @@ describe("launch event contract phase two", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
+    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
 
     await network.provider.request({
       method: "hardhat_reset",
@@ -32,7 +32,8 @@ describe("launch event contract phase two", function () {
     this.RocketFactory = await deployRocketFactory(
       this.dev,
       this.rJOE,
-      this.penaltyCollector);
+      this.penaltyCollector
+    );
 
     // Send the tokens used to the issuer and approve spending to the factory.
     await this.AUCTOK.connect(this.dev).mint(
@@ -43,16 +44,16 @@ describe("launch event contract phase two", function () {
       this.RocketFactory.address,
       ethers.utils.parseEther("1000000")
     );
-    await this.rJOE.connect(this.dev).mint(
-      this.participant.address,
-      ethers.utils.parseEther("1000000")
-    ); // 1_000_000 tokens
+    await this.rJOE
+      .connect(this.dev)
+      .mint(this.participant.address, ethers.utils.parseEther("1000000")); // 1_000_000 tokens
 
     this.LaunchEvent = await createLaunchEvent(
       this.RocketFactory,
       this.issuer,
       this.block,
-      this.AUCTOK);
+      this.AUCTOK
+    );
 
     await advanceTimeAndBlock(duration.seconds(120));
     await this.rJOE
@@ -69,13 +70,10 @@ describe("launch event contract phase two", function () {
   });
 
   describe("interacting with phase two", function () {
-
     it("should revert if try do withdraw liquidity", async function () {
       expect(
         this.LaunchEvent.connect(this.participant).withdrawLiquidity()
-      ).to.be.revertedWith(
-        "LaunchEvent: not in phase three"
-      );
+      ).to.be.revertedWith("LaunchEvent: not in phase three");
     });
 
     it("should revert if deposited", async function () {

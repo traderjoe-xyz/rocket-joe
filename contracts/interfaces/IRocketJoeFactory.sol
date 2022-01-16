@@ -16,7 +16,7 @@ interface IRocketJoeFactory {
     event SetPenaltyCollector(address indexed collector);
     event SetRouter(address indexed router);
     event SetFactory(address indexed factory);
-    event SetRJoePerAvax(uint rJoePerAvax);
+    event SetRJoePerAvax(uint256 rJoePerAvax);
 
     function eventImplementation() external view returns (address);
 

@@ -1,12 +1,11 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
 const { advanceTimeAndBlock, duration } = require("./utils/time");
-const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat")
+const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat");
 const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
 
 describe("launch event contract phase three", function () {
   before(async function () {
-
     // The wallets taking part in tests.
     this.signers = await ethers.getSigners();
     this.dev = this.signers[0];
@@ -14,14 +13,13 @@ describe("launch event contract phase three", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
+    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
 
     // Fork the avalanche network to work with WAVAX.
     await network.provider.request({
       method: "hardhat_reset",
       params: HARDHAT_FORK_CURRENT_PARAMS,
     });
-
   });
 
   beforeEach(async function () {
@@ -36,7 +34,8 @@ describe("launch event contract phase three", function () {
     this.RocketFactory = await deployRocketFactory(
       this.dev,
       this.rJOE,
-      this.penaltyCollector);
+      this.penaltyCollector
+    );
 
     // Send the tokens used to the issuer and approve spending to the factory
     await this.AUCTOK.connect(this.dev).mint(
@@ -47,17 +46,16 @@ describe("launch event contract phase three", function () {
       this.RocketFactory.address,
       ethers.utils.parseEther("1000000")
     );
-    await this.rJOE.connect(this.dev).mint(
-      this.participant.address,
-      ethers.utils.parseEther("1000000")
-    ); // 1_000_000 tokens
+    await this.rJOE
+      .connect(this.dev)
+      .mint(this.participant.address, ethers.utils.parseEther("1000000")); // 1_000_000 tokens
 
     this.LaunchEvent = await createLaunchEvent(
       this.RocketFactory,
       this.issuer,
       this.block,
-      this.AUCTOK);
-
+      this.AUCTOK
+    );
 
     await advanceTimeAndBlock(duration.seconds(120));
     await this.rJOE

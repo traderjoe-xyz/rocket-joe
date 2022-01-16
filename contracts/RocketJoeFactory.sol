@@ -77,7 +77,10 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         );
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
-        require(_tokenAmount > 0, "RJFactory: token amount needs to be greater than 0");
+        require(
+            _tokenAmount > 0,
+            "RJFactory: token amount needs to be greater than 0"
+        );
         require(
             IJoeFactory(factory).getPair(wavax, _token) == address(0),
             "RJFactory: pair already exists"
@@ -106,7 +109,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         _emitLaunchedEvent(_issuer, _token, _phaseOneStartTime);
 
         return launchEvent;
-       }
+    }
 
     function setRJoe(address _rJoe) external override onlyOwner {
         rJoe = _rJoe;
@@ -139,7 +142,11 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
     /// @dev This function emits an event after a new launch event has been created
     /// It is only seperated out due to `createRJLaunchEvent` having too many local variables
-    function _emitLaunchedEvent(address _issuer, address _token, uint256 _phaseOneStartTime) internal {
+    function _emitLaunchedEvent(
+        address _issuer,
+        address _token,
+        uint256 _phaseOneStartTime
+    ) internal {
         uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
         uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
 

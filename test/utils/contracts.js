@@ -15,10 +15,12 @@ async function deployRocketFactory(dev, rJoe, penaltyCollector) {
   );
 
   // Factories for deploying our contracts.
-  const RocketJoeFactoryCF = await ethers.getContractFactory("RocketJoeFactory");
+  const RocketJoeFactoryCF = await ethers.getContractFactory(
+    "RocketJoeFactory"
+  );
   const LaunchEventCF = await ethers.getContractFactory("LaunchEvent");
 
-   // Deploy the rocket joe contracts.
+  // Deploy the rocket joe contracts.
   const LaunchEventPrototype = await LaunchEventCF.deploy();
 
   const RocketFactory = await RocketJoeFactoryCF.deploy(
@@ -34,7 +36,6 @@ async function deployRocketFactory(dev, rJoe, penaltyCollector) {
   );
   return RocketFactory;
 }
-
 
 // Return a newly created LaunchEvent with default parameters.
 async function createLaunchEvent(RocketFactory, issuer, block, token) {
@@ -58,7 +59,6 @@ async function createLaunchEvent(RocketFactory, issuer, block, token) {
   );
   return LaunchEvent;
 }
-
 
 module.exports = {
   deployRocketFactory,

@@ -2,13 +2,11 @@ const { ethers, network } = require("hardhat");
 const { BigNumber } = ethers;
 const { expect } = require("chai");
 const { advanceTimeAndBlock, duration } = require("./utils/time");
-const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat")
+const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat");
 const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
 
 describe("launch event contract phase one", function () {
-
   before(async function () {
-
     // The wallets taking part in tests.
     this.signers = await ethers.getSigners();
     this.dev = this.signers[0];
@@ -16,14 +14,13 @@ describe("launch event contract phase one", function () {
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
 
-    this.RocketJoeTokenCF = await ethers.getContractFactory('RocketJoeToken');
+    this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
 
     // Fork the avalanche network to work with WAVAX.
     await network.provider.request({
       method: "hardhat_reset",
       params: HARDHAT_FORK_CURRENT_PARAMS,
     });
-
   });
 
   beforeEach(async function () {
@@ -38,7 +35,8 @@ describe("launch event contract phase one", function () {
     this.RocketFactory = await deployRocketFactory(
       this.dev,
       this.rJOE,
-      this.penaltyCollector);
+      this.penaltyCollector
+    );
 
     // Send the tokens used to the issuer and approve spending to the factory.
     await this.AUCTOK.connect(this.dev).mint(
@@ -49,21 +47,20 @@ describe("launch event contract phase one", function () {
       this.RocketFactory.address,
       ethers.utils.parseEther("1000000")
     );
-    await this.rJOE.connect(this.dev).mint(
-      this.participant.address,
-      ethers.utils.parseEther("1000000")
-    ); // 1_000_000 tokens
+    await this.rJOE
+      .connect(this.dev)
+      .mint(this.participant.address, ethers.utils.parseEther("1000000")); // 1_000_000 tokens
 
     this.LaunchEvent = await createLaunchEvent(
       this.RocketFactory,
       this.issuer,
       this.block,
-      this.AUCTOK);
+      this.AUCTOK
+    );
   });
 
   describe("interacting with phase one", function () {
-
-	describe("depositing in phase one", function () {
+    describe("depositing in phase one", function () {
       it("should revert if issuer tries to participate", async function () {
         await advanceTimeAndBlock(duration.seconds(120));
         expect(
@@ -110,7 +107,9 @@ describe("launch event contract phase one", function () {
           .approve(this.LaunchEvent.address, 6000 * 100);
         await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
         expect(
-          this.LaunchEvent.connect(this.participant).depositAVAX({ value: 6000 })
+          this.LaunchEvent.connect(this.participant).depositAVAX({
+            value: 6000,
+          })
         ).to.be.revertedWith("LaunchEvent: stopped");
       });
 
@@ -142,11 +141,9 @@ describe("launch event contract phase one", function () {
           rJOEBefore.sub(ethers.utils.parseEther("100.0"))
         );
       });
+    });
 
-	});
-
-	describe("withdrawing in phase one", function () {
-
+    describe("withdrawing in phase one", function () {
       beforeEach(async function () {
         await advanceTimeAndBlock(duration.seconds(120));
         await this.rJOE
@@ -166,8 +163,8 @@ describe("launch event contract phase one", function () {
         expect(await this.participant.getBalance()).to.be.above(balanceBefore);
         // Check the balance of penalty collecter.
         expect(await this.penaltyCollector.getBalance()).to.equal(
-	    	  ethers.utils.parseEther("10000")
-	      );
+          ethers.utils.parseEther("10000")
+        );
       });
 
       it("should apply gradient fee if withdraw in second day", async function () {
@@ -184,11 +181,15 @@ describe("launch event contract phase one", function () {
 
       it("should keep allocation after withdraw", async function () {
         await advanceTimeAndBlock(duration.hours(36));
-        const allocationBefore = this.LaunchEvent.getUserAllocation(this.participant.address);
+        const allocationBefore = this.LaunchEvent.getUserAllocation(
+          this.participant.address
+        );
         await this.LaunchEvent.connect(this.participant).withdrawAVAX(
           ethers.utils.parseEther("1.0")
         );
-        const allocation = this.LaunchEvent.getUserAllocation(this.participant.address);
+        const allocation = this.LaunchEvent.getUserAllocation(
+          this.participant.address
+        );
         expect(allocation.allocation).to.be.equal(allocationBefore.allocation);
       });
 
@@ -198,7 +199,7 @@ describe("launch event contract phase one", function () {
           ethers.utils.parseEther("1.0")
         );
         await this.LaunchEvent.connect(this.participant).depositAVAX({
-          value: ethers.utils.parseEther("1.0")
+          value: ethers.utils.parseEther("1.0"),
         });
       });
 
@@ -210,9 +211,11 @@ describe("launch event contract phase one", function () {
           .connect(this.participant)
           .approve(this.LaunchEvent.address, ethers.utils.parseEther("0"));
 
-        await expect(this.LaunchEvent.connect(this.participant).depositAVAX({
-          value: ethers.utils.parseEther("1.0"),
-        })).to.be.revertedWith('ERC20: transfer amount exceeds allowance');
+        await expect(
+          this.LaunchEvent.connect(this.participant).depositAVAX({
+            value: ethers.utils.parseEther("1.0"),
+          })
+        ).to.be.revertedWith("ERC20: transfer amount exceeds allowance");
       });
 
       it("burns enough joe when re-entering", async function () {
@@ -227,7 +230,6 @@ describe("launch event contract phase one", function () {
           value: ethers.utils.parseEther("1.0"),
         });
       });
-
     });
 
     it("should revert if not stopped by RJFactory owner", async function () {
@@ -263,7 +265,6 @@ describe("launch event contract phase one", function () {
     it("should report it is in the correct phase", async function () {
       await expect(this.LaunchEvent.currentPhase() == 1);
     });
-
   });
 
   after(async function () {
