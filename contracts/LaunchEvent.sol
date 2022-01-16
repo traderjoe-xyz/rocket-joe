@@ -480,6 +480,8 @@ contract LaunchEvent is Ownable {
             uint256 balance = user.balance;
             user.balance = 0;
             wavaxBalance -= balance;
+            WAVAX.withdraw(balance);
+
             _safeTransferAVAX(msg.sender, balance);
 
             emit AvaxEmergencyWithdraw(msg.sender, balance);
