@@ -58,18 +58,23 @@ describe("launch event contract phase three", function () {
       this.AUCTOK
     );
 
-    await advanceTimeAndBlock(duration.seconds(120));
-    await this.LaunchEvent.connect(this.participant).depositAVAX({
-      value: ethers.utils.parseEther("1.0"),
-    });
-    expect(
-      await this.LaunchEvent.getUserAllocation(this.participant.address).amount
-    ).to.equal(ethers.utils.parseEther("1.0").number);
-    // increase time by 3 days
-    await advanceTimeAndBlock(duration.days(3));
   });
 
   describe("interacting with phase three", function () {
+
+    beforeEach(async function () {
+      await advanceTimeAndBlock(duration.seconds(120));
+      await this.LaunchEvent.connect(this.participant).depositAVAX({
+        value: ethers.utils.parseEther("1.0"),
+      });
+      expect(
+        this.LaunchEvent.getUserAllocation(this.participant.address).amount
+      ).to.equal(ethers.utils.parseEther("1.0").number);
+      // increase time by 4 days
+      await advanceTimeAndBlock(duration.days(4));
+    });
+
+
     it("should revert if try do withdraw liquidity", async function () {
       await expect(
         this.LaunchEvent.connect(this.participant).withdrawLiquidity()
@@ -130,6 +135,20 @@ describe("launch event contract phase three", function () {
     it("should report it is in the correct phase", async function () {
       await expect((await this.LaunchEvent.currentPhase()) === 3);
     });
+
+  });
+
+  describe("phase 3 edge case", async function () {
+    beforeEach(async function () {
+      await advanceTimeAndBlock(duration.days(5));
+    });
+
+    it("should not create pair when no avax deposited", async function () {
+      await expect(
+        this.LaunchEvent.connect(this.participant).createPair()
+      ).to.be.revertedWith("LaunchEvent: no wavax balance");
+    });
+
   });
 
   after(async function () {

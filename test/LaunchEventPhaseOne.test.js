@@ -86,6 +86,13 @@ describe("launch event contract phase one", function () {
         });
       });
 
+      it("should revert if withdraw zero", async function () {
+        await advanceTimeAndBlock(duration.seconds(120));
+        await expect(
+          this.LaunchEvent.connect(this.participant).withdrawAVAX(0)
+        ).to.be.revertedWith('LaunchEvent: invalid withdraw amount');
+      });
+
       it("should be payable with AVAX", async function () {
         await advanceTimeAndBlock(duration.seconds(120));
         await this.LaunchEvent.connect(this.participant).depositAVAX({

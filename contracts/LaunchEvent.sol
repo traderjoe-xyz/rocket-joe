@@ -347,6 +347,7 @@ contract LaunchEvent is Ownable {
         isStopped(false)
         withdrawable
     {
+        require(_amount > 0, 'LaunchEvent: invalid withdraw amount');
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(
             user.balance >= _amount,
@@ -374,6 +375,7 @@ contract LaunchEvent is Ownable {
             factory.getPair(address(WAVAX), address(token)) == address(0),
             "LaunchEvent: pair already created"
         );
+        require(wavaxBalance > 0, 'LaunchEvent: no wavax balance');
 
         (address wavaxAddress, address tokenAddress) = (
             address(WAVAX),
