@@ -43,8 +43,8 @@ async function createLaunchEvent(RocketFactory, issuer, block, token) {
     issuer.address, // Issuer
     block.timestamp + 60, // Start time (60 seconds from now)
     token.address, // Address of the token being auctioned
-    1000000, // Amount of tokens for auction
-    1000, // Floor price (100 Wei)
+    ethers.utils.parseEther("1000000"), // Amount of tokens for auction
+    ethers.utils.parseEther("1000"), // Floor price (100 Wei)
     ethers.utils.parseEther("0.5"), // Max withdraw penalty
     ethers.utils.parseEther("0.4"), // Fixed withdraw penalty
     ethers.utils.parseEther("5.0"), // max allocation
