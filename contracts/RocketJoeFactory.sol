@@ -23,8 +23,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override router;
     address public override factory;
 
-    uint256 private PHASE_ONE_DURATION = 3 days;
-    uint256 private PHASE_TWO_DURATION = 1 days;
+    uint256 public override PHASE_ONE_DURATION = 2 days;
+    uint256 public override PHASE_TWO_DURATION = 1 days;
 
     mapping(address => address) public override getRJLaunchEvent;
     mapping(address => bool) public override isRJLaunchEvent;
@@ -146,6 +146,14 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     function setRJoePerAvax(uint256 _rJoePerAvax) external override onlyOwner {
         rJoePerAvax = _rJoePerAvax;
         emit SetRJoePerAvax(_rJoePerAvax);
+    }
+
+    function setPhaseDuration(uint256 _phaseNumber, uint256 _duration) external override onlyOwner {
+        if (_phaseNumber == 1) {
+            PHASE_ONE_DURATION = _duration;
+        } else if (_phaseNumber == 2) {
+            PHASE_TWO_DURATION = _duration;
+        }
     }
 
     /// @dev This function emits an event after a new launch event has been created
