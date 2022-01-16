@@ -253,7 +253,7 @@ contract LaunchEvent is Ownable {
         /// We do this math because `tokenIncentivesForUsers + tokenReserve = tokenSent`
         /// and `tokenIncentivesForUsers = tokenReserve * 0.05` (i.e. incentives are 5% of reserves for issuing).
         /// E.g. if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
-        tokenReserve = balance * 100 / 105;
+        tokenReserve = (balance * 100) / 105;
         tokenBalance = tokenReserve;
         tokenIncentivesForUsers = balance - tokenReserve;
         tokenIncentivesBalance = tokenIncentivesForUsers;
@@ -375,7 +375,9 @@ contract LaunchEvent is Ownable {
         if (floorPrice > (wavaxBalance * 1e18) / tokenAllocated) {
             tokenAllocated = (wavaxBalance * 10**token.decimals()) / floorPrice;
             tokenIncentivesForUsers *= tokenAllocated / tokenBalance;
-            tokenIncentiveIssuerRefund = tokenIncentivesBalance - tokenIncentivesForUsers;
+            tokenIncentiveIssuerRefund =
+                tokenIncentivesBalance -
+                tokenIncentivesForUsers;
         }
 
         WAVAX.approve(address(router), wavaxReserve);
@@ -402,18 +404,18 @@ contract LaunchEvent is Ownable {
         if (wavaxAddress > tokenAddress) {
             emit LiquidityPoolCreated(
                 address(pair),
-                wavaxAddress,
-                tokenAddress,
-                wavaxAllocated,
-                tokenAllocated
-            );
-        } else {
-            emit LiquidityPoolCreated(
-                address(pair),
                 tokenAddress,
                 wavaxAddress,
                 tokenAllocated,
                 wavaxAllocated
+            );
+        } else {
+            emit LiquidityPoolCreated(
+                address(pair),
+                wavaxAddress,
+                tokenAddress,
+                wavaxAllocated,
+                tokenAllocated
             );
         }
     }
@@ -425,10 +427,7 @@ contract LaunchEvent is Ownable {
         atPhase(Phase.PhaseThree)
         timelockElapsed
     {
-        require(
-            address(pair) != address(0),
-            "LaunchEvent: pair not created"
-        );
+        require(address(pair) != address(0), "LaunchEvent: pair not created");
 
         UserInfo storage user = getUserInfo[msg.sender];
         require(
@@ -458,10 +457,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice Withdraw incentives tokens
     function withdrawIncentives() external isStopped(false) {
-        require(
-            address(pair) != address(0),
-            "LaunchEvent: pair not created"
-        );
+        require(address(pair) != address(0), "LaunchEvent: pair not created");
 
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(
@@ -475,19 +471,13 @@ contract LaunchEvent is Ownable {
         if (msg.sender == issuer) {
             amount = tokenIncentiveIssuerRefund;
         } else {
-            require(
-                user.balance > 0,
-                "LaunchEvent: user has not participated"
-            );
+            require(user.balance > 0, "LaunchEvent: user has not participated");
             amount = (user.balance * tokenIncentivesForUsers) / wavaxAllocated;
         }
 
         tokenIncentivesBalance -= amount;
 
-        token.transfer(
-            msg.sender,
-            amount
-        );
+        token.transfer(msg.sender, amount);
     }
 
     /// @notice Withdraw AVAX if launch has been cancelled
@@ -531,7 +521,9 @@ contract LaunchEvent is Ownable {
     function skim() external {
         address penaltyCollector = rocketJoeFactory.penaltyCollector();
 
-        uint256 excessToken = token.balanceOf(address(this)) - tokenBalance - tokenIncentivesBalance;
+        uint256 excessToken = token.balanceOf(address(this)) -
+            tokenBalance -
+            tokenIncentivesBalance;
         if (excessToken > 0) {
             token.transfer(penaltyCollector, excessToken);
         }
