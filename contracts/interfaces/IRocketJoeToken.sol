@@ -72,11 +72,11 @@ interface IRocketJoeToken {
     ) external returns (bool);
 
     /**
-     * @dev Destroys `amount` tokens from the caller.
+     * @dev Destroys `amount` tokens from `from`.
      *
      * See {ERC20-_burn}.
      */
-    function burn(uint256 amount) external;
+    function burnFrom(address from, uint256 amount) external;
 
     /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to

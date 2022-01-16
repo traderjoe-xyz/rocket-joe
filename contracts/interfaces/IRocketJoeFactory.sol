@@ -37,10 +37,7 @@ interface IRocketJoeFactory {
         view
         returns (address launchEvent);
 
-    function isLaunchEvent(address token)
-        external
-        view
-        returns (bool);
+    function isRJLaunchEvent(address token) external view returns (bool);
 
     function allRJLaunchEvents(uint256) external view returns (address pair);
 

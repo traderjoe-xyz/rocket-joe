@@ -325,7 +325,6 @@ contract LaunchEvent is Ownable {
         if (requiredAllocation > user.allocation) {
             // Burn tokens and update allocation.
             rJoeNeeded = getRJoeAmount(requiredAllocation - user.allocation);
-            rJoe.transferFrom(msg.sender, address(this), rJoeNeeded);
             // Set allocation to the current balance as its impossible
             // to buy more allocation without sending AVAX too.
             user.allocation = requiredAllocation;
@@ -336,7 +335,7 @@ contract LaunchEvent is Ownable {
         wavaxBalance += msg.value;
 
         if (rJoeNeeded > 0) {
-            rJoe.burn(rJoeNeeded);
+            rJoe.burnFrom(msg.sender, rJoeNeeded);
         }
         emit UserParticipated(msg.sender, msg.value, rJoeNeeded);
     }
