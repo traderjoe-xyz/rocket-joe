@@ -112,9 +112,13 @@ describe("launch event contract phase two", function () {
         this.LaunchEvent.connect(this.issuer).emergencyWithdraw()
       ).to.be.revertedWith("LaunchEvent: is still running");
       await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
-      await expect(await this.AUCTOK.balanceOf(this.issuer.address)).to.equal(0);
+      await expect(await this.AUCTOK.balanceOf(this.issuer.address)).to.equal(
+        0
+      );
       await this.LaunchEvent.connect(this.issuer).emergencyWithdraw();
-      await expect(await this.AUCTOK.balanceOf(this.LaunchEvent.address)).to.equal(0);
+      await expect(
+        await this.AUCTOK.balanceOf(this.LaunchEvent.address)
+      ).to.equal(0);
       await expect(await this.AUCTOK.balanceOf(this.issuer.address)).to.equal(
         ethers.utils.parseEther("1000000.0")
       );
@@ -125,7 +129,7 @@ describe("launch event contract phase two", function () {
         this.LaunchEvent.connect(this.participant).emergencyWithdraw()
       ).to.be.revertedWith("LaunchEvent: is still running");
       await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
-	  const balanceBefore = await this.participant.getBalance();
+      const balanceBefore = await this.participant.getBalance();
       await this.LaunchEvent.connect(this.participant).emergencyWithdraw();
       // `closeTo` is used as an inaccurate approximation of gas fees.
       await expect(await this.participant.getBalance()).to.be.closeTo(
@@ -133,7 +137,6 @@ describe("launch event contract phase two", function () {
         ethers.utils.parseEther("0.1")
       );
     });
-
   });
 
   after(async function () {
