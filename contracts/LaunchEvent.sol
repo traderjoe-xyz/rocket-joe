@@ -32,7 +32,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Issuer of sale tokens
-    address private issuer;
+    address public issuer;
 
     /// @notice The start time of phase 1
     uint256 public auctionStart;
@@ -45,7 +45,7 @@ contract LaunchEvent is Ownable {
     uint256 public floorPrice;
 
     /// @notice Timelock duration post phase 3 when can user withdraw their LP tokens
-    uint256 private userTimelock;
+    uint256 public userTimelock;
 
     /// @notice Timelock duration post phase 3 When can issuer withdraw their LP tokens
     uint256 public issuerTimelock;
@@ -60,22 +60,22 @@ contract LaunchEvent is Ownable {
 
     IRocketJoeToken public rJoe;
     uint256 public rJoePerAvax;
-    IWAVAX public WAVAX;
+    IWAVAX private WAVAX;
     IERC20Metadata public token;
 
-    IJoeRouter02 public router;
-    IJoeFactory public factory;
+    IJoeRouter02 private router;
+    IJoeFactory private factory;
     IRocketJoeFactory public rocketJoeFactory;
 
-    bool internal initialized;
-    bool internal stopped;
+    bool private initialized;
+    bool public stopped;
 
     uint256 public maxAllocation;
 
     mapping(address => UserAllocation) public getUserAllocation;
 
     /// @dev The address of the JoePair, set after createLiquidityPool is called
-    IJoePair private pair;
+    IJoePair public pair;
 
     uint256 private avaxAllocated;
     uint256 private lpSupply;
@@ -267,8 +267,8 @@ contract LaunchEvent is Ownable {
         issuer = _issuer;
 
         auctionStart = _auctionStart;
-        PHASE_ONE_DURATION = 3 days;
-        PHASE_TWO_DURATION = 1 days;
+        PHASE_ONE_DURATION = rocketJoeFactory.PHASE_ONE_DURATION();
+        PHASE_TWO_DURATION = rocketJoeFactory.PHASE_TWO_DURATION();
         token = IERC20Metadata(_token);
         tokenReserve = token.balanceOf(address(this));
         tokenBalance = tokenReserve;

@@ -63,15 +63,15 @@ describe("launch event contract phase three", function () {
       value: ethers.utils.parseEther("1.0"),
     });
     expect(
-      this.LaunchEvent.getUserAllocation(this.participant.address).amount
+      await this.LaunchEvent.getUserAllocation(this.participant.address).amount
     ).to.equal(ethers.utils.parseEther("1.0").number);
-    // increase time by 4 days
-    await advanceTimeAndBlock(duration.days(4));
+    // increase time by 3 days
+    await advanceTimeAndBlock(duration.days(3));
   });
 
   describe("interacting with phase three", function () {
     it("should revert if try do withdraw liquidity", async function () {
-      expect(
+      await expect(
         this.LaunchEvent.connect(this.participant).withdrawLiquidity()
       ).to.be.revertedWith(
         "LaunchEvent: can't withdraw before user's timelock"
@@ -79,7 +79,7 @@ describe("launch event contract phase three", function () {
     });
 
     it("should revert if try do withdraw WAVAX", async function () {
-      expect(
+      await expect(
         this.LaunchEvent.connect(this.participant).withdrawAVAX(
           ethers.utils.parseEther("1")
         )
@@ -87,7 +87,7 @@ describe("launch event contract phase three", function () {
     });
 
     it("should revert if deposited", async function () {
-      expect(
+      await expect(
         this.LaunchEvent.connect(this.participant).depositAVAX({
           value: ethers.utils.parseEther("1"),
         })
@@ -96,7 +96,7 @@ describe("launch event contract phase three", function () {
 
     it("should revert when withdraw liquidity if pair not created", async function () {
       await advanceTimeAndBlock(duration.days(8));
-      expect(
+      await expect(
         this.LaunchEvent.connect(this.participant).withdrawLiquidity()
       ).to.be.revertedWith("LaunchEvent: pair does not exist");
     });
@@ -108,7 +108,7 @@ describe("launch event contract phase three", function () {
 
     it("should revert if JoePair already created", async function () {
       await this.LaunchEvent.connect(this.participant).createPair();
-      expect(
+      await expect(
         this.LaunchEvent.connect(this.participant).createPair()
       ).to.be.revertedWith("LaunchEvent: pair already created");
     });
@@ -122,13 +122,13 @@ describe("launch event contract phase three", function () {
       // issuer withdraws liquidity
       await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
 
-      expect(
+      await expect(
         this.LaunchEvent.connect(this.issuer).withdrawLiquidity()
       ).to.be.revertedWith("LaunchEvent: liquidity already withdrawn");
     });
 
     it("should report it is in the correct phase", async function () {
-      await expect(this.LaunchEvent.currentPhase() == 3);
+      await expect((await this.LaunchEvent.currentPhase()) === 3);
     });
   });
 

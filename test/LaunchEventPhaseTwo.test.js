@@ -64,7 +64,7 @@ describe("launch event contract phase two", function () {
       this.LaunchEvent.getUserAllocation(this.participant.address).amount
     ).to.equal(ethers.utils.parseEther("1.0").number);
 
-    await advanceTimeAndBlock(duration.days(3));
+    await advanceTimeAndBlock(duration.days(2));
   });
 
   describe("interacting with phase two", function () {
