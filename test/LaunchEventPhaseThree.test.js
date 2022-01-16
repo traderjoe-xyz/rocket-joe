@@ -46,6 +46,16 @@ describe("launch event contract phase three", function () {
       this.RocketFactory.address,
       ethers.utils.parseEther("105")
     );
+    await this.rJOE
+      .connect(this.dev)
+      .mint(this.participant.address, ethers.utils.parseEther("100")); // 100 rJOE
+
+    this.LaunchEvent = await createLaunchEvent(
+      this.RocketFactory,
+      this.issuer,
+      this.block,
+      this.AUCTOK
+    );
   });
 
   describe("interacting with phase three", function () {
@@ -108,6 +118,22 @@ describe("launch event contract phase three", function () {
       // TODO: assert event emitted.
     });
 
+    it("should allow user to withdraw incentives if floor price is not met, and refund issuer", async function () {
+      await this.LaunchEvent.connect(this.participant).createPair();
+
+      await this.LaunchEvent.connect(this.participant).withdrawIncentives();
+
+      expect(await this.AUCTOK.balanceOf(this.participant.address)).to.be.equal(
+        ethers.utils.parseEther("0.05")
+      );
+
+      await this.LaunchEvent.connect(this.issuer).withdrawIncentives();
+
+      expect(await this.AUCTOK.balanceOf(this.issuer.address)).to.be.equal(
+        ethers.utils.parseEther("4.95")
+      );
+    });
+
     it("should revert if JoePair already created", async function () {
       await this.LaunchEvent.connect(this.participant).createPair();
       await expect(
@@ -130,7 +156,7 @@ describe("launch event contract phase three", function () {
     });
 
     it("should report it is in the correct phase", async function () {
-      await expect((await this.LaunchEvent.currentPhase()) === 3);
+      expect((await this.LaunchEvent.currentPhase()) === 3);
     });
   });
 
@@ -295,6 +321,81 @@ describe("launch event contract phase three", function () {
       expect(await pair.balanceOf(this.issuer.address)).to.equal(
         totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
       );
+    });
+  });
+
+  describe("phase 3 test if floor price is met", async function () {
+    beforeEach(async function () {
+      // we redeploy a new launchEvent to test if values are correct even if floorPrice is met
+      this.AUCTOK2 = await this.ERC20TokenCF.deploy();
+      const block = await ethers.provider.getBlock();
+
+      // Send the tokens used to the issuer and approve spending to the factory
+      await this.AUCTOK2.connect(this.dev).mint(
+        this.dev.address,
+        ethers.utils.parseEther("105")
+      ); // 1_000_000 tokens
+      await this.AUCTOK2.connect(this.dev).approve(
+        this.RocketFactory.address,
+        ethers.utils.parseEther("105")
+      );
+
+      await this.RocketFactory.createRJLaunchEvent(
+        this.issuer.address, // Issuer
+        block.timestamp + 60, // Start time (60 seconds from now)
+        this.AUCTOK2.address, // Address of the token being auctioned
+        ethers.utils.parseEther("105"), // Amount of tokens for auction
+        ethers.utils.parseEther("0.01"), // Floor price (0.01 Avax)
+        ethers.utils.parseEther("0.5"), // Max withdraw penalty
+        ethers.utils.parseEther("0.4"), // Fixed withdraw penalty
+        ethers.utils.parseEther("5.0"), // max allocation
+        60 * 60 * 24 * 7, // User timelock
+        60 * 60 * 24 * 8 // Issuer timelock
+      );
+      this.LaunchEventFloorPrice = await ethers.getContractAt(
+        "LaunchEvent",
+        this.RocketFactory.getRJLaunchEvent(this.AUCTOK2.address)
+      );
+
+      await advanceTimeAndBlock(duration.seconds(120));
+      await this.rJOE
+        .connect(this.dev)
+        .mint(this.participant.address, ethers.utils.parseEther("100.0"));
+
+      await this.rJOE
+        .connect(this.participant)
+        .approve(
+          this.LaunchEventFloorPrice.address,
+          ethers.utils.parseEther("100.0")
+        );
+
+      await this.LaunchEventFloorPrice.connect(this.participant).depositAVAX({
+        value: ethers.utils.parseEther("1.0"),
+      });
+
+      expect(
+        this.LaunchEventFloorPrice.getUserInfo(this.participant.address)
+          .amount
+      ).to.equal(ethers.utils.parseEther("1.0").number);
+
+      // increase time by 4 days
+      await advanceTimeAndBlock(duration.days(4));
+    });
+
+    it("should allow user to withdraw incentives if floor price is met, and revert for issuer", async function () {
+      await this.LaunchEventFloorPrice.connect(this.participant).createPair();
+
+      await this.LaunchEventFloorPrice.connect(
+        this.participant
+      ).withdrawIncentives();
+
+      expect(
+        await this.AUCTOK2.balanceOf(this.participant.address)
+      ).to.be.equal(ethers.utils.parseEther("5"));
+
+      await expect(
+        this.LaunchEventFloorPrice.connect(this.issuer).withdrawIncentives()
+      ).to.be.revertedWith("LaunchEvent: caller has no incentive to claim");
     });
   });
 
