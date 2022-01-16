@@ -32,11 +32,16 @@ contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
     }
 
     /// @dev Creates `_amount` token to `_to`. Must only be called by the owner (RocketJoeStaking)
+    /// @param _to The address that will receive the mint
+    /// @param _amount The amount to be minted
     function mint(address _to, uint256 _amount) external onlyOwner {
         _mint(_to, _amount);
     }
 
     /// @dev Destroys `_amount` tokens from `_from`. Callable only by a RJLaunchEvent
+    /// this doesn't need any approval in order to avoid double approval before entering each launch event
+    /// @param _from The address that will burn tokens
+    /// @param _amount The amount to be burned
     function burnFrom(address _from, uint256 _amount)
         external
         onlyRJLaunchEvent
