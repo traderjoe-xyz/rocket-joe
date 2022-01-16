@@ -126,6 +126,18 @@ describe("rocket factory test", function () {
     expect(await this.RocketFactory.numLaunchEvents()).to.equal(2);
   });
 
+  it("should change duration of phases", async function () {
+    await this.RocketFactory.connect(this.dev).setPhaseDuration(1, 86400);
+
+    expect(await this.RocketFactory.PHASE_ONE_DURATION()).to.be.equal(86400);
+
+    await this.RocketFactory.connect(this.dev).setPhaseDuration(2, 5 * 86400);
+
+    expect(await this.RocketFactory.PHASE_TWO_DURATION()).to.be.equal(
+      5 * 86400
+    );
+  });
+
   after(async function () {
     await network.provider.request({
       method: "hardhat_reset",
