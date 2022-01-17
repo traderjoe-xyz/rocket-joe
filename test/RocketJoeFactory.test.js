@@ -127,20 +127,43 @@ describe("rocket factory test", function () {
   });
 
   it("should change duration of phases", async function () {
-    await this.RocketFactory.connect(this.dev).setPhaseDuration(1, 86400);
+    await this.RocketFactory.connect(this.dev).setPhaseDuration(1, 3 * 86_400);
 
-    expect(await this.RocketFactory.PHASE_ONE_DURATION()).to.be.equal(86400);
+    expect(await this.RocketFactory.PHASE_ONE_DURATION()).to.be.equal(
+      3 * 86_400
+    );
 
-    await this.RocketFactory.connect(this.dev).setPhaseDuration(2, 5 * 86400);
+    await this.RocketFactory.connect(this.dev).setPhaseDuration(2, 5 * 86_400);
 
     expect(await this.RocketFactory.PHASE_TWO_DURATION()).to.be.equal(
-      5 * 86400
+      5 * 86_400
+    );
+  });
+
+  it("should change duration of the no phase duration", async function () {
+    await this.RocketFactory.connect(this.dev).setPhaseOneNoFeeDuration(3_600);
+
+    expect(await this.RocketFactory.PHASE_ONE_NO_FEE_DURATION()).to.be.equal(
+      3_600
+    );
+  });
+
+  it("should revert if duration are not set accordingly", async function () {
+    await expect(
+      this.RocketFactory.connect(this.dev).setPhaseDuration(1, 86_400)
+    ).to.be.revertedWith(
+      "RJFactory: phase one duration lower than no fee duration"
+    );
+    await expect(
+      this.RocketFactory.connect(this.dev).setPhaseOneNoFeeDuration(2 * 86_400)
+    ).to.be.revertedWith(
+      "RJFactory: no fee duration bigger than phase one duration"
     );
   });
 
   it("should revert if user tries to change phase duration", async function () {
     await expect(
-      this.RocketFactory.connect(this.issuer).setPhaseDuration(1, 86400)
+      this.RocketFactory.connect(this.issuer).setPhaseDuration(1, 999_999)
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 

@@ -34,6 +34,8 @@ interface IRocketJoeFactory {
 
     function PHASE_ONE_DURATION() external view returns (uint256);
 
+    function PHASE_ONE_NO_FEE_DURATION() external view returns (uint256);
+
     function PHASE_TWO_DURATION() external view returns (uint256);
 
     function getRJLaunchEvent(address token)
@@ -71,4 +73,6 @@ interface IRocketJoeFactory {
     function setRJoePerAvax(uint256) external;
 
     function setPhaseDuration(uint256, uint256) external;
+
+    function setPhaseOneNoFeeDuration(uint256) external;
 }

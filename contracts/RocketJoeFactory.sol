@@ -24,6 +24,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override factory;
 
     uint256 public override PHASE_ONE_DURATION = 2 days;
+    uint256 public override PHASE_ONE_NO_FEE_DURATION = 1 days;
     uint256 public override PHASE_TWO_DURATION = 1 days;
 
     mapping(address => address) public override getRJLaunchEvent;
@@ -154,10 +155,26 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         onlyOwner
     {
         if (_phaseNumber == 1) {
+            require(
+                _duration > PHASE_ONE_NO_FEE_DURATION,
+                "RJFactory: phase one duration lower than no fee duration"
+            );
             PHASE_ONE_DURATION = _duration;
         } else if (_phaseNumber == 2) {
             PHASE_TWO_DURATION = _duration;
         }
+    }
+
+    function setPhaseOneNoFeeDuration(uint256 _noFeeDuration)
+        external
+        override
+        onlyOwner
+    {
+        require(
+            _noFeeDuration < PHASE_ONE_DURATION,
+            "RJFactory: no fee duration bigger than phase one duration"
+        );
+        PHASE_ONE_NO_FEE_DURATION = _noFeeDuration;
     }
 
     /// @dev This function emits an event after a new launch event has been created
