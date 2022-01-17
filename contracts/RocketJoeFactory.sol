@@ -148,7 +148,11 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         emit SetRJoePerAvax(_rJoePerAvax);
     }
 
-    function setPhaseDuration(uint256 _phaseNumber, uint256 _duration) external override onlyOwner {
+    function setPhaseDuration(uint256 _phaseNumber, uint256 _duration)
+        external
+        override
+        onlyOwner
+    {
         if (_phaseNumber == 1) {
             PHASE_ONE_DURATION = _duration;
         } else if (_phaseNumber == 2) {
