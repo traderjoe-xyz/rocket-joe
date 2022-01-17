@@ -41,15 +41,15 @@ describe("launch event contract phase three", function () {
     // Send the tokens used to the issuer and approve spending to the factory
     await this.AUCTOK.connect(this.dev).mint(
       this.dev.address,
-      ethers.utils.parseEther("1000000")
+      ethers.utils.parseEther("105")
     ); // 1_000_000 tokens
     await this.AUCTOK.connect(this.dev).approve(
       this.RocketFactory.address,
-      ethers.utils.parseEther("1000000")
+      ethers.utils.parseEther("105")
     );
     await this.rJOE
       .connect(this.dev)
-      .mint(this.participant.address, ethers.utils.parseEther("1000000")); // 1_000_000 tokens
+      .mint(this.participant.address, ethers.utils.parseEther("150")); // 150 rJOE
 
     this.LaunchEvent = await createLaunchEvent(
       this.RocketFactory,

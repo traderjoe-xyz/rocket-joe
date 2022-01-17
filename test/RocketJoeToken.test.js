@@ -50,10 +50,10 @@ describe("Rocket Joe Token", function () {
         .mint(this.bob.address, ethers.utils.parseEther("100"));
 
       const AUCTOK = await this.ERC20TokenCF.deploy();
-      await AUCTOK.mint(this.dev.address, ethers.utils.parseEther("1000000"));
+      await AUCTOK.mint(this.dev.address, ethers.utils.parseEther("105"));
       await AUCTOK.approve(
         this.RocketFactory.address,
-        ethers.utils.parseEther("1000000")
+        ethers.utils.parseEther("105")
       );
 
       const block = await ethers.provider.getBlock();
@@ -88,10 +88,10 @@ describe("Rocket Joe Token", function () {
         .mint(this.owner.address, ethers.utils.parseEther("1"));
 
       const AUCTOK = await this.ERC20TokenCF.deploy();
-      await AUCTOK.mint(this.dev.address, ethers.utils.parseEther("1000000"));
+      await AUCTOK.mint(this.dev.address, ethers.utils.parseEther("105"));
       await AUCTOK.approve(
         this.RocketFactory.address,
-        ethers.utils.parseEther("1000000")
+        ethers.utils.parseEther("105")
       );
 
       const block = await ethers.provider.getBlock();
