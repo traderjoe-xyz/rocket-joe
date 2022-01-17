@@ -77,7 +77,11 @@ contract LaunchEvent is Ownable {
     /// @dev The address of the JoePair, set after createLiquidityPool is called
     IJoePair public pair;
 
-    uint256 private avaxAllocated;
+    /// @dev The total amount of wavax that was sent to the router to create the initial liquidity pair.
+    /// Used to calculate the amount of LP to send based on the user's participation in the launch event
+    uint256 private wavaxAllocated;
+
+    /// @dev The exact supply of LP minted when creating the initial liquidity pair.
     uint256 private lpSupply;
 
     /// @dev Used to know how many issuing tokens will be sent to JoeRouter to create the initial
@@ -87,18 +91,10 @@ contract LaunchEvent is Ownable {
     /// tokenReserve will be equal to 0)
     uint256 private tokenReserve;
 
-    /// @dev The exact amount of tokens needed to be kept inside the contract in order to send
-    /// everyone's tokens. If there is any excess (because someone sent token directly to the contract), the
-    /// penaltyCollector can collect the excess using `skim()`.
-    /// It's *always* equal to tokenReserve before creating the pair. After pair is created, if tokenReserve > 0, i.e.
-    /// because the floor price is not met, we update tokenBalance to be the exact amount of token minus
-    /// what was already sent to users
-    uint256 private tokenBalance;
-
-    /// @dev wavaxBalance is the exact amount of WAVAX that needs to be kept inside the contract in order to send everyone's
+    /// @dev wavaxReserve is the exact amount of WAVAX that needs to be kept inside the contract in order to send everyone's
     /// WAVAX. If there is some excess (because someone sent token directly to the contract), the
     /// penaltyCollector can collect the excess using `skim()`
-    uint256 private wavaxBalance;
+    uint256 private wavaxReserve;
 
     event IssuingTokenDeposited(address indexed token, uint256 amount);
 
@@ -238,7 +234,6 @@ contract LaunchEvent is Ownable {
         PHASE_TWO_DURATION = rocketJoeFactory.PHASE_TWO_DURATION();
         token = IERC20Metadata(_token);
         tokenReserve = token.balanceOf(address(this));
-        tokenBalance = tokenReserve;
         floorPrice = _floorPrice;
 
         maxWithdrawPenalty = _maxWithdrawPenalty;
@@ -298,12 +293,14 @@ contract LaunchEvent is Ownable {
         }
 
         user.balance += msg.value;
-        WAVAX.deposit{value: msg.value}();
-        wavaxBalance += msg.value;
+        wavaxReserve += msg.value;
 
         if (rJoeNeeded > 0) {
             rJoe.burnFrom(msg.sender, rJoeNeeded);
         }
+
+        WAVAX.deposit{value: msg.value}();
+
         emit UserParticipated(msg.sender, msg.value, rJoeNeeded);
     }
 
@@ -326,11 +323,10 @@ contract LaunchEvent is Ownable {
         uint256 feeAmount = (_amount * getPenalty()) / 1e18;
         uint256 amountMinusFee = _amount - feeAmount;
 
+        wavaxReserve -= _amount;
+
         WAVAX.withdraw(_amount);
-
-        wavaxBalance -= _amount;
         _safeTransferAVAX(msg.sender, amountMinusFee);
-
         if (feeAmount > 0) {
             _safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
         }
@@ -339,53 +335,61 @@ contract LaunchEvent is Ownable {
     /// @notice Create the JoePair
     /// @dev Can only be called once after phase 3 has started
     function createPair() external isStopped(false) atPhase(Phase.PhaseThree) {
-        require(
-            factory.getPair(address(WAVAX), address(token)) == address(0),
-            "LaunchEvent: pair already created"
-        );
-        require(wavaxBalance > 0, "LaunchEvent: no wavax balance");
-
         (address wavaxAddress, address tokenAddress) = (
             address(WAVAX),
             address(token)
         );
+        require(
+            factory.getPair(wavaxAddress, tokenAddress) == address(0),
+            "LaunchEvent: pair already created"
+        );
+        require(wavaxReserve > 0, "LaunchEvent: no wavax balance");
 
-        uint256 tokenAllocated = tokenBalance;
+        uint256 tokenAllocated = tokenReserve;
 
         // Adjust the amount of tokens sent to the pool if floor price not met
-        if (floorPrice > (wavaxBalance * 1e18) / tokenAllocated) {
-            tokenAllocated = (wavaxBalance * 10**token.decimals()) / floorPrice;
+        if (floorPrice > (wavaxReserve * 1e18) / tokenAllocated) {
+            tokenAllocated = (wavaxReserve * 10**token.decimals()) / floorPrice;
         }
 
-        WAVAX.approve(address(router), wavaxBalance);
+        WAVAX.approve(address(router), wavaxReserve);
         token.approve(address(router), tokenAllocated);
 
         /// We can't trust the output cause of reflect tokens
         (, , lpSupply) = router.addLiquidity(
             wavaxAddress, // tokenA
             tokenAddress, // tokenB
-            wavaxBalance, // amountADesired
+            wavaxReserve, // amountADesired
             tokenAllocated, // amountBDesired
-            wavaxBalance, // amountAMin
+            wavaxReserve, // amountAMin
             tokenAllocated, // amountBMin
             address(this), // to
             block.timestamp // deadline
         );
 
         pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
-        avaxAllocated = WAVAX.balanceOf(address(pair));
-        wavaxBalance -= avaxAllocated;
+        wavaxAllocated = wavaxReserve;
+        wavaxReserve = 0;
 
         tokenReserve -= tokenAllocated;
-        tokenBalance = tokenReserve;
 
-        emit LiquidityPoolCreated(
-            address(pair),
-            pair.token0(),
-            pair.token1(),
-            wavaxBalance,
-            tokenBalance
-        );
+        if (wavaxAddress > tokenAddress) {
+            emit LiquidityPoolCreated(
+                address(pair),
+                wavaxAddress,
+                tokenAddress,
+                wavaxAllocated,
+                tokenAllocated
+            );
+        } else {
+            emit LiquidityPoolCreated(
+                address(pair),
+                tokenAddress,
+                wavaxAddress,
+                tokenAllocated,
+                wavaxAllocated
+            );
+        }
     }
 
     /// @notice Withdraw liquidity pool tokens
@@ -405,35 +409,24 @@ contract LaunchEvent is Ownable {
             !user.hasWithdrawnPair,
             "LaunchEvent: liquidity already withdrawn"
         );
-        user.hasWithdrawnPair = true;
 
         uint256 balance = pairBalance(msg.sender);
+        user.hasWithdrawnPair = true;
 
         if (msg.sender == issuer) {
-            uint256 amountToWithdraw = lpSupply / 2;
-            pair.transfer(issuer, amountToWithdraw);
-            emit IssuerLiquidityWithdrawn(
-                issuer,
-                address(pair),
-                amountToWithdraw
-            );
+            balance = lpSupply / 2;
+            pair.transfer(issuer, balance);
+
+            emit IssuerLiquidityWithdrawn(issuer, address(pair), balance);
 
             if (tokenReserve > 0) {
-                uint256 amount = tokenReserve / 2;
+                uint256 amount = tokenReserve;
+                tokenReserve = 0;
                 token.transfer(issuer, amount);
-                tokenBalance -= amount;
             }
         } else {
             pair.transfer(msg.sender, balance);
-
-            if (tokenReserve > 0) {
-                uint256 amount = (user.allocation * tokenReserve) /
-                    avaxAllocated /
-                    2;
-                token.transfer(msg.sender, amount);
-                tokenBalance -= amount;
-                emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
-            }
+            emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
         }
     }
 
@@ -448,15 +441,15 @@ contract LaunchEvent is Ownable {
 
             uint256 balance = user.balance;
             user.balance = 0;
-            wavaxBalance -= balance;
+            wavaxReserve -= balance;
             WAVAX.withdraw(balance);
 
             _safeTransferAVAX(msg.sender, balance);
 
             emit AvaxEmergencyWithdraw(msg.sender, balance);
         } else {
-            uint256 balance = tokenBalance;
-            tokenBalance = 0;
+            uint256 balance = tokenReserve;
+            tokenReserve = 0;
             token.transfer(issuer, balance);
             emit TokenEmergencyWithdraw(msg.sender, balance);
         }
@@ -477,15 +470,12 @@ contract LaunchEvent is Ownable {
     function skim() external {
         address penaltyCollector = rocketJoeFactory.penaltyCollector();
 
-        uint256 excessToken = token.balanceOf(address(this)) - tokenBalance;
+        uint256 excessToken = token.balanceOf(address(this)) - tokenReserve;
         if (excessToken > 0) {
-            token.transfer(
-                penaltyCollector,
-                token.balanceOf(address(this)) - tokenBalance
-            );
+            token.transfer(penaltyCollector, excessToken);
         }
 
-        uint256 excessWavax = WAVAX.balanceOf(address(this)) - wavaxBalance;
+        uint256 excessWavax = WAVAX.balanceOf(address(this)) - wavaxReserve;
         if (excessWavax > 0) {
             WAVAX.transfer(penaltyCollector, excessWavax);
         }
@@ -511,7 +501,7 @@ contract LaunchEvent is Ownable {
     /// @notice Returns the current balance of the pool
     /// @return The balances of WAVAX and distribution token held by the launch contract
     function getReserves() public view returns (uint256, uint256) {
-        return (wavaxBalance, tokenBalance);
+        return (wavaxReserve, tokenReserve);
     }
 
     /// @notice Get the rJOE amount needed to deposit AVAX
@@ -524,11 +514,11 @@ contract LaunchEvent is Ownable {
     /// @notice The total amount of liquidity pool tokens the user can withdraw
     /// @param _user The address of the user to check
     function pairBalance(address _user) public view returns (uint256) {
-        if (avaxAllocated == 0 || getUserAllocation[_user].hasWithdrawnPair) {
+        if (wavaxAllocated == 0 || getUserAllocation[_user].hasWithdrawnPair) {
             return 0;
         }
         return
-            (getUserAllocation[_user].balance * lpSupply) / avaxAllocated / 2;
+            (getUserAllocation[_user].balance * lpSupply) / wavaxAllocated / 2;
     }
 
     /// @dev Bytecode size optimization for the `atPhase` modifier.
