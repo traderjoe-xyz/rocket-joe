@@ -147,40 +147,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice Modifier which ensures contract is in a defined phase
     modifier atPhase(Phase _phase) {
-        if (_phase == Phase.NotStarted) {
-            require(
-                currentPhase() == Phase.NotStarted,
-                "LaunchEvent: not in not started"
-            );
-        } else if (_phase == Phase.PhaseOne) {
-            require(
-                currentPhase() == Phase.PhaseOne,
-                "LaunchEvent: not in phase one"
-            );
-        } else if (_phase == Phase.PhaseTwo) {
-            require(
-                currentPhase() == Phase.PhaseTwo,
-                "LaunchEvent: not in phase two"
-            );
-        } else if (_phase == Phase.PhaseThree) {
-            require(
-                currentPhase() == Phase.PhaseThree,
-                "LaunchEvent: not in phase three"
-            );
-        } else {
-            revert("LaunchEvent: unknown state");
-        }
-        _;
-    }
-
-    /// @notice Modifier which checks we are at a valid state in the auction for a user to withdraw their bid
-    /// @dev This essentially checks we are in phase one or two
-    modifier withdrawable() {
-        Phase _currentPhase = currentPhase();
-        require(
-            _currentPhase == Phase.PhaseOne || _currentPhase == Phase.PhaseTwo,
-            "LaunchEvent: unable to withdraw"
-        );
+        _atPhase(_phase);
         _;
     }
 
@@ -342,11 +309,12 @@ contract LaunchEvent is Ownable {
 
     /// @notice Withdraw AVAX, only permitted during phase 1 and 2
     /// @param _amount The amount of AVAX to withdraw
-    function withdrawAVAX(uint256 _amount)
-        public
-        isStopped(false)
-        withdrawable
-    {
+    function withdrawAVAX(uint256 _amount) public isStopped(false) {
+        Phase _currentPhase = currentPhase();
+        require(
+            _currentPhase == Phase.PhaseOne || _currentPhase == Phase.PhaseTwo,
+            "LaunchEvent: unable to withdraw"
+        );
         require(_amount > 0, 'LaunchEvent: invalid withdraw amount');
         UserAllocation storage user = getUserAllocation[msg.sender];
         require(
@@ -561,6 +529,34 @@ contract LaunchEvent is Ownable {
         }
         return
             (getUserAllocation[_user].balance * lpSupply) / avaxAllocated / 2;
+    }
+
+    /// @dev bytecode size optimization for the `atPhase` modifier.
+    /// This works becuase internal functions are not in-lined in modifiers.
+    function _atPhase(Phase _phase) internal view {
+        if (_phase == Phase.NotStarted) {
+            require(
+                currentPhase() == Phase.NotStarted,
+                "LaunchEvent: not in not started"
+            );
+        } else if (_phase == Phase.PhaseOne) {
+            require(
+                currentPhase() == Phase.PhaseOne,
+                "LaunchEvent: not in phase one"
+            );
+        } else if (_phase == Phase.PhaseTwo) {
+            require(
+                currentPhase() == Phase.PhaseTwo,
+                "LaunchEvent: not in phase two"
+            );
+        } else if (_phase == Phase.PhaseThree) {
+            require(
+                currentPhase() == Phase.PhaseThree,
+                "LaunchEvent: not in phase three"
+            );
+        } else {
+            revert("LaunchEvent: unknown state");
+        }
     }
 
     /// @notice Send AVAX
