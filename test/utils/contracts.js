@@ -38,7 +38,15 @@ async function deployRocketFactory(dev, rJoe, penaltyCollector) {
 }
 
 // Return a newly created LaunchEvent with default parameters.
-async function createLaunchEvent(RocketFactory, issuer, block, token, amount = "105", floor = "1", maxAllocation = "5.0") {
+async function createLaunchEvent(
+  RocketFactory,
+  issuer,
+  block,
+  token,
+  amount = "105",
+  floor = "1",
+  maxAllocation = "5.0"
+) {
   await RocketFactory.createRJLaunchEvent(
     issuer.address, // Issuer
     block.timestamp + 60, // Start time (60 seconds from now)

@@ -23,11 +23,9 @@ describe("launch event contract phase three", function () {
     });
   });
 
-  describe("interacting with phase three", function () {
-    beforeEach(async function () {
+  beforeEach(async function () {
       // Deploy the tokens used for tests.
       this.rJOE = await this.RocketJoeTokenCF.deploy();
-      // XXX: Should we replace this with a standard ERC20?
       this.AUCTOK = await this.ERC20TokenCF.deploy();
 
       // Keep a reference to the current block.
@@ -48,6 +46,12 @@ describe("launch event contract phase three", function () {
         this.RocketFactory.address,
         ethers.utils.parseEther("105")
       );
+
+  });
+
+  describe("interacting with phase three", function () {
+    beforeEach(async function () {
+      // Send the tokens used to the issuer and approve spending to the factory
       await this.rJOE
         .connect(this.dev)
         .mint(this.participant.address, ethers.utils.parseEther("150")); // 150 rJOE
@@ -133,95 +137,45 @@ describe("launch event contract phase three", function () {
 
 
   describe("withdrawing liquidity in phase three", async function () {
-    before(async function () {
-      // The wallets taking part in tests.
-      this.signers = await ethers.getSigners();
-      this.dev = this.signers[0];
-      this.penaltyCollector = this.signers[1];
-      this.issuer = this.signers[2];
-      this.participant = this.signers[3];
-
-      this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
-      this.ERC20TokenCF = await ethers.getContractFactory("ERC20Token");
-
-      // Fork the avalanche network to work with WAVAX.
-      await network.provider.request({
-        method: "hardhat_reset",
-        params: HARDHAT_FORK_CURRENT_PARAMS,
-      });
-    });
-
     beforeEach(async function () {
       // Deploy the tokens used for tests.
-      this.rJOE = await this.RocketJoeTokenCF.deploy();
-      // XXX: Should we replace this with a standard ERC20?
-      this.AUCTOK = await this.ERC20TokenCF.deploy();
-
-      // Keep a reference to the current block.
-      this.block = await ethers.provider.getBlock();
-
       this.factory = await ethers.getContractAt(
         "IJoeFactory",
         "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10"
       );
-
-      this.RocketFactory = await deployRocketFactory(
-        this.dev,
-        this.rJOE,
-        this.penaltyCollector
-      );
-
-      // Send the tokens used to the issuer and approve spending to the factory
-      await this.AUCTOK.connect(this.dev).mint(
-        this.dev.address,
-        ethers.utils.parseEther("105")
-      ); // 1_000_000 tokens
-      await this.AUCTOK.connect(this.dev).approve(
-        this.RocketFactory.address,
-        ethers.utils.parseEther("105")
-      );
       await this.rJOE
         .connect(this.dev)
         .mint(this.participant.address, ethers.utils.parseEther("10000"));
+      this.LaunchEvent = await createLaunchEvent(
+        this.RocketFactory,
+        this.issuer,
+        this.block,
+        this.AUCTOK,
+        "100",  // token amount
+        "1",    // floor price
+        "100"   // max allocation
+      );
 
     });
 
     it("should not create pair when no avax deposited", async function () {
-      const LaunchEvent = await createLaunchEvent(
-        this.RocketFactory,
-        this.issuer,
-        this.block,
-        this.AUCTOK,
-        "100",  // token amount
-        "1",    // floor price
-        "100"   // max allocation
-      );
-      await advanceTimeAndBlock(duration.days(4));
-      await expect(
-        LaunchEvent.connect(this.participant).createPair()
+     await advanceTimeAndBlock(duration.days(4));
+     await expect(
+        this.LaunchEvent.connect(this.participant).createPair()
       ).to.be.revertedWith("LaunchEvent: no wavax balance");
     });
 
     it("should evenly distribute liquidity to issuer and participant", async function () {
-      const LaunchEvent = await createLaunchEvent(
-        this.RocketFactory,
-        this.issuer,
-        this.block,
-        this.AUCTOK,
-        "100",  // token amount
-        "1",    // floor price
-        "100"   // max allocation
-      );
 
       await advanceTimeAndBlock(duration.seconds(120));
 
       // Participant buys all the pool at floor price.
 
-      await LaunchEvent.connect(this.participant).depositAVAX({
+      await this.LaunchEvent.connect(this.participant).depositAVAX({
         value: ethers.utils.parseEther("100.0"),
       });
       await advanceTimeAndBlock(duration.days(3));
-      await LaunchEvent.createPair();
+      await this.LaunchEvent.createPair();
 
       await advanceTimeAndBlock(duration.days(8));
 
@@ -239,20 +193,18 @@ describe("launch event contract phase three", function () {
       const MINIMUM_LIQUIDITY = await pair.MINIMUM_LIQUIDITY();
 
       expect(
-        await pair.balanceOf(LaunchEvent.address)
+        await pair.balanceOf(this.LaunchEvent.address)
       ).to.equal(
         totalSupply.sub(MINIMUM_LIQUIDITY)
       );
 
-      await LaunchEvent.connect(this.participant).withdrawLiquidity();
-      await LaunchEvent.connect(this.issuer).withdrawLiquidity();
-
+      await this.LaunchEvent.connect(this.participant).withdrawLiquidity();
+      await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
       expect(
         await pair.balanceOf(this.participant.address)
       ).to.equal(
         totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
       );
-
       expect(
         await pair.balanceOf(this.issuer.address)
       ).to.equal(
@@ -262,25 +214,16 @@ describe("launch event contract phase three", function () {
     });
 
     it("should refund tokens if floor not met", async function () {
-      const LaunchEvent = await createLaunchEvent(
-        this.RocketFactory,
-        this.issuer,
-        this.block,
-        this.AUCTOK,
-        "100",
-        "1",
-        "100"
-      );
 
       await advanceTimeAndBlock(duration.seconds(120));
 
       // Participant buys half the pool, floor price not met.
       // There should be a refund of 50 tokens to issuer.
-      await LaunchEvent.connect(this.participant).depositAVAX({
+      await this.LaunchEvent.connect(this.participant).depositAVAX({
         value: ethers.utils.parseEther("50.0"),
       });
       await advanceTimeAndBlock(duration.days(3));
-      await LaunchEvent.createPair();
+      await this.LaunchEvent.createPair();
 
       await advanceTimeAndBlock(duration.days(8));
       const pairAddress = await this.factory.getPair(
@@ -297,28 +240,26 @@ describe("launch event contract phase three", function () {
       const MINIMUM_LIQUIDITY = await pair.MINIMUM_LIQUIDITY();
 
       expect(
-        await pair.balanceOf(LaunchEvent.address)
+        await pair.balanceOf(this.LaunchEvent.address)
       ).to.equal(
         totalSupply.sub(MINIMUM_LIQUIDITY)
       );
 
-      await LaunchEvent.connect(this.participant).withdrawLiquidity();
+      await this.LaunchEvent.connect(this.participant).withdrawLiquidity();
 
       const tokenBalanceBefore = await this.AUCTOK.balanceOf(this.issuer.address);
-      await LaunchEvent.connect(this.issuer).withdrawLiquidity();
+      await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
 
       expect(
         await this.AUCTOK.balanceOf(this.issuer.address)
       ).to.equal(
         tokenBalanceBefore.add(ethers.utils.parseEther("50"))
       )
-
       expect(
         await pair.balanceOf(this.participant.address)
       ).to.equal(
         totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
       );
-
       expect(
         await pair.balanceOf(this.issuer.address)
       ).to.equal(
@@ -328,15 +269,6 @@ describe("launch event contract phase three", function () {
     });
 
     it("should evenly distribute liquidity to issuer and participants if overly subscribed", async function () {
-      const LaunchEvent = await createLaunchEvent(
-        this.RocketFactory,
-        this.issuer,
-        this.block,
-        this.AUCTOK,
-        "100",  // token amount
-        "1",    // floor price
-        "100"   // max allocation
-      );
 
       this.participant2 = this.signers[4];
       await this.rJOE
@@ -346,16 +278,15 @@ describe("launch event contract phase three", function () {
       await advanceTimeAndBlock(duration.seconds(120));
 
       // Participant buys all the pool at floor price.
-      await LaunchEvent.connect(this.participant).depositAVAX({
+      await this.LaunchEvent.connect(this.participant).depositAVAX({
         value: ethers.utils.parseEther("100.0"),
       });
-      await LaunchEvent.connect(this.participant2).depositAVAX({
+      await this.LaunchEvent.connect(this.participant2).depositAVAX({
         value: ethers.utils.parseEther("100.0"),
       });
 
       await advanceTimeAndBlock(duration.days(3));
-      await LaunchEvent.createPair();
-
+      await this.LaunchEvent.createPair();
       await advanceTimeAndBlock(duration.days(8));
 
       const pairAddress = await this.factory.getPair(
@@ -374,27 +305,25 @@ describe("launch event contract phase three", function () {
       const MINIMUM_LIQUIDITY = await pair.MINIMUM_LIQUIDITY();
 
       expect(
-        await pair.balanceOf(LaunchEvent.address)
+        await pair.balanceOf(this.LaunchEvent.address)
       ).to.equal(
         totalSupply.sub(MINIMUM_LIQUIDITY)
       );
 
-      await LaunchEvent.connect(this.participant).withdrawLiquidity();
-      await LaunchEvent.connect(this.participant2).withdrawLiquidity();
-      await LaunchEvent.connect(this.issuer).withdrawLiquidity();
+      await this.LaunchEvent.connect(this.participant).withdrawLiquidity();
+      await this.LaunchEvent.connect(this.participant2).withdrawLiquidity();
+      await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
 
       expect(
         await pair.balanceOf(this.participant.address)
       ).to.equal(
         totalSupply.div(4).sub(MINIMUM_LIQUIDITY.div(4))
       );
-
       expect(
         await pair.balanceOf(this.participant2.address)
       ).to.equal(
         totalSupply.div(4).sub(MINIMUM_LIQUIDITY.div(4))
       );
-
       expect(
         await pair.balanceOf(this.issuer.address)
       ).to.equal(
