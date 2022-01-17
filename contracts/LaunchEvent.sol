@@ -38,6 +38,7 @@ contract LaunchEvent is Ownable {
     uint256 public auctionStart;
 
     uint256 public PHASE_ONE_DURATION;
+    uint256 public PHASE_ONE_NO_FEE_DURATION;
     uint256 public PHASE_TWO_DURATION;
 
     /// @notice Floor price in AVAX per token (can be 0)
@@ -235,7 +236,9 @@ contract LaunchEvent is Ownable {
 
         auctionStart = _auctionStart;
         PHASE_ONE_DURATION = rocketJoeFactory.PHASE_ONE_DURATION();
+        PHASE_ONE_NO_FEE_DURATION = rocketJoeFactory.PHASE_ONE_NO_FEE_DURATION();
         PHASE_TWO_DURATION = rocketJoeFactory.PHASE_TWO_DURATION();
+
         token = IERC20Metadata(_token);
         tokenReserve = token.balanceOf(address(this));
         tokenBalance = tokenReserve;
@@ -498,12 +501,12 @@ contract LaunchEvent is Ownable {
     /// @return The penalty to apply to a withdrawal amount
     function getPenalty() public view returns (uint256) {
         uint256 timeElapsed = block.timestamp - auctionStart;
-        if (timeElapsed < 1 days) {
+        if (timeElapsed < PHASE_ONE_NO_FEE_DURATION) {
             return 0;
         } else if (timeElapsed < PHASE_ONE_DURATION) {
             return
-                ((timeElapsed - 1 days) * maxWithdrawPenalty) /
-                uint256(PHASE_ONE_DURATION - 1 days);
+                ((timeElapsed - PHASE_ONE_NO_FEE_DURATION) * maxWithdrawPenalty) /
+                uint256(PHASE_ONE_DURATION - PHASE_ONE_NO_FEE_DURATION);
         }
         return fixedWithdrawPenalty;
     }
