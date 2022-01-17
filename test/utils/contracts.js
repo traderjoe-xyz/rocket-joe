@@ -38,16 +38,16 @@ async function deployRocketFactory(dev, rJoe, penaltyCollector) {
 }
 
 // Return a newly created LaunchEvent with default parameters.
-async function createLaunchEvent(RocketFactory, issuer, block, token) {
+async function createLaunchEvent(RocketFactory, issuer, block, token, amount = "105", floor = "1", maxAllocation = "5.0") {
   await RocketFactory.createRJLaunchEvent(
     issuer.address, // Issuer
     block.timestamp + 60, // Start time (60 seconds from now)
     token.address, // Address of the token being auctioned
-    ethers.utils.parseEther("105"), // Amount of tokens for auction
-    ethers.utils.parseEther("1"), // Floor price (1 avax)
+    ethers.utils.parseEther(amount), // Amount of tokens for auction
+    ethers.utils.parseEther(floor), // Floor price (1 avax)
     ethers.utils.parseEther("0.5"), // Max withdraw penalty
     ethers.utils.parseEther("0.4"), // Fixed withdraw penalty
-    ethers.utils.parseEther("5.0"), // max allocation
+    ethers.utils.parseEther(maxAllocation), // max allocation
     60 * 60 * 24 * 7, // User timelock
     60 * 60 * 24 * 8 // Issuer timelock
   );
