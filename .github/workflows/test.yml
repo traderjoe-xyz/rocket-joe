@@ -33,5 +33,8 @@ jobs:
       - name: Compile contracts
         run: yarn run hardhat compile
 
+      - name: Check compiled contract size
+        run: yarn run hardhat size-contracts
+
       - name: Test
         run: yarn run hardhat test
