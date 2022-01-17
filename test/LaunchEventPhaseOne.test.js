@@ -90,7 +90,7 @@ describe("launch event contract phase one", function () {
         await advanceTimeAndBlock(duration.seconds(120));
         await expect(
           this.LaunchEvent.connect(this.participant).withdrawAVAX(0)
-        ).to.be.revertedWith('LaunchEvent: invalid withdraw amount');
+        ).to.be.revertedWith("LaunchEvent: invalid withdraw amount");
       });
 
       it("should be payable with AVAX", async function () {
