@@ -531,7 +531,7 @@ contract LaunchEvent is Ownable {
             (getUserAllocation[_user].balance * lpSupply) / avaxAllocated / 2;
     }
 
-    /// @dev bytecode size optimization for the `atPhase` modifier
+    /// @dev Bytecode size optimization for the `atPhase` modifier.
     /// This works becuase internal functions are not in-lined in modifiers
     function _atPhase(Phase _phase) internal view {
         if (_phase == Phase.NotStarted) {
