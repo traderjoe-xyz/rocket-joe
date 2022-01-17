@@ -138,6 +138,12 @@ describe("rocket factory test", function () {
     );
   });
 
+  it("should revert if user tries to change phase duration", async function () {
+    await expect(
+      this.RocketFactory.connect(this.issuer).setPhaseDuration(1, 86400)
+    ).to.be.revertedWith("Ownable: caller is not the owner");
+  });
+
   after(async function () {
     await network.provider.request({
       method: "hardhat_reset",
