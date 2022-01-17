@@ -24,29 +24,28 @@ describe("launch event contract phase three", function () {
   });
 
   beforeEach(async function () {
-      // Deploy the tokens used for tests.
-      this.rJOE = await this.RocketJoeTokenCF.deploy();
-      this.AUCTOK = await this.ERC20TokenCF.deploy();
+    // Deploy the tokens used for tests.
+    this.rJOE = await this.RocketJoeTokenCF.deploy();
+    this.AUCTOK = await this.ERC20TokenCF.deploy();
 
-      // Keep a reference to the current block.
-      this.block = await ethers.provider.getBlock();
+    // Keep a reference to the current block.
+    this.block = await ethers.provider.getBlock();
 
-      this.RocketFactory = await deployRocketFactory(
-        this.dev,
-        this.rJOE,
-        this.penaltyCollector
-      );
+    this.RocketFactory = await deployRocketFactory(
+      this.dev,
+      this.rJOE,
+      this.penaltyCollector
+    );
 
-      // Send the tokens used to the issuer and approve spending to the factory
-      await this.AUCTOK.connect(this.dev).mint(
-        this.dev.address,
-        ethers.utils.parseEther("105")
-      ); // 1_000_000 tokens
-      await this.AUCTOK.connect(this.dev).approve(
-        this.RocketFactory.address,
-        ethers.utils.parseEther("105")
-      );
-
+    // Send the tokens used to the issuer and approve spending to the factory
+    await this.AUCTOK.connect(this.dev).mint(
+      this.dev.address,
+      ethers.utils.parseEther("105")
+    ); // 1_000_000 tokens
+    await this.AUCTOK.connect(this.dev).approve(
+      this.RocketFactory.address,
+      ethers.utils.parseEther("105")
+    );
   });
 
   describe("interacting with phase three", function () {
