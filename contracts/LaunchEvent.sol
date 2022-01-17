@@ -426,6 +426,7 @@ contract LaunchEvent is Ownable {
                 uint256 amount = tokenReserve;
                 tokenReserve = 0;
                 token.transfer(issuer, amount);
+                tokenBalance -= amount;
             }
         } else {
             pair.transfer(msg.sender, balance);
