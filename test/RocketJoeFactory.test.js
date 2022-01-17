@@ -97,10 +97,10 @@ describe("rocket factory test", function () {
     const token1 = await this.RocketJoeTokenCF.deploy();
     await token1
       .connect(this.dev)
-      .mint(this.dev.address, ethers.utils.parseEther("1000000"));
+      .mint(this.dev.address, ethers.utils.parseEther("105"));
     await token1
       .connect(this.dev)
-      .approve(this.RocketFactory.address, ethers.utils.parseEther("1000000"));
+      .approve(this.RocketFactory.address, ethers.utils.parseEther("105"));
     await createLaunchEvent(
       this.RocketFactory,
       this.issuer,
@@ -113,10 +113,10 @@ describe("rocket factory test", function () {
 
     await token2
       .connect(this.dev)
-      .mint(this.dev.address, ethers.utils.parseEther("1000000"));
+      .mint(this.dev.address, ethers.utils.parseEther("105"));
     await token2
       .connect(this.dev)
-      .approve(this.RocketFactory.address, ethers.utils.parseEther("1000000"));
+      .approve(this.RocketFactory.address, ethers.utils.parseEther("105"));
     await createLaunchEvent(
       this.RocketFactory,
       this.issuer,
