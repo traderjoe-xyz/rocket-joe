@@ -25,7 +25,7 @@ contract LaunchEvent is Ownable {
         PhaseThree
     }
 
-    struct UserAllocation {
+    struct ParticipantInfo {
         uint256 allocation;
         uint256 balance;
         bool hasWithdrawnPair;
@@ -73,7 +73,7 @@ contract LaunchEvent is Ownable {
 
     uint256 public maxAllocation;
 
-    mapping(address => UserAllocation) public getUserAllocation;
+    mapping(address => ParticipantInfo) public getParticipantInfo;
 
     /// @dev The address of the JoePair, set after createLiquidityPool is called
     IJoePair public pair;
@@ -278,7 +278,7 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: expected non-zero AVAX to deposit"
         );
 
-        UserAllocation storage user = getUserAllocation[msg.sender];
+        ParticipantInfo storage user = getParticipantInfo[msg.sender];
         require(
             user.balance + msg.value <= maxAllocation,
             "LaunchEvent: amount exceeds max allocation"
@@ -316,7 +316,7 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: unable to withdraw"
         );
         require(_amount > 0, "LaunchEvent: invalid withdraw amount");
-        UserAllocation storage user = getUserAllocation[msg.sender];
+        ParticipantInfo storage user = getParticipantInfo[msg.sender];
         require(
             user.balance >= _amount,
             "LaunchEvent: withdrawn amount exceeds balance"
@@ -407,7 +407,7 @@ contract LaunchEvent is Ownable {
             "LaunchEvent: pair does not exist"
         );
 
-        UserAllocation storage user = getUserAllocation[msg.sender];
+        ParticipantInfo storage user = getParticipantInfo[msg.sender];
         require(
             !user.hasWithdrawnPair,
             "LaunchEvent: liquidity already withdrawn"
@@ -436,7 +436,7 @@ contract LaunchEvent is Ownable {
     /// @notice Withdraw AVAX if launch has been cancelled
     function emergencyWithdraw() external isStopped(true) {
         if (msg.sender != issuer) {
-            UserAllocation storage user = getUserAllocation[msg.sender];
+            ParticipantInfo storage user = getParticipantInfo[msg.sender];
             require(
                 user.balance > 0,
                 "LaunchEvent: expected user to have non-zero balance to perform emergency withdraw"
@@ -518,11 +518,12 @@ contract LaunchEvent is Ownable {
     /// @notice The total amount of liquidity pool tokens the user can withdraw
     /// @param _user The address of the user to check
     function pairBalance(address _user) public view returns (uint256) {
-        if (wavaxAllocated == 0 || getUserAllocation[_user].hasWithdrawnPair) {
+        ParticipantInfo memory user = getParticipantInfo[_user];
+        if (wavaxAllocated == 0 || user.hasWithdrawnPair) {
             return 0;
         }
         return
-            (getUserAllocation[_user].balance * lpSupply) / wavaxAllocated / 2;
+            (user.balance * lpSupply) / wavaxAllocated / 2;
     }
 
     /// @dev Bytecode size optimization for the `atPhase` modifier.
