@@ -70,8 +70,7 @@ describe("launch event contract phase three", function () {
       expect(
         this.LaunchEvent.getUserAllocation(this.participant.address).amount
       ).to.equal(ethers.utils.parseEther("1.0").number);
-      // increase time by 4 days
-      await advanceTimeAndBlock(duration.days(4));
+      await advanceTimeAndBlock(duration.days(3));
     });
 
 
