@@ -12,4 +12,7 @@ module.exports = {
       runs: 1000,
     },
   },
+  contractSizer: {
+    strict: true,
+  }
 };
