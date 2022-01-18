@@ -522,8 +522,7 @@ contract LaunchEvent is Ownable {
         if (wavaxAllocated == 0 || user.hasWithdrawnPair) {
             return 0;
         }
-        return
-            (user.balance * lpSupply) / wavaxAllocated / 2;
+        return (user.balance * lpSupply) / wavaxAllocated / 2;
     }
 
     /// @dev Bytecode size optimization for the `atPhase` modifier.
