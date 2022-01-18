@@ -495,7 +495,8 @@ contract LaunchEvent is Ownable {
             return 0;
         } else if (timeElapsed < PHASE_ONE_DURATION) {
             return
-                ((timeElapsed - PHASE_ONE_NO_FEE_DURATION) * maxWithdrawPenalty) /
+                ((timeElapsed - PHASE_ONE_NO_FEE_DURATION) *
+                    maxWithdrawPenalty) /
                 uint256(PHASE_ONE_DURATION - PHASE_ONE_NO_FEE_DURATION);
         }
         return fixedWithdrawPenalty;
