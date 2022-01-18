@@ -99,7 +99,7 @@ describe("launch event contract phase one", function () {
           value: ethers.utils.parseEther("1.0"),
         });
         expect(
-          this.LaunchEvent.getParticipantInfo(this.participant.address).amount
+          this.LaunchEvent.getUserInfo(this.participant.address).amount
         ).to.equal(ethers.utils.parseEther("1.0").number);
       });
 
@@ -172,13 +172,13 @@ describe("launch event contract phase one", function () {
 
       it("should keep allocation after withdraw", async function () {
         await advanceTimeAndBlock(duration.hours(36));
-        const allocationBefore = this.LaunchEvent.getParticipantInfo(
+        const allocationBefore = this.LaunchEvent.getUserInfo(
           this.participant.address
         );
         await this.LaunchEvent.connect(this.participant).withdrawAVAX(
           ethers.utils.parseEther("1.0")
         );
-        const allocation = this.LaunchEvent.getParticipantInfo(
+        const allocation = this.LaunchEvent.getUserInfo(
           this.participant.address
         );
         expect(allocation.allocation).to.be.equal(allocationBefore.allocation);
