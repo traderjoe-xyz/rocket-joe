@@ -196,6 +196,7 @@ contract LaunchEvent is Ownable {
     /// @param _issuer Address of the token issuer
     /// @param _auctionStart The start time of the auction
     /// @param _token The contract address of auctioned token
+    /// @param _tokenIncentivesPercent The token incentives percent, in part per 100, e.g 5 is 5% of incentives
     /// @param _floorPrice The minimum price the token is sold at
     /// @param _maxWithdrawPenalty The max withdraw penalty during phase 1, in parts per 1e18
     /// @param _fixedWithdrawPenalty The fixed withdraw penalty during phase 2, in parts per 1e18
