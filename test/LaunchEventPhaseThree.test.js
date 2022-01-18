@@ -345,7 +345,7 @@ describe("launch event contract phase three", function () {
         block.timestamp + 60, // Start time (60 seconds from now)
         this.AUCTOK2.address, // Address of the token being auctioned
         ethers.utils.parseEther("105"), // Amount of tokens for auction
-        5, // Percent of tokens incentives
+        ethers.utils.parseEther("0.05"), // Percent of tokens incentives
         ethers.utils.parseEther("0.01"), // Floor price (0.01 Avax)
         ethers.utils.parseEther("0.5"), // Max withdraw penalty
         ethers.utils.parseEther("0.4"), // Fixed withdraw penalty
