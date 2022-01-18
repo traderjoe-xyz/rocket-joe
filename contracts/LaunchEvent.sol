@@ -42,6 +42,11 @@ contract LaunchEvent is Ownable {
     uint256 public PHASE_ONE_NO_FEE_DURATION;
     uint256 public PHASE_TWO_DURATION;
 
+    /// @dev amount of token to be used as incentives.
+    /// e.g. TOKEN_INCENTIVES_PERCENT = 5, and issuer sends 105 000 tokens,
+    /// then 105 000 * 100 / (100 + 5) = 5 000 tokens used as incentive
+    uint256 public TOKEN_INCENTIVES_PERCENT;
+
     /// @notice Floor price in AVAX per token (can be 0)
     /// @dev floorPrice is scaled to 1e18
     uint256 public floorPrice;
@@ -103,7 +108,7 @@ contract LaunchEvent is Ownable {
     /// will be an excess of tokens returned to the issuer if he calls `withdrawIncentives()`
     uint256 private tokenIncentiveIssuerRefund;
 
-    /// @dev wavaxBalance is the exact amount of WAVAX that needs to be kept inside the contract in order to send everyone's
+    /// @dev wavaxReserve is the exact amount of WAVAX that needs to be kept inside the contract in order to send everyone's
     /// WAVAX. If there is some excess (because someone sent token directly to the contract), the
     /// penaltyCollector can collect the excess using `skim()`
     uint256 private wavaxReserve;
@@ -202,6 +207,7 @@ contract LaunchEvent is Ownable {
         address _issuer,
         uint256 _auctionStart,
         address _token,
+        uint256 _tokenIncentivesPercent,
         uint256 _floorPrice,
         uint256 _maxWithdrawPenalty,
         uint256 _fixedWithdrawPenalty,
@@ -249,10 +255,16 @@ contract LaunchEvent is Ownable {
         token = IERC20Metadata(_token);
         uint256 balance = token.balanceOf(address(this));
 
+        TOKEN_INCENTIVES_PERCENT = _tokenIncentivesPercent;
         /// We do this math because `tokenIncentivesForUsers + tokenReserve = tokenSent`
         /// and `tokenIncentivesForUsers = tokenReserve * 0.05` (i.e. incentives are 5% of reserves for issuing).
         /// E.g. if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
+<<<<<<< HEAD
         tokenReserve = (balance * 100) / 105;
+=======
+        tokenReserve = (balance * 100) / (100 + _tokenIncentivesPercent);
+        tokenReserve = tokenReserve;
+>>>>>>> 955e148 (tokens incentives percent)
         tokenIncentivesForUsers = balance - tokenReserve;
         tokenIncentivesBalance = tokenIncentivesForUsers;
 
@@ -376,7 +388,11 @@ contract LaunchEvent is Ownable {
         // Adjust the amount of tokens sent to the pool if floor price not met
         if (floorPrice > (wavaxReserve * 1e18) / tokenAllocated) {
             tokenAllocated = (wavaxReserve * 10**token.decimals()) / floorPrice;
+<<<<<<< HEAD
             tokenIncentivesForUsers = tokenIncentivesForUsers * tokenAllocated / wavaxReserve;
+=======
+            tokenIncentivesForUsers = tokenIncentivesForUsers * tokenAllocated / tokenReserve;
+>>>>>>> 955e148 (tokens incentives percent)
             tokenIncentiveIssuerRefund =
                 tokenIncentivesBalance -
                 tokenIncentivesForUsers;
@@ -432,18 +448,19 @@ contract LaunchEvent is Ownable {
 
         if (msg.sender == issuer) {
             balance = lpSupply / 2;
-            pair.transfer(issuer, balance);
 
-            emit IssuerLiquidityWithdrawn(issuer, address(pair), balance);
+            emit IssuerLiquidityWithdrawn(msg.sender, address(pair), balance);
 
             if (tokenReserve > 0) {
                 uint256 amount = tokenReserve;
                 tokenReserve = 0;
-                token.transfer(issuer, amount);
+                token.transfer(msg.sender, amount);
             }
         } else {
             emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
         }
+
+        pair.transfer(msg.sender, balance);
     }
 
     /// @notice Withdraw incentives tokens

@@ -44,6 +44,7 @@ async function createLaunchEvent(
   block,
   token,
   amount = "105",
+  percent = "0.05",
   floor = "1",
   maxAllocation = "5.0"
 ) {
@@ -52,6 +53,7 @@ async function createLaunchEvent(
     block.timestamp + 60, // Start time (60 seconds from now)
     token.address, // Address of the token being auctioned
     ethers.utils.parseEther(amount), // Amount of tokens for auction
+    ethers.utils.parseEther(percent), // Percent of tokens incentives
     ethers.utils.parseEther(floor), // Floor price (1 avax)
     ethers.utils.parseEther("0.5"), // Max withdraw penalty
     ethers.utils.parseEther("0.4"), // Fixed withdraw penalty

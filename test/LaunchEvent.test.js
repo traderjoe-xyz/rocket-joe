@@ -53,6 +53,7 @@ describe("launch event contract initialisation", function () {
       _auctionStart: this.block.timestamp + 60,
       _token: this.AUCTOK.address,
       _tokenAmount: 100,
+      _tokenIncentivesPercent: 5,
       _floorPrice: 1,
       _withdrawPenaltyGradient: 2893517,
       _fixedWithdrawPenalty: 4e11,
@@ -70,6 +71,7 @@ describe("launch event contract initialisation", function () {
           args._auctionStart,
           args._token,
           args._tokenAmount,
+          args._tokenIncentivesPercent,
           args._floorPrice,
           args._withdrawPenaltyGradient,
           args._fixedWithdrawPenalty,
@@ -184,6 +186,7 @@ describe("launch event contract initialisation", function () {
           this.validParams._auctionStart,
           this.validParams._token,
           this.validParams._tokenAmount,
+          this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
           this.validParams._withdrawPenaltyGradient,
           this.validParams._fixedWithdrawPenalty,
@@ -201,6 +204,7 @@ describe("launch event contract initialisation", function () {
           this.validParams._auctionStart,
           this.validParams._token,
           this.validParams._tokenAmount,
+          this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
           this.validParams._withdrawPenaltyGradient,
           this.validParams._fixedWithdrawPenalty,
@@ -219,6 +223,7 @@ describe("launch event contract initialisation", function () {
           this.validParams._issuer,
           this.validParams._auctionStart,
           this.validParams._token,
+          this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
           this.validParams._withdrawPenaltyGradient,
           this.validParams._fixedWithdrawPenalty,
@@ -235,6 +240,7 @@ describe("launch event contract initialisation", function () {
         this.validParams._auctionStart,
         this.validParams._token,
         this.validParams._tokenAmount,
+        this.validParams._tokenIncentivesPercent,
         this.validParams._floorPrice,
         this.validParams._withdrawPenaltyGradient,
         this.validParams._fixedWithdrawPenalty,
@@ -246,7 +252,7 @@ describe("launch event contract initialisation", function () {
         "LaunchEvent",
         this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
       );
-      await expect(LaunchEvent.currentPhase() == 0);
+      await expect(LaunchEvent.currentPhase() === 0);
     });
   });
 
