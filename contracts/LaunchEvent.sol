@@ -26,9 +26,15 @@ contract LaunchEvent is Ownable {
     }
 
     struct UserInfo {
+        /// @notice How much AVAX user can deposit for this launch event
+        /// @dev Can be increased by burning more rJOE, but will always be
+        /// smaller than `maxAllocation`
         uint256 allocation;
+        /// @notice How much AVAX user has deposited for this launch event
         uint256 balance;
+        /// @notice Whether user has withdrawn the LP
         bool hasWithdrawnPair;
+        /// @notice Whether user has withdrawn the issuing token incentives
         bool hasWithdrawnIncentives;
     }
 
