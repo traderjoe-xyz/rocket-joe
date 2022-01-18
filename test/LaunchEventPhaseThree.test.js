@@ -134,7 +134,6 @@ describe("launch event contract phase three", function () {
     });
   });
 
-
   describe("withdrawing liquidity in phase three", async function () {
     beforeEach(async function () {
       // Deploy the tokens used for tests.
@@ -150,22 +149,20 @@ describe("launch event contract phase three", function () {
         this.issuer,
         this.block,
         this.AUCTOK,
-        "100",  // token amount
-        "1",    // floor price
-        "100"   // max allocation
+        "100", // token amount
+        "1", // floor price
+        "100" // max allocation
       );
-
     });
 
     it("should not create pair when no avax deposited", async function () {
-     await advanceTimeAndBlock(duration.days(4));
-     await expect(
+      await advanceTimeAndBlock(duration.days(4));
+      await expect(
         this.LaunchEvent.connect(this.participant).createPair()
       ).to.be.revertedWith("LaunchEvent: no wavax balance");
     });
 
     it("should evenly distribute liquidity to issuer and participant", async function () {
-
       await advanceTimeAndBlock(duration.seconds(120));
 
       // Participant buys all the pool at floor price.
@@ -182,38 +179,28 @@ describe("launch event contract phase three", function () {
         "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
         this.AUCTOK.address
       );
-      const pair = await ethers.getContractAt(
-        "IJoePair",
-        pairAddress);
+      const pair = await ethers.getContractAt("IJoePair", pairAddress);
 
-      const totalSupply = await pair.totalSupply()
+      const totalSupply = await pair.totalSupply();
       expect(totalSupply).to.equal(ethers.utils.parseEther("100"));
 
       const MINIMUM_LIQUIDITY = await pair.MINIMUM_LIQUIDITY();
 
-      expect(
-        await pair.balanceOf(this.LaunchEvent.address)
-      ).to.equal(
+      expect(await pair.balanceOf(this.LaunchEvent.address)).to.equal(
         totalSupply.sub(MINIMUM_LIQUIDITY)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawLiquidity();
       await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
-      expect(
-        await pair.balanceOf(this.participant.address)
-      ).to.equal(
+      expect(await pair.balanceOf(this.participant.address)).to.equal(
         totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
       );
-      expect(
-        await pair.balanceOf(this.issuer.address)
-      ).to.equal(
+      expect(await pair.balanceOf(this.issuer.address)).to.equal(
         totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
       );
-
     });
 
     it("should refund tokens if floor not met", async function () {
-
       await advanceTimeAndBlock(duration.seconds(120));
 
       // Participant buys half the pool, floor price not met.
@@ -229,46 +216,36 @@ describe("launch event contract phase three", function () {
         "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
         this.AUCTOK.address
       );
-      const pair = await ethers.getContractAt(
-        "IJoePair",
-        pairAddress);
+      const pair = await ethers.getContractAt("IJoePair", pairAddress);
 
-      const totalSupply = await pair.totalSupply()
+      const totalSupply = await pair.totalSupply();
       expect(totalSupply).to.equal(ethers.utils.parseEther("50"));
 
       const MINIMUM_LIQUIDITY = await pair.MINIMUM_LIQUIDITY();
 
-      expect(
-        await pair.balanceOf(this.LaunchEvent.address)
-      ).to.equal(
+      expect(await pair.balanceOf(this.LaunchEvent.address)).to.equal(
         totalSupply.sub(MINIMUM_LIQUIDITY)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawLiquidity();
 
-      const tokenBalanceBefore = await this.AUCTOK.balanceOf(this.issuer.address);
+      const tokenBalanceBefore = await this.AUCTOK.balanceOf(
+        this.issuer.address
+      );
       await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
 
-      expect(
-        await this.AUCTOK.balanceOf(this.issuer.address)
-      ).to.equal(
+      expect(await this.AUCTOK.balanceOf(this.issuer.address)).to.equal(
         tokenBalanceBefore.add(ethers.utils.parseEther("50"))
-      )
-      expect(
-        await pair.balanceOf(this.participant.address)
-      ).to.equal(
+      );
+      expect(await pair.balanceOf(this.participant.address)).to.equal(
         totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
       );
-      expect(
-        await pair.balanceOf(this.issuer.address)
-      ).to.equal(
+      expect(await pair.balanceOf(this.issuer.address)).to.equal(
         totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
       );
-
     });
 
     it("should evenly distribute liquidity to issuer and participants if overly subscribed", async function () {
-
       this.participant2 = this.signers[4];
       await this.rJOE
         .connect(this.dev)
@@ -292,20 +269,16 @@ describe("launch event contract phase three", function () {
         "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
         this.AUCTOK.address
       );
-      const pair = await ethers.getContractAt(
-        "IJoePair",
-        pairAddress);
+      const pair = await ethers.getContractAt("IJoePair", pairAddress);
 
-      const totalSupply = await pair.totalSupply()
+      const totalSupply = await pair.totalSupply();
       expect(totalSupply).to.equal(
-        "141421356237309504880"  // sqrt ( avax * token)
+        "141421356237309504880" // sqrt ( avax * token)
       );
 
       const MINIMUM_LIQUIDITY = await pair.MINIMUM_LIQUIDITY();
 
-      expect(
-        await pair.balanceOf(this.LaunchEvent.address)
-      ).to.equal(
+      expect(await pair.balanceOf(this.LaunchEvent.address)).to.equal(
         totalSupply.sub(MINIMUM_LIQUIDITY)
       );
 
@@ -313,19 +286,13 @@ describe("launch event contract phase three", function () {
       await this.LaunchEvent.connect(this.participant2).withdrawLiquidity();
       await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
 
-      expect(
-        await pair.balanceOf(this.participant.address)
-      ).to.equal(
+      expect(await pair.balanceOf(this.participant.address)).to.equal(
         totalSupply.div(4).sub(MINIMUM_LIQUIDITY.div(4))
       );
-      expect(
-        await pair.balanceOf(this.participant2.address)
-      ).to.equal(
+      expect(await pair.balanceOf(this.participant2.address)).to.equal(
         totalSupply.div(4).sub(MINIMUM_LIQUIDITY.div(4))
       );
-      expect(
-        await pair.balanceOf(this.issuer.address)
-      ).to.equal(
+      expect(await pair.balanceOf(this.issuer.address)).to.equal(
         totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
       );
     });
