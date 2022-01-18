@@ -54,6 +54,7 @@ interface IRocketJoeFactory {
         uint256 _phaseOneStartTime,
         address _token,
         uint256 _tokenAmount,
+        uint256 _tokenIncentivesPercent,
         uint256 _floorPrice,
         uint256 _maxWithdrawPenalty,
         uint256 _fixedWithdrawPenalty,

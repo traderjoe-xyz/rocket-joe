@@ -7,6 +7,7 @@ interface ILaunchEvent {
         address _issuer,
         uint256 _phaseOne,
         address _token,
+        uint256 _tokenIncentivesPercent,
         uint256 _floorPrice,
         uint256 _maxWithdrawPenalty,
         uint256 _fixedWithdrawPenalty,
