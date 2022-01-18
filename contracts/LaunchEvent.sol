@@ -42,9 +42,10 @@ contract LaunchEvent is Ownable {
     uint256 public PHASE_ONE_NO_FEE_DURATION;
     uint256 public PHASE_TWO_DURATION;
 
-    /// @dev Amount of token to be used as incentives. In parts per 1e18.
-    /// e.g. tokenIncentivesPercent = 5e16, and issuer sends 105 000 tokens,
-    /// then 105 000 * 1e18 / (1e18 + 5e16) = 5 000 tokens used as incentive
+    /// @dev Amount of tokens used as incentives for locking up LPs during phase 3, 
+    /// in parts per 1e18 and expressed as an additional percentage to the tokens for auction.
+    /// E.g. if tokenIncentivesPercent = 5e16 (5%), and issuer sends 105 000 tokens,
+    /// then 105 000 * 1e18 / (1e18 + 5e16) = 5 000 tokens are used for incentives
     uint256 public tokenIncentivesPercent;
 
     /// @notice Floor price in AVAX per token (can be 0)
@@ -257,20 +258,11 @@ contract LaunchEvent is Ownable {
         uint256 balance = token.balanceOf(address(this));
 
         tokenIncentivesPercent = _tokenIncentivesPercent;
-        
+
         /// We do this math because `tokenIncentivesForUsers + tokenReserve = tokenSent`
         /// and `tokenIncentivesForUsers = tokenReserve * 0.05` (i.e. incentives are 5% of reserves for issuing).
         /// E.g. if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
-<<<<<<< HEAD
-<<<<<<< HEAD
-        tokenReserve = (balance * 100) / 105;
-=======
-        tokenReserve = (balance * 100) / (100 + _tokenIncentivesPercent);
-=======
         tokenReserve = (balance * 1e18) / (1e18 + _tokenIncentivesPercent);
->>>>>>> e20163c (comments and TOKEN_INCENTIVES_PERCENT in 1e18)
-        tokenReserve = tokenReserve;
->>>>>>> 955e148 (tokens incentives percent)
         tokenIncentivesForUsers = balance - tokenReserve;
         tokenIncentivesBalance = tokenIncentivesForUsers;
 
@@ -316,11 +308,7 @@ contract LaunchEvent is Ownable {
         );
 
         UserInfo storage user = getUserInfo[msg.sender];
-<<<<<<< HEAD
-        uint256 requiredAllocation = user.balance + msg.value;
-=======
         uint256 newAllocation = user.balance + msg.value;
->>>>>>> f77b57f (comments)
         require(
             newAllocation <= maxAllocation,
             "LaunchEvent: amount exceeds max allocation"
@@ -335,7 +323,7 @@ contract LaunchEvent is Ownable {
             // to buy more allocation without sending AVAX too
             user.allocation = newAllocation;
         }
-
+        
         user.balance = newAllocation;
         wavaxReserve += msg.value;
 
@@ -394,11 +382,7 @@ contract LaunchEvent is Ownable {
         // Adjust the amount of tokens sent to the pool if floor price not met
         if (floorPrice > (wavaxReserve * 1e18) / tokenAllocated) {
             tokenAllocated = (wavaxReserve * 10**token.decimals()) / floorPrice;
-<<<<<<< HEAD
-            tokenIncentivesForUsers = tokenIncentivesForUsers * tokenAllocated / wavaxReserve;
-=======
             tokenIncentivesForUsers = tokenIncentivesForUsers * tokenAllocated / tokenReserve;
->>>>>>> 955e148 (tokens incentives percent)
             tokenIncentiveIssuerRefund =
                 tokenIncentivesBalance -
                 tokenIncentivesForUsers;
@@ -465,7 +449,7 @@ contract LaunchEvent is Ownable {
         } else {
             emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
         }
-
+        
         pair.transfer(msg.sender, balance);
     }
 
