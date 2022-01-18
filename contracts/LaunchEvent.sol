@@ -96,7 +96,7 @@ contract LaunchEvent is Ownable {
     /// @dev keep track of amount of token incentives that needs to be kept by contract in order to send the right
     /// amounts to issuer and users
     uint256 private tokenIncentivesBalance;
-    /// @dev Total incentives for users for locking their LPs for an additional period of time after the pair is created.
+    /// @dev Total incentives for users for locking their LPs for an additional period of time after the pair is created
     uint256 private tokenIncentivesForUsers;
     /// @dev The share refunded to the issuer. Users receive 5% of the token that were sent to the Router.
     /// If the floor price is not met, the incentives still needs to be 5% of the value sent to the Router, so there
@@ -298,23 +298,27 @@ contract LaunchEvent is Ownable {
         );
 
         UserInfo storage user = getUserInfo[msg.sender];
+<<<<<<< HEAD
         uint256 requiredAllocation = user.balance + msg.value;
+=======
+        uint256 newAllocation = user.balance + msg.value;
+>>>>>>> f77b57f (comments)
         require(
-            requiredAllocation <= maxAllocation,
+            newAllocation <= maxAllocation,
             "LaunchEvent: amount exceeds max allocation"
         );
 
         uint256 rJoeNeeded;
         // check if additional allocation is required.
-        if (requiredAllocation > user.allocation) {
+        if (newAllocation > user.allocation) {
             // Burn tokens and update allocation.
-            rJoeNeeded = getRJoeAmount(requiredAllocation - user.allocation);
+            rJoeNeeded = getRJoeAmount(newAllocation - user.allocation);
             // Set allocation to the current balance as its impossible
             // to buy more allocation without sending AVAX too.
-            user.allocation = requiredAllocation;
+            user.allocation = newAllocation;
         }
-        
-        user.balance = requiredAllocation;
+
+        user.balance = newAllocation;
         wavaxReserve += msg.value;
 
         if (rJoeNeeded > 0) {
@@ -399,23 +403,13 @@ contract LaunchEvent is Ownable {
 
         tokenReserve -= tokenAllocated;
 
-        if (wavaxAddress > tokenAddress) {
-            emit LiquidityPoolCreated(
-                address(pair),
-                tokenAddress,
-                wavaxAddress,
-                tokenAllocated,
-                wavaxAllocated
-            );
-        } else {
-            emit LiquidityPoolCreated(
-                address(pair),
-                wavaxAddress,
-                tokenAddress,
-                wavaxAllocated,
-                tokenAllocated
-            );
-        }
+        emit LiquidityPoolCreated(
+            address(pair),
+            tokenAddress,
+            wavaxAddress,
+            tokenAllocated,
+            wavaxAllocated
+        );
     }
 
     /// @notice Withdraw liquidity pool tokens

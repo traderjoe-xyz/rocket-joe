@@ -40,7 +40,7 @@ describe("launch event contract initialisation", function () {
     await this.AUCTOK.connect(this.dev).mint(
       this.dev.address,
       ethers.utils.parseEther("105")
-    ); // 1_000_000 tokens
+    );
     await this.AUCTOK.connect(this.dev).approve(
       this.RocketFactory.address,
       ethers.utils.parseEther("105")
