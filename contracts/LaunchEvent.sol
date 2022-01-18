@@ -42,9 +42,9 @@ contract LaunchEvent is Ownable {
     uint256 public PHASE_ONE_NO_FEE_DURATION;
     uint256 public PHASE_TWO_DURATION;
 
-    /// @dev amount of token to be used as incentives.
-    /// e.g. TOKEN_INCENTIVES_PERCENT = 5, and issuer sends 105 000 tokens,
-    /// then 105 000 * 100 / (100 + 5) = 5 000 tokens used as incentive
+    /// @dev Amount of token to be used as incentives. In parts per 1e18.
+    /// e.g. TOKEN_INCENTIVES_PERCENT = 5e16, and issuer sends 105 000 tokens,
+    /// then 105 000 * 1e18 / (1e18 + 5e16) = 5 000 tokens used as incentive
     uint256 public TOKEN_INCENTIVES_PERCENT;
 
     /// @notice Floor price in AVAX per token (can be 0)
@@ -98,7 +98,7 @@ contract LaunchEvent is Ownable {
     /// tokenReserve will be equal to 0)
     uint256 private tokenReserve;
     
-    /// @dev keep track of amount of token incentives that needs to be kept by contract in order to send the right
+    /// @dev Keeps track of amount of token incentives that needs to be kept by contract in order to send the right
     /// amounts to issuer and users
     uint256 private tokenIncentivesBalance;
     /// @dev Total incentives for users for locking their LPs for an additional period of time after the pair is created
@@ -261,9 +261,13 @@ contract LaunchEvent is Ownable {
         /// and `tokenIncentivesForUsers = tokenReserve * 0.05` (i.e. incentives are 5% of reserves for issuing).
         /// E.g. if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
 <<<<<<< HEAD
+<<<<<<< HEAD
         tokenReserve = (balance * 100) / 105;
 =======
         tokenReserve = (balance * 100) / (100 + _tokenIncentivesPercent);
+=======
+        tokenReserve = (balance * 1e18) / (1e18 + _tokenIncentivesPercent);
+>>>>>>> e20163c (comments and TOKEN_INCENTIVES_PERCENT in 1e18)
         tokenReserve = tokenReserve;
 >>>>>>> 955e148 (tokens incentives percent)
         tokenIncentivesForUsers = balance - tokenReserve;
@@ -326,8 +330,8 @@ contract LaunchEvent is Ownable {
         if (newAllocation > user.allocation) {
             // Burn tokens and update allocation.
             rJoeNeeded = getRJoeAmount(newAllocation - user.allocation);
-            // Set allocation to the current balance as its impossible
-            // to buy more allocation without sending AVAX too.
+            // Set allocation to the current balance as it's impossible
+            // to buy more allocation without sending AVAX too
             user.allocation = newAllocation;
         }
 

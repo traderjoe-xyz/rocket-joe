@@ -53,7 +53,7 @@ describe("launch event contract initialisation", function () {
       _auctionStart: this.block.timestamp + 60,
       _token: this.AUCTOK.address,
       _tokenAmount: 100,
-      _tokenIncentivesPercent: 5,
+      _tokenIncentivesPercent: ethers.utils.parseEther("0.05"),
       _floorPrice: 1,
       _withdrawPenaltyGradient: 2893517,
       _fixedWithdrawPenalty: 4e11,
