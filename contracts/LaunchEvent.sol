@@ -42,7 +42,7 @@ contract LaunchEvent is Ownable {
     uint256 public PHASE_ONE_NO_FEE_DURATION;
     uint256 public PHASE_TWO_DURATION;
 
-    /// @dev Amount of tokens used as incentives for locking up LPs during phase 3, 
+    /// @dev Amount of tokens used as incentives for locking up LPs during phase 3,
     /// in parts per 1e18 and expressed as an additional percentage to the tokens for auction.
     /// E.g. if tokenIncentivesPercent = 5e16 (5%), and issuer sends 105 000 tokens,
     /// then 105 000 * 1e18 / (1e18 + 5e16) = 5 000 tokens are used for incentives
@@ -98,7 +98,7 @@ contract LaunchEvent is Ownable {
     /// to be sent to both issuer and users (if there are leftovers and every token is sent to the pair,
     /// tokenReserve will be equal to 0)
     uint256 private tokenReserve;
-    
+
     /// @dev Keeps track of amount of token incentives that needs to be kept by contract in order to send the right
     /// amounts to issuer and users
     uint256 private tokenIncentivesBalance;
@@ -323,7 +323,7 @@ contract LaunchEvent is Ownable {
             // to buy more allocation without sending AVAX too
             user.allocation = newAllocation;
         }
-        
+
         user.balance = newAllocation;
         wavaxReserve += msg.value;
 
@@ -382,7 +382,9 @@ contract LaunchEvent is Ownable {
         // Adjust the amount of tokens sent to the pool if floor price not met
         if (floorPrice > (wavaxReserve * 1e18) / tokenAllocated) {
             tokenAllocated = (wavaxReserve * 10**token.decimals()) / floorPrice;
-            tokenIncentivesForUsers = tokenIncentivesForUsers * tokenAllocated / tokenReserve;
+            tokenIncentivesForUsers =
+                (tokenIncentivesForUsers * tokenAllocated) /
+                tokenReserve;
             tokenIncentiveIssuerRefund =
                 tokenIncentivesBalance -
                 tokenIncentivesForUsers;
@@ -449,7 +451,7 @@ contract LaunchEvent is Ownable {
         } else {
             emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
         }
-        
+
         pair.transfer(msg.sender, balance);
     }
 
