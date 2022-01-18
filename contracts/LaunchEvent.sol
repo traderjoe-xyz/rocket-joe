@@ -43,9 +43,9 @@ contract LaunchEvent is Ownable {
     uint256 public PHASE_TWO_DURATION;
 
     /// @dev Amount of token to be used as incentives. In parts per 1e18.
-    /// e.g. TOKEN_INCENTIVES_PERCENT = 5e16, and issuer sends 105 000 tokens,
+    /// e.g. tokenIncentivesPercent = 5e16, and issuer sends 105 000 tokens,
     /// then 105 000 * 1e18 / (1e18 + 5e16) = 5 000 tokens used as incentive
-    uint256 public TOKEN_INCENTIVES_PERCENT;
+    uint256 public tokenIncentivesPercent;
 
     /// @notice Floor price in AVAX per token (can be 0)
     /// @dev floorPrice is scaled to 1e18
@@ -196,7 +196,7 @@ contract LaunchEvent is Ownable {
     /// @param _issuer Address of the token issuer
     /// @param _auctionStart The start time of the auction
     /// @param _token The contract address of auctioned token
-    /// @param _tokenIncentivesPercent The token incentives percent, in part per 100, e.g 5 is 5% of incentives
+    /// @param _tokenIncentivesPercent The token incentives percent, in part per 1e18, e.g 5e16 is 5% of incentives
     /// @param _floorPrice The minimum price the token is sold at
     /// @param _maxWithdrawPenalty The max withdraw penalty during phase 1, in parts per 1e18
     /// @param _fixedWithdrawPenalty The fixed withdraw penalty during phase 2, in parts per 1e18
@@ -256,7 +256,8 @@ contract LaunchEvent is Ownable {
         token = IERC20Metadata(_token);
         uint256 balance = token.balanceOf(address(this));
 
-        TOKEN_INCENTIVES_PERCENT = _tokenIncentivesPercent;
+        tokenIncentivesPercent = _tokenIncentivesPercent;
+        
         /// We do this math because `tokenIncentivesForUsers + tokenReserve = tokenSent`
         /// and `tokenIncentivesForUsers = tokenReserve * 0.05` (i.e. incentives are 5% of reserves for issuing).
         /// E.g. if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
