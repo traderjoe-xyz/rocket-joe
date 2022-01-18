@@ -35,7 +35,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     /// @dev Uses clone factory pattern to save space
     /// @param _eventImplementation Implementation of launch event contract
     /// @param _rJoe rJOE token address
-    /// @param -wavax WAVAX token address
+    /// @param _wavax WAVAX token address
     /// @param _penaltyCollector Address that collects all withdrawal penalties
     /// @param _router Router used to create LP on Trader Joe AMM
     /// @param _factory Factory used to get info of JoePairs
@@ -151,12 +151,14 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     }
 
     /// @notice Set rJOE address
+    /// @param _rJoe New rJOE address
     function setRJoe(address _rJoe) external override onlyOwner {
         rJoe = _rJoe;
         emit SetRJoe(_rJoe);
     }
 
     /// @notice Set address to collect withdrawal penalties
+    /// @param _penaltyCollector New penalty collector address
     function setPenaltyCollector(address _penaltyCollector)
         external
         override
@@ -167,12 +169,14 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     }
 
     /// @notice Set JoeRouter address
+    /// @param _router New router address
     function setRouter(address _router) external override onlyOwner {
         router = _router;
         emit SetRouter(_router);
     }
 
-    // @notice Set JoeFactory address
+    /// @notice Set JoeFactory address
+    /// @param _factory New factory address
     function setFactory(address _factory) external override onlyOwner {
         factory = _factory;
         emit SetFactory(_factory);
@@ -204,8 +208,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         }
     }
 
-    /// @notie Set the no fee duration of phase 1
-    /// @param Duration of no fee phase
+    /// @notice Set the no fee duration of phase 1
+    /// @param _noFeeDuration Duration of no fee phase
     function setPhaseOneNoFeeDuration(uint256 _noFeeDuration)
         external
         override
