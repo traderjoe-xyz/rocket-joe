@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IRocketJoeFactory.sol";
 
-/// @title Rocket Joe Token, rJOE
+/// @title Rocket Joe Token - rJOE
 /// @author Trader Joe
 /// @notice Infinite supply, but burned to join launch event
 contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
