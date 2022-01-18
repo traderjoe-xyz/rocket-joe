@@ -18,3 +18,8 @@ env
 logs
 tmp
 deployments/localhost
+
+# Certora
+.certora*
+.last_confs
+certora_*
