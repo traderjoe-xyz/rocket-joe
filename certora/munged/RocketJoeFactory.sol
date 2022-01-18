@@ -11,11 +11,11 @@ import "./interfaces/ILaunchEvent.sol";
 import "./RocketJoeToken.sol";
 
 /// @title Rocket Joe Factory
-/// @author traderjoexyz
+/// @author Trader Joe
 /// @notice Factory that creates Rocket Joe events.
 contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override penaltyCollector;
-    address public override eventImplementation; // launch event implementation
+    address public override eventImplementation;
 
     address public override rJoe;
     uint256 public override rJoePerAvax;
@@ -23,7 +23,12 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override router;
     address public override factory;
 
-    mapping(address => address) public override getRJLaunchEvent; 
+    uint256 public override PHASE_ONE_DURATION = 2 days;
+    uint256 public override PHASE_ONE_NO_FEE_DURATION = 1 days;
+    uint256 public override PHASE_TWO_DURATION = 1 days;
+
+    mapping(address => address) public override getRJLaunchEvent;
+    mapping(address => bool) public override isRJLaunchEvent;
     address[] public override allRJLaunchEvents;
 
     constructor(
@@ -35,7 +40,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         address _factory
     ) {
         require(
-            _rJoe != address(0) &&
+            _eventImplementation != address(0) &&
+                _rJoe != address(0) &&
                 _wavax != address(0) &&
                 _penaltyCollector != address(0) &&
                 _router != address(0) &&
@@ -44,6 +50,12 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         );
         eventImplementation = _eventImplementation;
         rJoe = _rJoe;
+
+        (bool success, ) = address(_rJoe).call(
+            abi.encodeWithSignature("initialize()")
+        );
+        require(success, "RJFactory: failed to initialize RocketJoeToken");
+
         wavax = _wavax;
         penaltyCollector = _penaltyCollector;
         router = _router;
@@ -57,13 +69,13 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
     function createRJLaunchEvent(
         address _issuer,
-        uint256 _phaseOne,
+        uint256 _phaseOneStartTime,
         address _token,
         uint256 _tokenAmount,
+        uint256 _tokenIncentivesPercent,
         uint256 _floorPrice,
-        uint256 _withdrawPenaltyGradient,
+        uint256 _maxWithdrawPenalty,
         uint256 _fixedWithdrawPenalty,
-        uint256 _minAllocation,
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock
@@ -75,37 +87,44 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
         require(
+            _tokenAmount > 0,
+            "RJFactory: token amount needs to be greater than 0"
+        );
+        require(
             IJoeFactory(factory).getPair(wavax, _token) == address(0),
             "RJFactory: pair already exists"
         );
 
         address launchEvent = Clones.clone(eventImplementation);
 
-        getRJLaunchEvent[_token] = launchEvent;
-        allRJLaunchEvents.push(launchEvent);
-
         // msg.sender needs to approve RocketJoeFactory
         IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount);
 
         ILaunchEvent(payable(launchEvent)).initialize(
             _issuer,
-            _phaseOne,
+            _phaseOneStartTime,
             _token,
+            _tokenIncentivesPercent,
             _floorPrice,
-            _withdrawPenaltyGradient,
+            _maxWithdrawPenalty,
             _fixedWithdrawPenalty,
-            _minAllocation,
             _maxAllocation,
             _userTimelock,
             _issuerTimelock
         );
 
-        emit RJLaunchEventCreated(_token, _issuer);
+        getRJLaunchEvent[_token] = launchEvent;
+        isRJLaunchEvent[launchEvent] = true;
+        allRJLaunchEvents.push(launchEvent);
+
+        _emitLaunchedEvent(_issuer, _token, _phaseOneStartTime);
+
         return launchEvent;
     }
 
     function setRJoe(address _rJoe) external override onlyOwner {
         rJoe = _rJoe;
+        emit SetRJoe(_rJoe);
     }
 
     function setPenaltyCollector(address _penaltyCollector)
@@ -114,17 +133,70 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         onlyOwner
     {
         penaltyCollector = _penaltyCollector;
+        emit SetPenaltyCollector(_penaltyCollector);
     }
 
     function setRouter(address _router) external override onlyOwner {
         router = _router;
+        emit SetRouter(_router);
     }
 
     function setFactory(address _factory) external override onlyOwner {
         factory = _factory;
+        emit SetFactory(_factory);
     }
 
     function setRJoePerAvax(uint256 _rJoePerAvax) external override onlyOwner {
         rJoePerAvax = _rJoePerAvax;
+        emit SetRJoePerAvax(_rJoePerAvax);
+    }
+
+    function setPhaseDuration(uint256 _phaseNumber, uint256 _duration)
+        external
+        override
+        onlyOwner
+    {
+        if (_phaseNumber == 1) {
+            require(
+                _duration > PHASE_ONE_NO_FEE_DURATION,
+                "RJFactory: phase one duration lower than no fee duration"
+            );
+            PHASE_ONE_DURATION = _duration;
+        } else if (_phaseNumber == 2) {
+            PHASE_TWO_DURATION = _duration;
+        }
+    }
+
+    function setPhaseOneNoFeeDuration(uint256 _noFeeDuration)
+        external
+        override
+        onlyOwner
+    {
+        require(
+            _noFeeDuration < PHASE_ONE_DURATION,
+            "RJFactory: no fee duration bigger than phase one duration"
+        );
+        PHASE_ONE_NO_FEE_DURATION = _noFeeDuration;
+    }
+
+    /// @dev This function emits an event after a new launch event has been created
+    /// It is only seperated out due to `createRJLaunchEvent` having too many local variables
+    function _emitLaunchedEvent(
+        address _issuer,
+        address _token,
+        uint256 _phaseOneStartTime
+    ) internal {
+        uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
+        uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
+
+        emit RJLaunchEventCreated(
+            _issuer,
+            _token,
+            _phaseOneStartTime,
+            _phaseTwoStartTime,
+            _phaseThreeStartTime,
+            rJoe,
+            rJoePerAvax
+        );
     }
 }

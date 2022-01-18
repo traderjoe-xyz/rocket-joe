@@ -3,7 +3,20 @@
 pragma solidity >=0.8.0;
 
 interface IRocketJoeFactory {
-    event RJLaunchEventCreated(address indexed token, address indexed issuer);
+    event RJLaunchEventCreated(
+        address indexed issuer,
+        address indexed token,
+        uint256 phaseOneStartTime,
+        uint256 phaseTwoStartTime,
+        uint256 phaseThreeStartTime,
+        address rJoe,
+        uint256 rJoePerAvax
+    );
+    event SetRJoe(address indexed token);
+    event SetPenaltyCollector(address indexed collector);
+    event SetRouter(address indexed router);
+    event SetFactory(address indexed factory);
+    event SetRJoePerAvax(uint256 rJoePerAvax);
 
     function eventImplementation() external view returns (address);
 
@@ -19,10 +32,18 @@ interface IRocketJoeFactory {
 
     function rJoe() external view returns (address);
 
+    function PHASE_ONE_DURATION() external view returns (uint256);
+
+    function PHASE_ONE_NO_FEE_DURATION() external view returns (uint256);
+
+    function PHASE_TWO_DURATION() external view returns (uint256);
+
     function getRJLaunchEvent(address token)
         external
         view
         returns (address launchEvent);
+
+    function isRJLaunchEvent(address token) external view returns (bool);
 
     function allRJLaunchEvents(uint256) external view returns (address pair);
 
@@ -33,10 +54,10 @@ interface IRocketJoeFactory {
         uint256 _phaseOneStartTime,
         address _token,
         uint256 _tokenAmount,
+        uint256 _tokenIncentivesPercent,
         uint256 _floorPrice,
-        uint256 _withdrawPenatlyGradient,
+        uint256 _maxWithdrawPenalty,
         uint256 _fixedWithdrawPenalty,
-        uint256 _minAllocation,
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock
@@ -51,4 +72,8 @@ interface IRocketJoeFactory {
     function setRJoe(address) external;
 
     function setRJoePerAvax(uint256) external;
+
+    function setPhaseDuration(uint256, uint256) external;
+
+    function setPhaseOneNoFeeDuration(uint256) external;
 }
