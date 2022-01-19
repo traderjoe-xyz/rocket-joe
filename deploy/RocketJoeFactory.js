@@ -32,7 +32,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     );
   }
 
-  await deploy("RocketJoeFactory", {
+  const factory = await deploy("RocketJoeFactory", {
     from: deployer,
     args: [
       launchEventAddress,
@@ -44,14 +44,15 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     ],
     log: true,
   });
-
-  const rocketJoeFactoryAddress = (await deployments.get("RocketJoeFactory"))
-    .address;
-  const launchEvent = await ethers.getContractAt(
-    "LaunchEvent",
-    launchEventAddress
-  );
-  await launchEvent.transferOwnership(rocketJoeFactoryAddress);
+  if (factory.newlyDeployed) {
+    const rocketJoeFactoryAddress = (await deployments.get("RocketJoeFactory"))
+      .address;
+    const launchEvent = await ethers.getContractAt(
+      "LaunchEvent",
+      launchEventAddress
+    );
+    await launchEvent.transferOwnership(rocketJoeFactoryAddress);
+  }
 };
 
 module.exports.tags = ["RocketJoeFactory"];

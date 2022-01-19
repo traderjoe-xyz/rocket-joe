@@ -20,7 +20,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     );
   }
 
-  await deploy("RocketJoeStaking", {
+  const staking = await deploy("RocketJoeStaking", {
     from: deployer,
     proxyContract: "OpenZeppelinTransparentProxy",
     init: {
@@ -28,11 +28,12 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     },
     log: true,
   });
-
-  const rJoeStakingAddress = (await deployments.get("RocketJoeStaking"))
-    .address;
-  const rJoe = await ethers.getContractAt("RocketJoeToken", rJoeAddress);
-  await rJoe.transferOwnership(rJoeStakingAddress);
+  if (staking.newlyDeployed) {
+    const rJoeStakingAddress = (await deployments.get("RocketJoeStaking"))
+      .address;
+    const rJoe = await ethers.getContractAt("RocketJoeToken", rJoeAddress);
+    await rJoe.transferOwnership(rJoeStakingAddress);
+  }
 };
 
 module.exports.tags = ["RocketJoeStaking"];
