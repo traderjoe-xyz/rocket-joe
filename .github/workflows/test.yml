@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: yarn
 
+      - name: Check code style
+        run: yarn prettier --check contracts test
+
       - name: Compile contracts
         run: yarn run hardhat compile
 
