@@ -1,10 +1,11 @@
 require("@nomiclabs/hardhat-ethers");
-require("@openzeppelin/hardhat-upgrades");
 require("@nomiclabs/hardhat-waffle");
+require("@openzeppelin/hardhat-upgrades");
+require("hardhat-abi-exporter");
 require("hardhat-contract-sizer");
-require("solidity-coverage");
 require("hardhat-deploy");
 require("hardhat-deploy-ethers");
+require("solidity-coverage");
 
 module.exports = {
   solidity: "0.8.6",
