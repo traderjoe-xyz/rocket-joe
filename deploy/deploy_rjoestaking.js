@@ -15,6 +15,10 @@ module.exports = async function ({ getNamedAccounts, deployments}) {
     log: true,
   });
 
+  const rJoeStakingAddress = (await deployments.get('RocketJoeStaking')).address;
+  const rJoe = await ethers.getContractAt("RocketJoeToken", rJoeAddress);
+  await rJoe.transferOwnership(rJoeStakingAddress);
+
 }
 
 module.exports.tags = ["RocketJoeStaking"];
