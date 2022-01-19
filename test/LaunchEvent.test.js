@@ -252,7 +252,7 @@ describe("launch event contract initialisation", function () {
         "LaunchEvent",
         this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
       );
-      await expect(LaunchEvent.currentPhase() === 0);
+      expect((await LaunchEvent.currentPhase()) == 0);
     });
   });
 
