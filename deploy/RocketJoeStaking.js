@@ -3,7 +3,9 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   const { deployer } = await getNamedAccounts();
 
   const rJoeAddress = (await deployments.get("RocketJoeToken")).address;
-  const rJoePerSec = "100";
+  const rJoePerSec = ethers.utils.parseEther("100");
+
+  const chainId = await getChainId();
 
   let joeAddress;
   if (chainId == 4) {
