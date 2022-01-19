@@ -12,7 +12,7 @@ import "./RocketJoeToken.sol";
 
 /// @title Rocket Joe Factory
 /// @author Trader Joe
-/// @notice Factory that creates Rocket Joe events.
+/// @notice Factory that creates Rocket Joe events
 contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     address public override penaltyCollector;
     address public override eventImplementation;
@@ -31,6 +31,14 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     mapping(address => bool) public override isRJLaunchEvent;
     address[] public override allRJLaunchEvents;
 
+    /// @notice Creates the launch event factory
+    /// @dev Uses clone factory pattern to save space
+    /// @param _eventImplementation Implementation of launch event contract
+    /// @param _rJoe rJOE token address
+    /// @param _wavax WAVAX token address
+    /// @param _penaltyCollector Address that collects all withdrawal penalties
+    /// @param _router Router used to create LP on Trader Joe AMM
+    /// @param _factory Factory used to get info of JoePairs
     constructor(
         address _eventImplementation,
         address _rJoe,
@@ -63,10 +71,30 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         rJoePerAvax = 100;
     }
 
+    /// @notice Returns the number of launch events
+    /// @return The number of launch events ever created
     function numLaunchEvents() external view override returns (uint256) {
         return allRJLaunchEvents.length;
     }
 
+    /// @notice Creates a launch event contract
+    /// @param _issuer Address of the project issuing tokens for auction
+    /// @param _phaseOneStartTime Timestamp of when launch event will start
+    /// @param _token Token that will be issued through this launch event
+    /// @param _tokenAmount Amount of tokens that will be issued
+    /// @param _tokenIncentivesPercent Additional tokens that will be given as
+    /// incentive for locking up LPs during phase 3 expressed as a percentage
+    /// of the issuing tokens for sale, scaled to 1e18
+    /// @param _floorPrice Price of each token in AVAX, scaled to 1e18
+    /// @param _maxWithdrawPenalty Maximum withdrawal penalty that can be met
+    /// during phase 1
+    /// @param _fixedWithdrawPenalty Withdrawal penalty during phase 2
+    /// @param _maxAllocation Maximum number of AVAX each participant can commit
+    /// @param _userTimelock Amount of time users' LPs will be locked for
+    /// during phase 3
+    /// @param _issuerTimelock Amount of time issuer's LP will be locked for
+    /// during phase 3
+    /// @return Address of launch event contract
     function createRJLaunchEvent(
         address _issuer,
         uint256 _phaseOneStartTime,
@@ -122,11 +150,15 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         return launchEvent;
     }
 
+    /// @notice Set rJOE address
+    /// @param _rJoe New rJOE address
     function setRJoe(address _rJoe) external override onlyOwner {
         rJoe = _rJoe;
         emit SetRJoe(_rJoe);
     }
 
+    /// @notice Set address to collect withdrawal penalties
+    /// @param _penaltyCollector New penalty collector address
     function setPenaltyCollector(address _penaltyCollector)
         external
         override
@@ -136,21 +168,30 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         emit SetPenaltyCollector(_penaltyCollector);
     }
 
+    /// @notice Set JoeRouter address
+    /// @param _router New router address
     function setRouter(address _router) external override onlyOwner {
         router = _router;
         emit SetRouter(_router);
     }
 
+    /// @notice Set JoeFactory address
+    /// @param _factory New factory address
     function setFactory(address _factory) external override onlyOwner {
         factory = _factory;
         emit SetFactory(_factory);
     }
 
+    /// @notice Set amount of rJOE required to deposit 1 AVAX into launch event
+    /// @dev Configured by team between launch events to control inflation
     function setRJoePerAvax(uint256 _rJoePerAvax) external override onlyOwner {
         rJoePerAvax = _rJoePerAvax;
         emit SetRJoePerAvax(_rJoePerAvax);
     }
 
+    /// @notice Set duration of each of the three phases
+    /// @param _phaseNumber Can be only 1 or 2
+    /// @param _duration Duration of phase in seconds
     function setPhaseDuration(uint256 _phaseNumber, uint256 _duration)
         external
         override
@@ -167,6 +208,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
         }
     }
 
+    /// @notice Set the no fee duration of phase 1
+    /// @param _noFeeDuration Duration of no fee phase
     function setPhaseOneNoFeeDuration(uint256 _noFeeDuration)
         external
         override
