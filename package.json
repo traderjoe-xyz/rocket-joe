@@ -18,7 +18,6 @@
     "hackathon"
   ],
   "author": "traderjoezyz",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/traderjoe-xyz/rocker-joe/issues"
   },
@@ -36,6 +35,7 @@
     "ethereum-waffle": "^3.1.1",
     "ethers": "^5.0.0",
     "hardhat": "^2.4.1",
+    "hardhat-abi-exporter": "^2.8.0",
     "hardhat-contract-sizer": "^2.3.0",
     "hardhat-deploy": "^0.9.24",
     "hardhat-deploy-ethers": "^0.3.0-beta.13",
