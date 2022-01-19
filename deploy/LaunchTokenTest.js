@@ -16,7 +16,10 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   const token = await ethers.getContractAt("ERC20Token", tokenAddress);
 
   const factoryAddress = (await deployments.get("RocketJoeFactory")).address;
-  const factory = await ethers.getContractAt("RocketJoeFactory", factoryAddress);
+  const factory = await ethers.getContractAt(
+    "RocketJoeFactory",
+    factoryAddress
+  );
 
   const tokenAmount = ethers.utils.parseEther("105");
 

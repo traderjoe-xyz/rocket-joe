@@ -10,11 +10,12 @@ module.exports = {
   solidity: "0.8.6",
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: {
-    },
+    hardhat: {},
     rinkeby: {
       url: `https://eth-rinkeby.alchemyapi.io/v2/{$process.env.ALCHEMY_PROJECT_ID || ''}`,
-      accounts: (process.env.RINKEBY_PRIVATE_KEY ? [process.env.RINKEBY_PRIVATE_KEY] : [])
+      accounts: process.env.RINKEBY_PRIVATE_KEY
+        ? [process.env.RINKEBY_PRIVATE_KEY]
+        : [],
     },
   },
   settings: {
@@ -28,6 +29,6 @@ module.exports = {
   },
   namedAccounts: {
     deployer: 0,
-	dev: 1,
-  }
+    dev: 1,
+  },
 };
