@@ -38,7 +38,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
       launchEventAddress,
       rJoeAddress,
       wavaxAddress,
-      dev,
+      deployer,
       routerAddress,
       factoryAddress,
     ],
