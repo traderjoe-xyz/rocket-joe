@@ -10,10 +10,14 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   let joeAddress;
   if (chainId == 4) {
     // rinkeby contract addresses
-    joeAddress = "0xce347E069B68C53A9ED5e7DA5952529cAF8ACCd4";
+    joeAddress = ethers.utils.getAddress(
+      "0xce347E069B68C53A9ED5e7DA5952529cAF8ACCd4"
+    );
   } else if (chainId == 43114 || chainId == 31337) {
     // avalanche mainnet or hardhat network addresses
-    joeAddress = "0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd";
+    joeAddress = ethers.utils.getAddress(
+      "0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd"
+    );
   }
 
   await deploy("RocketJoeStaking", {
