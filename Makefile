@@ -1,20 +1,23 @@
-.PHONY: test coverage
+.PHONY: test coverage abi
 
 compile:
-	yarn run hardhat compile
+	yarn hardhat compile
 
 test:
-	yarn run hardhat test
+	yarn hardhat test
 
 clean:
-	yarn run hardhat clean
+	yarn hardhat clean
 	rm -rf coverage
 
 coverage:
-	yarn run hardhat coverage
+	yarn hardhat coverage
 
 console:
-	yarn run hardhat console
+	yarn hardhat console
 
 size:
-	yarn run hardhat size-contracts
+	yarn hardhat size-contracts
+
+abi:
+	yarn hardhat export-abi
