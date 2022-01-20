@@ -40,4 +40,4 @@ jobs:
         run: yarn run hardhat size-contracts
 
       - name: Test
-        run: yarn run hardhat test
+        run: yarn run hardhat coverage
