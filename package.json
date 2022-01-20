@@ -2,6 +2,7 @@
   "name": "rocketjoe",
   "version": "1.0.0",
   "description": "A launch platform for bootstrapping protocol-owned liquidity",
+  "license": "None",
   "directories": {
     "test": "test"
   },
