@@ -198,8 +198,7 @@ function allowEmergencyWithdraw()
  - reverts if LaunchEvent is in PhaseThree
  - succeeds otherwise
 
-High level rules
-================
+### High level rules
 
 - pair balance of this  + pair balance of issuer  + Σ pair balance of user  == lpSupply == pair.totalSupply * exchange[^specify]
 - token balance of this + token balance of issuer + Σ token balance of user == tokenReserve * exchange[^specify]
@@ -216,8 +215,7 @@ High level rules
 
 - createPair can be called at least once
 
-Template stuff
-==============
+### Template stuff
 
 (![status])[^footnoteName] `rule_name`
 : Brief description
