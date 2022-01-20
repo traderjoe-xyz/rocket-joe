@@ -6,6 +6,12 @@
   "directories": {
     "test": "test"
   },
+  "files": [
+    "contracts",
+    "deply",
+    "deployments",
+    "abi"
+  ],
   "scripts": {
     "test": "hardhat test"
   },
