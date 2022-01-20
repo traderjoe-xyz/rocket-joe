@@ -1,3 +1,5 @@
+[![Actions Status](https://github.com/traderjoe-xyz/rocket-joe/workflows/test/badge.svg)](https://github.com/traderjoe-xyz/rocket-joe/actions)
+
 # Rocket Joe
 
 _Rocket Joe_ is a token launch platform where participants bid to provide liquidity for newly issued tokens. The platform enables price discovery and token distribution over a period of time before tokens are issued to public market, while discouraging front-running by bots. In addition, it improves liquidity sustainability by allowing issuing protocols to acquire its own token liquidity.
