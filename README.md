@@ -86,6 +86,7 @@ After the deploy is complete you should commit the _deployments_ directory to th
 ### Verifying contracts
 
 To verify the contracts on rinkeby you will need an etherscan API key, see [.env.example](.env.example). To verify a contract on you will need the deployed contracts address, run
+
 ```
 yarn hardhat verify --network rinkeby "${contract_address}"
 ```
