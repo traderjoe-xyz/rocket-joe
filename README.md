@@ -87,7 +87,3 @@ To verify the contracts on rinkeby you will need an etherscan API key, see [.env
 ```
 yarn hardhat verify --network rinkeby "${contract_address}"
 ```
-
-## Publishing NPM package
-
-To publish a package to npm first ensure you have generated the abi for the contracts `yarn hardhat export-abi`. We use [np](https://www.npmjs.com/package/np) for publishing on npmjs.com. After installing it run `np` and follow the interactive prompt for building and uploading a package.
