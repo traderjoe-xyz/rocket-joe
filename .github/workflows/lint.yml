@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-  #pull_request:
-  #  branches:
-  #    - master
+  pull_request:
+    branches:
+      - main 
 
 jobs:
   run-linters:
@@ -20,7 +20,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
