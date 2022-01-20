@@ -82,7 +82,8 @@ describe("launch event contract initialisation", function () {
       ).to.be.revertedWith(message);
     };
 
-    it("should revert if token address is 0", async function () {
+    it.only("should revert if token address is 0", async function () {
+      expect(() => false).to.be(true);
       const args = {
         ...this.validParams,
         _token: ethers.constants.AddressZero,

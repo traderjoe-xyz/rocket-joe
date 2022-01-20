@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/traderjoe-xyz/rocket-joe/workflows/test/badge.svg)](https://github.com/traderjoe-xyz/rocket-joe/actions)
+[![Actions Status](https://github.com/traderjoe-xyz/rocket-joe/workflows/test/badge.svg?branch=tmp-branch-fail-ci)](https://github.com/traderjoe-xyz/rocket-joe/actions)
 
 # Rocket Joe
 
