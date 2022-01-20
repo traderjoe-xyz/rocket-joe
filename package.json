@@ -1,17 +1,12 @@
 {
-  "name": "rocketjoe",
+  "name": "@traderjoe-xyz/rocket-joe",
   "version": "0.0.0",
   "description": "A launch platform for bootstrapping protocol-owned liquidity",
   "license": "None",
   "directories": {
     "test": "test"
   },
-  "files": [
-    "contracts",
-    "deploy",
-    "deployments",
-    "abi"
-  ],
+  "files": ["contracts", "abi"],
   "scripts": {
     "test": "hardhat test"
   },
