@@ -49,10 +49,5 @@
   },
   "resolutions": {
     "**/colors": "1.4.0"
-  },
-  "np": {
-    "publishConfig": {
-      "access": "restricted"
-    }
   }
 }
