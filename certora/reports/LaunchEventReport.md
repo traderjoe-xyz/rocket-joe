@@ -38,13 +38,6 @@ The launch proceeds in several phases:
 The launch can also be cancelled by the issuer before phase 3, allowing
 investors to withdraw their AVAX without penalty.
 
-### Bugs found and recommendations
-
-TODO: Brief summary of bugs found and recommendations.  These can also be
-included in the main report in the parent directory. This might include
-stylistic or performance recommendations as well as bugs uncovered by the
-rules.
-
 ### Assumptions made during verification
 
 TODO: Description of the assumptions underlying each method summary, harnessed
@@ -60,132 +53,222 @@ assumption doesn't actually hold.
 
 ### Important state variables
 
-The following variables are set to nonzero values during initialization and
-remain fixed thereafter:
-
- - Addresses:
-   `issuer`
-   `rJoe`
-   `WAVAX`
-   `token`
-   `router`
-   `factory`
-   `rocketJoeFactory`
-
- - Times:
-   `auctionStart`
-   `PHASE_ONE_DURATION`
-   `PHASE_TWO_DURATION`
-   `userTimelock`
-   `issuerTimelock`
-
- - Prices:
-   `floorPrice`
-   `withdrawPenaltyGradient`
-   `fixedWithdrawPenalty`
-   `rJoePerAvax`
-
- - State
-   `initialized`
-   `minAllocation`
-   `maxAllocation`
-
 This contract manages the following variable state:
 
- - Its WAVAX, launch token, and LP token balances
- - The WAVAX and LP token balances of the investors
- - The launch token and LP token balances of the issuer
+ - LaunchEvent balances: The WAVAX, launch token, and LP token balances of the LaunchEvent contract
+ - Investor balances:    The WAVAX and LP token balances of the investors
+ - Issuer balances:      The launch token and LP token balances of the issuer
 
- - The address of the LP token
- - Whether the launch has been stopped
- - The amount of AVAX an investor deposited
- - Whether the invester has withdrawn their LP tokens
+ - `pair`:                     The address of the LP token
+ - `isStopped`:                Whether the launch has been stopped
+ - `getUI[user].allocation`:   The amount of AVAX an investor deposited
+ - `getUI[user].hasWithdrawn`: Whether the invester has withdrawn their LP tokens
 
- - The total amount of WAVAX and launch tokens in the pool immediately after creation
- - The total number of LP tokens minted during launch
- - The total number of launch tokens held in reserve immediately after launch
+ - `wavaxAllocated`: The total amount of WAVAX and launch tokens in the pool immediately after creation
+ - `lpSupply`:       The total number of LP tokens minted during launch
+ - `totalReserve`:   The total number of launch tokens held in reserve immediately after launch
 
 ### States and Invariants
 
 always:
- - getUA[issuer].allocation == 0
+ - getUI[issuer].allocation == 0
 
 initialized (initialized is true):
  - appropriate constants nonzero
 
-open (before createPair, not stopped):
- - pair is 0
- - getUA[user].hasWithdrawnPair is false
- - WAVAX balance of this == Σ getUA[user].allocation
- - avaxAllocated is 0
- - tokenAllocated is 0
- - lpSupply is 0
- - tokenReserve is fixed
- - tokenReserve is the token balance of this
+open (pair is 0):
+ - WAVAX balance of LaunchEvent >= Σ getUI[user].allocation
+ - token balance of LaunchEvent >= tokenReserve
+ - getUI[user].allocation is 0 or `minAllocation <= getUI[user].allocation <= maxAllocation`
+ - `getUI[user].hasWithdrawnPair` is false
+ - `pair`, `avaxAllocated`, `tokenAllocated`, `lpSupply` are all 0
 
-closed (after createPair, not stopped):
- - pair is nonzero
+closed (pair is nonzero):
  - isStopped is false
- - user hasWithdrawnPair <=> pair balance of user is nonzero [can be more specific]
- - avaxAllocated is Σ getUA[user].allocation
- - (getUA[user].allocation is constant)
+ - avaxAllocated is Σ getUI[user].allocation
 
  - WAVAX balance of this is 0
- - pair balance of this = sum of unwithdrawn lp tokens over all users (half to issuers, remainder to users)
+ - LP token balance of LaunchEvent >= sum of unwithdrawn lp tokens over all users (half to issuers, remainder to users)
      up to roundoff
- - token balance of this = sum of unwithdrawn reserve tokens (as above)
+ - token balance of LaunchEvent >= sum of unwithdrawn reserve tokens (as above)
 
- - avaxAllocated, tokenAllocated, lpSupply, tokenReserve are unchanging
+### Variable changes
 
-half of LP tokens go to issuer, other half go to users based on how much they deposited
+open:
+ - (balance changes governed by the invariants)
+ - (pair, avaxAllocated, tokenAllocated, lpSupply, tokenReserve are governed by invariants)
+ - getUI[user].allocation only changed by user in deposit and withdraw (see method specs)
+ - getUI[user].allocation only increases in PhaseOne
+ - isStopped only changed by owner
+ - tokenReserve is unchanging
+ - changes only happen in Phase1 or Phase2
+
+transitions:
+ - `pair` only changes in `createPair` (see method spec)
+ - `initialized` only changes in `initialize` (see method spec)
+
+closed:
+ - pair, avaxAllocated, tokenAllocated, lpSupply, tokenReserve are unchanging
+ - getUA[user].allocation is unchanging
+ - hasWithdrawnPair and LP token balance of user are related; change only in withdrawLiquidity
+ - isStopped changes only by owner
+ - user.hasWithdrawn changes only in `withdrawLiquidity` (see method spec)
+
+The following variables are set to nonzero values during initialization and
+remain fixed thereafter:
+
+- Addresses:
+  `issuer`
+  `rJoe`
+  `WAVAX`
+  `token`
+  `router`
+  `factory`
+  `rocketJoeFactory`
+
+- Times:
+  `auctionStart`
+  `PHASE_ONE_DURATION`
+  `PHASE_TWO_DURATION`
+  `userTimelock`
+  `issuerTimelock`
+
+- Prices:
+  `floorPrice`
+  `withdrawPenaltyGradient`
+  `fixedWithdrawPenalty`
+  `rJoePerAvax`
+
+- State
+  `initialized`
+  `minAllocation`
+  `maxAllocation`
 
 ### Method specifications
 
-TODO
+initialize(...)
+  - changes `initialized` to true
 
-    function pairBalance(address _user) public view returns (uint256) {
-    function currentPhase() public view returns (Phase) {
-    function getPenalty()
-    function getReserves()
-    function getRJoeAmount(uint256 _avaxAmount)
+  - reverts if initialized
+  - reverts if arguments are invalid[^specify]
+  - succeeds otherwise
 
-    function initialize(...)
-    function depositAVAX()
-    function withdrawAVAX(uint256 _amount)
-    function createPair()
-    function withdrawLiquidity()
-    function withdrawIncentives()
-    function emergencyWithdraw()
-    function allowEmergencyWithdraw()
-    function skim()
+function depositAVAX()
+  - increases getUI[user].allocation by msg.value
+  - burns appropriate amount of RJoe
 
-methods
-=======
+  - reverts if user's RJoe balance is insufficient
+  - reverts if getUI[user].allocation + msg.value is out of range[^specify]
+  - reverts if not in PhaseOne
+  - succeeds otherwise
 
-createPair:
- - no tokens are lost (tokenReserve@after + tokenAllocated@after == tokenReserve@before)
- - pair balance of this + pair balance of issuer + Σ pair balance of user == lpSupply (maybe * exchange?)
- - token balance of this + token balance of issuer + Σ token balance of user == tokenReserve (maybe * exchange?)
+function withdrawAVAX(amount)
+  - decreases getUI[user].allocation by amount
+  - increases user's WAVAX balance by at least (amount - penalty)
+  - decreases LaunchEvent's WAVAX balance by amount
+
+  - reverts if getUI[user].allocation < amount
+  - reverts if getUI[user].allocation - amount is out of range[^specify]
+  - reverts if not in Phase1 or Phase2
+  - succeeds otherwise
+
+function createPair()
+  - updates pair to a new pool
+  - transfers all WAVAX to the pool
+  - transfers enough launch token to the pool to ensure appropriate price[^specify]
+  - transfers total supply of LP tokens to LaunchEvent
+  - updates `pair`, `avaxAllocated`, `tokenAllocated`, `lpSupply` appropriately[^specify]
+  - no tokens are lost (tokenReserve@after + tokenAllocated@after == tokenReserve@before)
+
+  - reverts if pair already existed
+  - succeeds otherwise
+
+function withdrawLiquidity()
+  - increases msg.sender's LP     token balance by their LP token allocation[^specify]
+  - increases msg.sender's launch token balance by their launch token allocation[^specify]
+  - sets getUI[msg.sender].hasWithdrawn to true
+
+  - reverts if getUI[msg.sender].hasWithdrawn
+  - reverts if time is before end of timelock[^specify]
+  - succeeds otherwise
+
+function emergencyWithdraw()
+  - increases msg.sender's WAVAX balance by getUI[user].allocation
+  - sets getUI[msg.sender].allocation to 0
+
+  - reverts if LaunchEvent isn't stopped
+  - succeeds otherwise
+
+function allowEmergencyWithdraw()
+  - sets isStopped to true
+
+  - reverts if msg.sender  is not owner
+  - reverts if LaunchEvent is in PhaseThree
+  - succeeds otherwise
+
+High level rules
+================
+
+- pair balance of this  + pair balance of issuer  + Σ pair balance of user  == lpSupply == pair.totalSupply * exchange[^specify]
+- token balance of this + token balance of issuer + Σ token balance of user == tokenReserve * exchange[^specify]
+
+- if a user 
 
 
-createPair:
-  Before:
-    WAVAX/Pair: 0; WAVAX/this: avaxAllocated; Token/Pair: 0; Token/this: tokenReserve
 
-  After:
-    WAVAX/Pair: avaxAllocated; WAVAX/this: ?; Token/Pair: tokenAllocated; Token/this: tokenReserve
+From confluence:
+================
 
- - calls router.addLiquidity to create/configure pair and assign lp tokens to this
- - transfer all avax and tokens to pair, providing liquidity
- - uses the resulting balance of wavax and token on the pair to set the allocations
- - reduces the reserve (since some of the tokens have 
+High-level rules
 
+If a user stakes more LP tokens
 
-| Variable     | pre-init | initialized | phase 1 | phase 2 | pair created | post-timelock | stopped
-| issuer       |          | Fixed
-| auctionStart |          | Fixed, > timestamp | fixed, 
-| 
-```
+nontriviality: after depositAVAX, can withdrawAVAX
+
+positive correlation between deposits and LPTokens
+
+before createPair (WAVAX, Launch token)
+
+no front-running for depositAVAX and withdrawAVAX (module penalty)
+
+after depositAVAX, can withdrawAVAX
+
+additivity of withdraw and deposit
+
+Check that FeeAmount cannot exceed values presented in readme. If it can exceed it than a user can lose more than expected
+
+after createPair (reserve, LP token)
+
+After createPair, reserves and LP tokens are decreasing (at same rate)
+
+no front-running for withdrawLiquidity: same result for withdrawLiquidity unaffected by other methods (TODO: think carefully about emergencyWithdraw)
+
+Invariants
+
+is it possible exceed max allocation?
+
+Transitions
+
+Balance of launch tokens is non-decreasing until the state reaches phase 3, with createPair called, and the token lock period passed 
+
+Should the balance of launch token sent to the liquidity pool be a one time transaction, or can they continue to add to it? Allowing the ipo to add more token to the launch would allow to manipulate the launch price of AVAX / token, which could be good for the system but also could allow for some dangerous manipulation
+
+Create Pair may only be called once
+
+Method specs
+
+can withdraw without penalty between 25 and 96 hours?
+
+Ask Nurit
+
+LaunchEvent
+
+total assets of user is preservedtoken.balanceOf(user) + pairBalance(msg.sedner) 
+
+where msg.sender is the user who called the withdrawLiquidity function and user = getUserAllocation[msg.sender].
+
+Template stuff
+==============
 
 (![status])[^footnoteName] `rule_name`
 : Brief description
