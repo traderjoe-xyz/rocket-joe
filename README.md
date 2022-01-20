@@ -79,9 +79,15 @@ To deploy to the [rinkeby network](https://www.rinkeby.io/) you need to set appr
 
 You could then deploy to rinkeby by using [hardhat-deploy](https://github.com/wighawag/hardhat-deploy) with this command `yarn hardhat deploy --network rinkeby`.
 
+After the deploy is complete you should commit the _deployments_ directory to this repo.
+
 ### Verifying contracts
 
 To verify the contracts on rinkeby you will need an etherscan API key, see [.env.example](.env.example). To verify a contract on you will need the deployed contracts address, run
 ```
 yarn hardhat verify --network rinkeby "${contract_address}"
 ```
+
+## Publishing NPM package
+
+To publish a package to npm first ensure you have generated the abi for the contracts `yarn hardhat export-abi`. We use [np](https://www.npmjs.com/package/np) for publishing on npmjs.com. After installing it run `np` and follow the interactive prompt for building and uploading a package.
