@@ -8,7 +8,7 @@
   },
   "files": [
     "contracts",
-    "deply",
+    "deploy",
     "deployments",
     "abi"
   ],
