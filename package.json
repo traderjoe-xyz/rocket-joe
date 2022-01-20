@@ -6,7 +6,10 @@
   "directories": {
     "test": "test"
   },
-  "files": ["contracts", "abi"],
+  "files": [
+    "contracts",
+    "abi"
+  ],
   "scripts": {
     "test": "hardhat test"
   },
