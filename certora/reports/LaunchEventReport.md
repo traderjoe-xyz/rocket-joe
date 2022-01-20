@@ -40,16 +40,7 @@ investors to withdraw their AVAX without penalty.
 
 ### Assumptions made during verification
 
-TODO: Description of the assumptions underlying each method summary, harnessed
-method, or other unsound approximation, and an explanation of why they are
-reasonable.  For example, a NONDET summary might mean that we assume that an
-external contract does not make calls back into the current contract, or a
-DISPATCHER summary might indicate that we assume that external tokens behave
-according to some specification (e.g. ERC20).
-
-TODO: The goal of this section is that if we miss any bugs that break our rules, we
-should be able to point to an explicit assumption in this list to explain what
-assumption doesn't actually hold.
+TODO
 
 ### Important state variables
 
@@ -112,6 +103,7 @@ closed:
  - getUA[user].allocation is unchanging
  - hasWithdrawnPair and LP token balance of user are related; change only in withdrawLiquidity
  - isStopped changes only by owner
+ - LP and launch token balance of LaunchEvent are decreasing, and at a proportional rate[^specify]
  - user.hasWithdrawn changes only in `withdrawLiquidity` (see method spec)
 
 The following variables are set to nonzero values during initialization and
@@ -147,64 +139,64 @@ remain fixed thereafter:
 ### Method specifications
 
 initialize(...)
-  - changes `initialized` to true
+ - changes `initialized` to true
 
-  - reverts if initialized
-  - reverts if arguments are invalid[^specify]
-  - succeeds otherwise
+ - reverts if initialized
+ - reverts if arguments are invalid[^specify]
+ - succeeds otherwise
 
 function depositAVAX()
-  - increases getUI[user].allocation by msg.value
-  - burns appropriate amount of RJoe
+ - increases getUI[user].allocation by msg.value
+ - burns appropriate amount of RJoe
 
-  - reverts if user's RJoe balance is insufficient
-  - reverts if getUI[user].allocation + msg.value is out of range[^specify]
-  - reverts if not in PhaseOne
-  - succeeds otherwise
+ - reverts if user's RJoe balance is insufficient
+ - reverts if getUI[user].allocation + msg.value is out of range[^specify]
+ - reverts if not in PhaseOne
+ - succeeds otherwise
 
 function withdrawAVAX(amount)
-  - decreases getUI[user].allocation by amount
-  - increases user's WAVAX balance by at least (amount - penalty)
-  - decreases LaunchEvent's WAVAX balance by amount
+ - decreases getUI[user].allocation by amount
+ - increases user's WAVAX balance by at least (amount - penalty)[^specify]
+ - decreases LaunchEvent's WAVAX balance by amount
 
-  - reverts if getUI[user].allocation < amount
-  - reverts if getUI[user].allocation - amount is out of range[^specify]
-  - reverts if not in Phase1 or Phase2
-  - succeeds otherwise
+ - reverts if getUI[user].allocation < amount
+ - reverts if getUI[user].allocation - amount is out of range[^specify]
+ - reverts if not in Phase1 or Phase2
+ - succeeds otherwise
 
 function createPair()
-  - updates pair to a new pool
-  - transfers all WAVAX to the pool
-  - transfers enough launch token to the pool to ensure appropriate price[^specify]
-  - transfers total supply of LP tokens to LaunchEvent
-  - updates `pair`, `avaxAllocated`, `tokenAllocated`, `lpSupply` appropriately[^specify]
-  - no tokens are lost (tokenReserve@after + tokenAllocated@after == tokenReserve@before)
+ - updates pair to a new pool
+ - transfers all WAVAX to the pool
+ - transfers enough launch token to the pool to ensure appropriate price[^specify]
+ - transfers total supply of LP tokens to LaunchEvent
+ - updates `pair`, `avaxAllocated`, `tokenAllocated`, `lpSupply` appropriately[^specify]
+ - no tokens are lost (tokenReserve@after + tokenAllocated@after == tokenReserve@before)
 
-  - reverts if pair already existed
-  - succeeds otherwise
+ - reverts if pair already existed
+ - succeeds otherwise
 
 function withdrawLiquidity()
-  - increases msg.sender's LP     token balance by their LP token allocation[^specify]
-  - increases msg.sender's launch token balance by their launch token allocation[^specify]
-  - sets getUI[msg.sender].hasWithdrawn to true
+ - increases msg.sender's LP     token balance by their LP token allocation[^specify]
+ - increases msg.sender's launch token balance by their launch token allocation[^specify]
+ - sets getUI[msg.sender].hasWithdrawn to true
 
-  - reverts if getUI[msg.sender].hasWithdrawn
-  - reverts if time is before end of timelock[^specify]
-  - succeeds otherwise
+ - reverts if getUI[msg.sender].hasWithdrawn
+ - reverts if time is before end of timelock[^specify]
+ - succeeds otherwise
 
 function emergencyWithdraw()
-  - increases msg.sender's WAVAX balance by getUI[user].allocation
-  - sets getUI[msg.sender].allocation to 0
+ - increases msg.sender's WAVAX balance by getUI[user].allocation
+ - sets getUI[msg.sender].allocation to 0
 
-  - reverts if LaunchEvent isn't stopped
-  - succeeds otherwise
+ - reverts if LaunchEvent isn't stopped
+ - succeeds otherwise
 
 function allowEmergencyWithdraw()
-  - sets isStopped to true
+ - sets isStopped to true
 
-  - reverts if msg.sender  is not owner
-  - reverts if LaunchEvent is in PhaseThree
-  - succeeds otherwise
+ - reverts if msg.sender  is not owner
+ - reverts if LaunchEvent is in PhaseThree
+ - succeeds otherwise
 
 High level rules
 ================
@@ -212,60 +204,17 @@ High level rules
 - pair balance of this  + pair balance of issuer  + Σ pair balance of user  == lpSupply == pair.totalSupply * exchange[^specify]
 - token balance of this + token balance of issuer + Σ token balance of user == tokenReserve * exchange[^specify]
 
-- if a user 
+- additivity of deposit:   deposit(a);  deposit(b)  has same effect as deposit(a+b)
+- additivity of withdraw:  withdraw(a); withdraw(b) has same effect as withdraw(a+b)
+- if I deposit more AVAX, I receive more LP and launch tokens
+- if I withdraw AVAX later, I have a larger penalty
+- deposit and withdraw are two-sided inverses on the state (if successful)
 
+- no front-running for deposit: effect of deposit unchanged by an intervening operation by another user
+- no front-running for withdraw
+- no front-running for withdrawLiquidity
 
-
-From confluence:
-================
-
-High-level rules
-
-If a user stakes more LP tokens
-
-nontriviality: after depositAVAX, can withdrawAVAX
-
-positive correlation between deposits and LPTokens
-
-before createPair (WAVAX, Launch token)
-
-no front-running for depositAVAX and withdrawAVAX (module penalty)
-
-after depositAVAX, can withdrawAVAX
-
-additivity of withdraw and deposit
-
-Check that FeeAmount cannot exceed values presented in readme. If it can exceed it than a user can lose more than expected
-
-after createPair (reserve, LP token)
-
-After createPair, reserves and LP tokens are decreasing (at same rate)
-
-no front-running for withdrawLiquidity: same result for withdrawLiquidity unaffected by other methods (TODO: think carefully about emergencyWithdraw)
-
-Invariants
-
-is it possible exceed max allocation?
-
-Transitions
-
-Balance of launch tokens is non-decreasing until the state reaches phase 3, with createPair called, and the token lock period passed 
-
-Should the balance of launch token sent to the liquidity pool be a one time transaction, or can they continue to add to it? Allowing the ipo to add more token to the launch would allow to manipulate the launch price of AVAX / token, which could be good for the system but also could allow for some dangerous manipulation
-
-Create Pair may only be called once
-
-Method specs
-
-can withdraw without penalty between 25 and 96 hours?
-
-Ask Nurit
-
-LaunchEvent
-
-total assets of user is preservedtoken.balanceOf(user) + pairBalance(msg.sedner) 
-
-where msg.sender is the user who called the withdrawLiquidity function and user = getUserAllocation[msg.sender].
+- createPair can be called at least once
 
 Template stuff
 ==============
@@ -280,4 +229,7 @@ can write the footnotes as follows:
 
 [^footnoteName]:
     Here is an example footnote.
+
+[^specify]:
+    This term is not defined.
 
