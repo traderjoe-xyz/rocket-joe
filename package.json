@@ -24,6 +24,7 @@
   "homepage": "https://github.com/traderjoe-xyz/rocker-joe/issues",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-etherscan": "^3.0.0",
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@openzeppelin/contracts": "^4.4.1",
     "@openzeppelin/contracts-upgradeable": "^4.4.1",

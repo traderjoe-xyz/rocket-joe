@@ -1,4 +1,5 @@
 require("@nomiclabs/hardhat-ethers");
+require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
 require("@openzeppelin/hardhat-upgrades");
 require("hardhat-abi-exporter");
@@ -37,4 +38,7 @@ module.exports = {
     deployer: 0,
     dev: 1,
   },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
+  }
 };
