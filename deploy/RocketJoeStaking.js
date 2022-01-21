@@ -22,7 +22,9 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
 
   const staking = await deploy("RocketJoeStaking", {
     from: deployer,
-    proxyContract: "OpenZeppelinTransparentProxy",
+    proxy: {
+      proxyContract: "OpenZeppelinTransparentProxy"
+    },
     init: {
       args: [joeAddress, rJoeAddress, rJoePerSec],
     },
