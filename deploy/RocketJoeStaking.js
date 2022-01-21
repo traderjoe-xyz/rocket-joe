@@ -24,9 +24,12 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     from: deployer,
     proxy: {
       proxyContract: "OpenZeppelinTransparentProxy",
-    },
-    init: {
-      args: [joeAddress, rJoeAddress, rJoePerSec],
+      execute: {
+        init: {
+          methodname: "initialize",
+          args: [joeAddress, rJoeAddress, rJoePerSec],
+        },
+      },
     },
     log: true,
   });
