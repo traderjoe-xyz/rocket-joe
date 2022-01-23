@@ -106,6 +106,18 @@ describe("launch event contract initialisation", function () {
       ).to.be.revertedWith(message);
     };
 
+    it("should revert if issuer address is 0", async function () {
+      const args = {
+        ...this.validParams,
+        _issuer: ethers.constants.AddressZero,
+      };
+      await testReverts(
+        this.RocketFactory,
+        args,
+        "RJFactory: issuer can't be 0 address"
+      );
+    });
+
     it("should revert if token address is 0", async function () {
       const args = {
         ...this.validParams,

@@ -113,6 +113,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
             getRJLaunchEvent[_token] == address(0),
             "RJFactory: token has already been issued"
         );
+        require(_issuer != address(0), "RJFactory: issuer can't be 0 address");
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
         require(
@@ -157,6 +158,10 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     /// @notice Set rJOE address
     /// @param _rJoe New rJOE address
     function setRJoe(address _rJoe) external override onlyOwner {
+        (bool success, ) = address(_rJoe).call(
+            abi.encodeWithSignature("initialize()")
+        );
+        require(success, "RJFactory: failed to initialize RocketJoeToken");
         rJoe = _rJoe;
         emit SetRJoe(_rJoe);
     }

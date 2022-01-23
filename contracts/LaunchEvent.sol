@@ -391,7 +391,9 @@ contract LaunchEvent is Ownable {
         uint256 tokenAllocated = tokenReserve;
 
         // Adjust the amount of tokens sent to the pool if floor price not met
-        if (floorPrice > (wavaxReserve * 1e18) / tokenAllocated) {
+        if (
+            floorPrice > (wavaxReserve * 10**token.decimals()) / tokenAllocated
+        ) {
             tokenAllocated = (wavaxReserve * 10**token.decimals()) / floorPrice;
             tokenIncentivesForUsers =
                 (tokenIncentivesForUsers * tokenAllocated) /
