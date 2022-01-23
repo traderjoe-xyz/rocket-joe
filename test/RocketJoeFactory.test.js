@@ -33,11 +33,20 @@ describe("rocket factory test", function () {
   });
 
   it("should set rJoe token address", async function () {
+    const rJOE2 = await this.RocketJoeTokenCF.deploy();
     await expect(
-      this.RocketFactory.connect(this.issuer).setRJoe(this.signers[9].address)
+      this.RocketFactory.connect(this.issuer).setRJoe(rJOE2.address)
     ).to.be.revertedWith("Ownable: caller is not the owner");
-    await this.RocketFactory.connect(this.dev).setRJoe(this.signers[8].address);
-    expect(await this.RocketFactory.rJoe()).to.equal(this.signers[8].address);
+    await this.RocketFactory.connect(this.dev).setRJoe(rJOE2.address);
+    expect(await rJOE2.rocketJoeFactory()).to.be.equal(
+      this.RocketFactory.address
+    );
+    // we call it twice, it should revert caues token is already intialised
+    await expect(
+      this.RocketFactory.connect(this.dev).setRJoe(rJOE2.address)
+    ).to.be.revertedWith("RJFactory: failed to initialize RocketJoeToken");
+
+    expect(await this.RocketFactory.rJoe()).to.equal(rJOE2.address);
   });
 
   it("should set penalty collector token address", async function () {
