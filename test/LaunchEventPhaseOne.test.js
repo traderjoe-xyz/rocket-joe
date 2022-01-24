@@ -61,6 +61,10 @@ describe("launch event contract phase one", function () {
   });
 
   describe("interacting with phase one", function () {
+    it("should have the correct created block", async function () {
+      const block = await ethers.provider.getBlock();
+      expect(await this.LaunchEvent.createdBlock()).to.equal(block.number);
+    });
     describe("depositing in phase one", function () {
       it("should revert if issuer tries to participate", async function () {
         await advanceTimeAndBlock(duration.seconds(120));

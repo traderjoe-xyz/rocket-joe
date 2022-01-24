@@ -41,6 +41,9 @@ contract LaunchEvent is Ownable {
     /// @notice Issuer of sale tokens
     address public issuer;
 
+    /// @notice The block this auction contract was created
+    uint256 public createdBlock;
+
     /// @notice The start time of phase 1
     uint256 public auctionStart;
 
@@ -281,6 +284,7 @@ contract LaunchEvent is Ownable {
 
         userTimelock = _userTimelock;
         issuerTimelock = _issuerTimelock;
+        createdBlock = block.number;
         initialized = true;
     }
 
