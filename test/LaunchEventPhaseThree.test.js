@@ -2,7 +2,12 @@ const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
 const { advanceTimeAndBlock, duration } = require("./utils/time");
 const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat");
-const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
+const {
+  getWavax,
+  getJoeFactory,
+  deployRocketFactory,
+  createLaunchEvent,
+} = require("./utils/contracts");
 
 describe("launch event contract phase three", function () {
   before(async function () {
@@ -12,6 +17,8 @@ describe("launch event contract phase three", function () {
     this.penaltyCollector = this.signers[1];
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
+    this.factory = await getJoeFactory();
+    this.wavax = await getWavax();
 
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.ERC20TokenCF = await ethers.getContractFactory("ERC20Token");
@@ -124,11 +131,16 @@ describe("launch event contract phase three", function () {
       );
     });
 
-    it("should revert if JoePair already created", async function () {
+    it("should revert if JoePair already created with liquidity", async function () {
       await this.LaunchEvent.connect(this.participant).createPair();
       await expect(
         this.LaunchEvent.connect(this.participant).createPair()
-      ).to.be.revertedWith("LaunchEvent: pair already created");
+      ).to.be.revertedWith("LaunchEvent: liquid pair already exists");
+    });
+
+    it("should add liquidity on create pair if no supply", async function () {
+      await this.factory.createPair(this.AUCTOK.address, this.wavax.address);
+      await this.LaunchEvent.connect(this.participant).createPair();
     });
 
     it("should revert if issuer tries to withdraw liquidity more than once", async function () {
