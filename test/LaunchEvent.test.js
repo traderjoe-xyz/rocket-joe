@@ -1,7 +1,12 @@
 const { ethers, network } = require("hardhat");
 const { expect } = require("chai");
 const { HARDHAT_FORK_CURRENT_PARAMS } = require("./utils/hardhat");
-const { deployRocketFactory, createLaunchEvent } = require("./utils/contracts");
+const {
+  getWavax,
+  getJoeFactory,
+  deployRocketFactory,
+  createLaunchEvent,
+} = require("./utils/contracts");
 
 describe("launch event contract initialisation", function () {
   before(async function () {
@@ -11,6 +16,8 @@ describe("launch event contract initialisation", function () {
     this.penaltyCollector = this.signers[1];
     this.issuer = this.signers[2];
     this.participant = this.signers[3];
+    this.factory = await getJoeFactory();
+    this.wavax = await getWavax();
 
     this.RocketJoeTokenCF = await ethers.getContractFactory("RocketJoeToken");
     this.ERC20TokenCF = await ethers.getContractFactory("ERC20Token");
@@ -64,6 +71,23 @@ describe("launch event contract initialisation", function () {
   });
 
   describe("initialising the contract", function () {
+    it("should create a launch event if pair created with no liquidity", async function () {
+      await this.factory.createPair(this.AUCTOK.address, this.wavax.address);
+      await this.RocketFactory.createRJLaunchEvent(
+        this.validParams._issuer,
+        this.validParams._auctionStart,
+        this.validParams._token,
+        this.validParams._tokenAmount,
+        this.validParams._tokenIncentivesPercent,
+        this.validParams._floorPrice,
+        this.validParams._withdrawPenaltyGradient,
+        this.validParams._fixedWithdrawPenalty,
+        this.validParams._maxAllocation,
+        this.validParams._userTimelock,
+        this.validParams._issuerTimelock
+      );
+    });
+
     const testReverts = async (factory, args, message) => {
       await expect(
         factory.createRJLaunchEvent(
@@ -126,7 +150,7 @@ describe("launch event contract initialisation", function () {
       await testReverts(
         this.RocketFactory,
         args,
-        "RJFactory: pair already exists"
+        "RJFactory: liquid pair already exists"
       );
     });
 
@@ -235,7 +259,7 @@ describe("launch event contract initialisation", function () {
     });
 
     it("should report it is in the correct phase", async function () {
-      this.RocketFactory.createRJLaunchEvent(
+      await this.RocketFactory.createRJLaunchEvent(
         this.validParams._issuer,
         this.validParams._auctionStart,
         this.validParams._token,

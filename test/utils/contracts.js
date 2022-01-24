@@ -1,18 +1,26 @@
 const { ethers } = require("hardhat");
 
-async function deployRocketFactory(dev, rJoe, penaltyCollector) {
-  const wavax = await ethers.getContractAt(
+async function getJoeFactory() {
+  return await ethers.getContractAt(
+    "IJoeFactory",
+    "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10"
+  );
+}
+
+async function getWavax() {
+  return await ethers.getContractAt(
     "IWAVAX",
     "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"
   );
+}
+
+async function deployRocketFactory(dev, rJoe, penaltyCollector) {
+  const wavax = await getWavax();
   const router = await ethers.getContractAt(
     "IJoeRouter02",
     "0x60aE616a2155Ee3d9A68541Ba4544862310933d4"
   );
-  const factory = await ethers.getContractAt(
-    "IJoeFactory",
-    "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10"
-  );
+  const factory = await getJoeFactory();
 
   // Factories for deploying our contracts.
   const RocketJoeFactoryCF = await ethers.getContractFactory(
@@ -71,6 +79,8 @@ async function createLaunchEvent(
 }
 
 module.exports = {
-  deployRocketFactory,
   createLaunchEvent,
+  deployRocketFactory,
+  getJoeFactory,
+  getWavax,
 };
