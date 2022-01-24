@@ -15,14 +15,14 @@ Full whitepaper available [here](https://github.com/traderjoe-xyz/research/blob/
 
 | Phase One  |                                   | Phase Two   | Phase Three                                |
 | ---------- | --------------------------------- | ----------- | ------------------------------------------ |
-| 0-24 hrs   | 24-48 hrs                         | 48-72 hrs   | Additional 3-7 days                        |
+| 0-24 hrs   | 24-48 hrs                         | 48-72 hrs   | Additional 0-7 days                        |
 | 0% penalty | 0-50% penalty (linear increasing) | 20% penalty | LPs are locked + bonus incentives received |
 
 - **Phase One**:
   - 0-24 hrs: Users can deposit and withdraw AVAX without any penalty.
-  - 24-72 hrs: Users can continue to deposit and withdraw AVAX, but must incur a withdrawal penalty that increases linearly from 0-50%.
-- **Phase Two**: Users can _only_ withdraw AVAX with a 20% penalty.
-- **Phase Three**: Initial liquidity is seeded, but the LP tokens are locked for an additional 3-7 days. As an incentive for locking, participants receive a bonus percentage of tokens once phase three starts. After this phase, both user and issuer are free to claim their LP tokens.
+  - 24-72 hrs: Users can continue to deposit and withdraw AVAX, but must incur a withdrawal penalty that increases linearly from 0-50% (the maximum is configurable).
+- **Phase Two**: Users can _only_ withdraw AVAX with a 20% penalty (this parameter is also configurable).
+- **Phase Three**: Initial liquidity is seeded, but the LP tokens are locked for an additional 0-7 days. As an incentive for locking, participants receive a bonus percentage of tokens once phase three starts. After this phase, both user and issuer are free to claim their LP tokens.
 
 ## Contracts
 
