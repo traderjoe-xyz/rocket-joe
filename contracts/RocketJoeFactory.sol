@@ -3,12 +3,13 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./interfaces/IRocketJoeFactory.sol";
 import "./interfaces/IJoeFactory.sol";
 import "./interfaces/ILaunchEvent.sol";
-
-import "./RocketJoeToken.sol";
+import "./interfaces/IRocketJoeToken.sol";
 
 /// @title Rocket Joe Factory
 /// @author Trader Joe
@@ -56,13 +57,10 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
                 _factory != address(0),
             "RJFactory: Addresses can't be null address"
         );
+        IRocketJoeToken(_rJoe).initialize();
+
         eventImplementation = _eventImplementation;
         rJoe = _rJoe;
-
-        (bool success, ) = address(_rJoe).call(
-            abi.encodeWithSignature("initialize()")
-        );
-        require(success, "RJFactory: failed to initialize RocketJoeToken");
 
         wavax = _wavax;
         penaltyCollector = _penaltyCollector;
@@ -154,10 +152,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     /// @notice Set rJOE address
     /// @param _rJoe New rJOE address
     function setRJoe(address _rJoe) external override onlyOwner {
-        (bool success, ) = address(_rJoe).call(
-            abi.encodeWithSignature("initialize()")
-        );
-        require(success, "RJFactory: failed to initialize RocketJoeToken");
+        IRocketJoeToken(_rJoe).initialize();
         rJoe = _rJoe;
         emit SetRJoe(_rJoe);
     }

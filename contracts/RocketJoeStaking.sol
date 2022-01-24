@@ -63,7 +63,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         __Ownable_init();
 
         require(
-            _startTime >= block.timestamp,
+            _startTime > block.timestamp,
             "RocketJoeStaking: rJOE minting needs to start after the current timestamp"
         );
 

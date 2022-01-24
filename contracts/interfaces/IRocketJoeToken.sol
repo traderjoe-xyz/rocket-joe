@@ -8,6 +8,13 @@ pragma solidity ^0.8.0;
  */
 interface IRocketJoeToken {
     /**
+     * @dev Initialize variables.
+     *
+     * Needs to be called by RocketJoeFactory.
+     */
+    function initialize() external;
+
+    /**
      * @dev Returns the amount of tokens in existence.
      */
     function totalSupply() external view returns (uint256);

@@ -160,12 +160,16 @@ describe("Rocket Joe Staking Contract", function () {
       await this.RJStaking.connect(this.alice).withdraw(
         ethers.utils.parseEther("100")
       );
-      expect(
-        (await this.joe.balanceOf(this.alice.address)).toString()
-      ).to.be.equal(ethers.utils.parseEther("1000"));
-      expect(
-        (await this.rJOE.balanceOf(this.alice.address)).toString()
-      ).to.be.above(ethers.utils.parseEther("143"));
+
+      expect(await this.joe.balanceOf(this.alice.address)).to.be.equal(
+        ethers.utils.parseEther("1000")
+      );
+      // As rewards start at S+60, rewards should be equal to: ((86400 - 60) / 6) * 0.01 = 143.9
+      // but as time has slightly increased, we check that's is within 0.1 of 144
+      expect(await this.rJOE.balanceOf(this.alice.address)).to.be.closeTo(
+        ethers.utils.parseEther("144"),
+        ethers.utils.parseEther("0.1")
+      );
       expect(
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("500"));
@@ -176,9 +180,12 @@ describe("Rocket Joe Staking Contract", function () {
       expect(
         (await this.joe.balanceOf(this.carol.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("800"));
-      expect(
-        (await this.rJOE.balanceOf(this.carol.address)).toString()
-      ).to.be.above(ethers.utils.parseEther("431"));
+      // As rewards start at S+60, rewards should be equal to: ((86400 - 60) / 2) * 0.01 = 431.7
+      // but as time has slightly increased, we check that's is within 0.1 of 431.8
+      expect(await this.rJOE.balanceOf(this.carol.address)).to.be.closeTo(
+        ethers.utils.parseEther("431.8"),
+        ethers.utils.parseEther("0.1")
+      );
       expect(
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("400"));
@@ -187,9 +194,12 @@ describe("Rocket Joe Staking Contract", function () {
       expect(
         (await this.joe.balanceOf(this.bob.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("800"));
-      expect(
-        (await this.rJOE.balanceOf(this.bob.address)).toString()
-      ).to.be.above(ethers.utils.parseEther("287"));
+      // As rewards start at S+60, rewards should be equal to: ((86400 - 60) / 3) * 0.01 = 287.8
+      // but as time has slightly increased, we check that's is within 0.1 of 287.9
+      expect(await this.rJOE.balanceOf(this.bob.address)).to.be.closeTo(
+        ethers.utils.parseEther("287.9"),
+        ethers.utils.parseEther("0.1")
+      );
       expect(
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("400"));
@@ -226,8 +236,8 @@ describe("Rocket Joe Staking Contract", function () {
 
       await this.RJStaking.connect(this.bob).deposit(
         ethers.utils.parseEther("300")
-      ); // bob enters after the distribution, he shouldn't receive any reward
-      await this.RJStaking.connect(this.bob).withdraw("0"); // 1 seconds has passed, so bob receives 1/3rd of the token per second
+      ); // Bob enters after the distribution, he shouldn't receive any reward
+      await this.RJStaking.connect(this.bob).withdraw("0"); // 1 seconds has elapsed, so bob receives 1/3rd of the token per second
       expect(
         (await this.rJOE.balanceOf(this.bob.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("0.0033333333333333"));
@@ -240,15 +250,19 @@ describe("Rocket Joe Staking Contract", function () {
 
       await this.RJStaking.connect(this.alice).deposit(
         ethers.utils.parseEther("300")
-      ); // alice enters again to try to get more rewards
+      ); // Alice enters again to try to get more rewards
       await this.RJStaking.connect(this.alice).withdraw(
         ethers.utils.parseEther("600")
       );
       expect(
         (await this.joe.balanceOf(this.alice.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("1000"));
-      expect(await this.rJOE.balanceOf(this.alice.address)).to.be.above(
-        ethers.utils.parseEther("431")
+      const aliceBalance = await this.rJOE.balanceOf(this.alice.address);
+      // As rewards start at S+60, rewards should be close to: ((86400 - 60) / 2) * 0.01 = 431.7
+      // but as time has slightly increased, we check that's is within 0.1 of 431.8
+      expect(aliceBalance).to.be.closeTo(
+        ethers.utils.parseEther("431.8"),
+        ethers.utils.parseEther("0.1")
       );
       expect(
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
@@ -256,12 +270,15 @@ describe("Rocket Joe Staking Contract", function () {
 
       await advanceTimeAndBlock(duration.days(2));
 
-      await this.RJStaking.connect(this.bob).withdraw("0"); // bob should only receive half of the last reward
+      await this.RJStaking.connect(this.bob).withdraw("0");
       expect(
         (await this.joe.balanceOf(this.bob.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("700"));
-      expect(await this.rJOE.balanceOf(this.bob.address)).to.be.above(
-        ethers.utils.parseEther("431")
+      // As rewards start at S+60, rewards should be close to: ((2 * 86400 - 60) / 2) * 0.01 = 863.67
+      // but as time has slightly increased, we check that's is within 0.4 of 864
+      expect(await this.rJOE.balanceOf(this.bob.address)).to.be.closeTo(
+        ethers.utils.parseEther("864"),
+        ethers.utils.parseEther("0.4")
       );
       expect(
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
@@ -269,23 +286,27 @@ describe("Rocket Joe Staking Contract", function () {
 
       await this.RJStaking.connect(this.carol).withdraw(
         ethers.utils.parseEther("300")
-      ); // carol should receive both
+      ); // Carol should receive both
       expect(
         (await this.joe.balanceOf(this.carol.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("1000"));
-      expect(await this.rJOE.balanceOf(this.carol.address)).to.be.above(
-        ethers.utils.parseEther("15")
+      // As rewards start at S+60, rewards should be close to: ((3 * 86400 - 60) / 2) * 0.01 = 1295.7
+      // but as time has slightly increased, we check that's is within 0.4 of 1296
+      expect(await this.rJOE.balanceOf(this.carol.address)).to.be.closeTo(
+        ethers.utils.parseEther("1296"),
+        ethers.utils.parseEther("0.4")
       );
       expect(
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("300"));
 
-      await this.RJStaking.connect(this.alice).withdraw("0"); // alice shouldn't receive any token of the last reward
+      await this.RJStaking.connect(this.alice).withdraw("0");
       expect(
         (await this.joe.balanceOf(this.alice.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("1000"));
-      expect(await this.rJOE.balanceOf(this.alice.address)).to.be.above(
-        ethers.utils.parseEther("50")
+      // Alice shouldn't receive any token of the last reward
+      expect(await this.rJOE.balanceOf(this.alice.address)).to.be.equal(
+        aliceBalance
       );
       expect(
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
@@ -316,9 +337,11 @@ describe("Rocket Joe Staking Contract", function () {
       expect(
         (await this.joe.balanceOf(this.alice.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("700"));
-      expect(await this.rJOE.balanceOf(this.alice.address)).to.be.above(
-        pendingReward
-      ); // We add 0.01 as 1 second elapsed between calls to pending rewards and deposit
+      // We check that actual reward is within 0.01 of pendingReward, as 1 second elapsed between calls to pending rewards and deposit
+      expect(await this.rJOE.balanceOf(this.alice.address)).to.be.closeTo(
+        pendingReward,
+        ethers.utils.parseEther("0.01")
+      );
       expect(
         (await this.joe.balanceOf(this.RJStaking.address)).toString()
       ).to.be.equal(ethers.utils.parseEther("300"));
@@ -378,8 +401,10 @@ describe("Rocket Joe Staking Contract", function () {
       await advanceTimeAndBlock(duration.days(1));
 
       await this.RJStaking.connect(this.alice).withdraw("0");
-      expect(await this.rJOE.balanceOf(this.alice.address)).to.be.above(
-        balance
+      // New balance should be close to: previousBalance + 0.0011 * 86400
+      expect(await this.rJOE.balanceOf(this.alice.address)).to.be.closeTo(
+        balance.add(ethers.utils.parseEther("0.0011").mul(86400)),
+        ethers.utils.parseEther("0.1")
       );
     });
   });
