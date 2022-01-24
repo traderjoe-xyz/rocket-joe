@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 
 import "./interfaces/IRocketJoeFactory.sol";
 import "./interfaces/IJoeFactory.sol";
+import "./interfaces/IJoePair.sol";
 import "./interfaces/ILaunchEvent.sol";
 
 import "./RocketJoeToken.sol";
@@ -119,8 +120,11 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
             "RJFactory: token amount needs to be greater than 0"
         );
         require(
-            IJoeFactory(factory).getPair(wavax, _token) == address(0),
-            "RJFactory: pair already exists"
+            IJoeFactory(factory).getPair(_token, wavax) == address(0) ||
+                IJoePair(IJoeFactory(factory).getPair(_token, wavax))
+                    .totalSupply() ==
+                0,
+            "RJFactory: liquid pair already exists"
         );
 
         address launchEvent = Clones.clone(eventImplementation);
