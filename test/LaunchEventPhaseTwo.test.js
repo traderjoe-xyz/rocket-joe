@@ -68,10 +68,20 @@ describe("launch event contract phase two", function () {
   });
 
   describe("interacting with phase two", function () {
-    it("should revert if try do withdraw liquidity", async function () {
+    it("should revert if withdraw liquidity", async function () {
       expect(
         this.LaunchEvent.connect(this.participant).withdrawLiquidity()
-      ).to.be.revertedWith("LaunchEvent: not in phase three");
+      ).to.be.revertedWith(
+        "LaunchEvent: can't withdraw before user's timelock"
+      );
+    });
+
+    it("should revert if issuer withdraw liquidity", async function () {
+      expect(
+        this.LaunchEvent.connect(this.issuer).withdrawLiquidity()
+      ).to.be.revertedWith(
+        "LaunchEvent: can't withdraw before issuer's timelock"
+      );
     });
 
     it("should revert if deposited", async function () {
