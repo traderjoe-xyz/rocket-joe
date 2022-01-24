@@ -167,7 +167,6 @@ describe("launch event contract phase three", function () {
 
   describe("withdrawing liquidity in phase three", async function () {
     beforeEach(async function () {
-      // Deploy the tokens used for tests.
       this.factory = await ethers.getContractAt(
         "IJoeFactory",
         "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10"
@@ -375,7 +374,6 @@ describe("launch event contract phase three", function () {
         this.RocketFactory.address,
         ethers.utils.parseEther("105")
       );
-      // Deploy the tokens used for tests.
       this.factory = await ethers.getContractAt(
         "IJoeFactory",
         "0x9Ad6C38BE94206cA50bb0d90783181662f0Cfa10"
