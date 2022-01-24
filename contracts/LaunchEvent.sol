@@ -378,8 +378,12 @@ contract LaunchEvent is Ownable {
             address(token)
         );
         require(
-            factory.getPair(wavaxAddress, tokenAddress) == address(0),
-            "LaunchEvent: pair already created"
+            factory.getPair(wavaxAddress, tokenAddress) == address(0) ||
+                IJoePair(
+                    IJoeFactory(factory).getPair(wavaxAddress, tokenAddress)
+                ).totalSupply() ==
+                0,
+            "LaunchEvent: liquid pair already exists"
         );
         require(wavaxReserve > 0, "LaunchEvent: no wavax balance");
 
