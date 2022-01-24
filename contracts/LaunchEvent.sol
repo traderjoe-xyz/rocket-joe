@@ -176,14 +176,15 @@ contract LaunchEvent is Ownable {
         uint256 phase3Start = auctionStart +
             PHASE_ONE_DURATION +
             PHASE_TWO_DURATION;
-        require(
-            block.timestamp > phase3Start + userTimelock,
-            "LaunchEvent: can't withdraw before user's timelock"
-        );
         if (msg.sender == issuer) {
             require(
                 block.timestamp > phase3Start + issuerTimelock,
                 "LaunchEvent: can't withdraw before issuer's timelock"
+            );
+        } else {
+            require(
+                block.timestamp > phase3Start + userTimelock,
+                "LaunchEvent: can't withdraw before user's timelock"
             );
         }
         _;
@@ -431,12 +432,7 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Withdraw liquidity pool tokens
-    function withdrawLiquidity()
-        external
-        isStopped(false)
-        atPhase(Phase.PhaseThree)
-        timelockElapsed
-    {
+    function withdrawLiquidity() external isStopped(false) timelockElapsed {
         require(address(pair) != address(0), "LaunchEvent: pair not created");
 
         UserInfo storage user = getUserInfo[msg.sender];
