@@ -1,6 +1,6 @@
 module.exports = async function ({ getNamedAccounts, deployments }) {
   const { deploy } = deployments;
-  const { deployer, dev } = await getNamedAccounts();
+  const { deployer } = await getNamedAccounts();
 
   const rocketJoeFactoryAddress = (await deployments.get("RocketJoeFactory"))
     .address;
