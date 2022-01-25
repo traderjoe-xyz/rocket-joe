@@ -5,10 +5,10 @@ pragma solidity ^0.8.0;
 import "./interfaces/ILaunchEvent.sol";
 import "./interfaces/IRocketJoeFactory.sol";
 
-/// @title Rocket Joe Lens
+/// @title Launch Event Lens
 /// @author Trader Joe
-/// @notice Helper contract to fetch rocket joe and launch event data
-contract RocketJoeLens {
+/// @notice Helper contract to fetch launch event data
+contract LaunchEventLens {
     struct LaunchEventData {
         uint256 auctionStart;
         uint256 phaseOneDuration;
