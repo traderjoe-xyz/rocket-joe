@@ -165,7 +165,29 @@ describe("launch event contract phase three", function () {
 
       const pair = await ethers.getContractAt("IJoePair", pairAddress);
       await pair.sync();
+      await this.LaunchEvent.connect(this.participant).createPair();
+    });
 
+    it.only("should add liquidity to pair where token0 balance > 0 and token1 balance > 0", async function () {
+      await this.factory.createPair(this.wavax.address, this.AUCTOK.address);
+      const pairAddress = await this.factory.getPair(
+        this.wavax.address,
+        this.AUCTOK.address
+      );
+
+      this.wavax
+        .connect(this.dev)
+        .deposit({ value: ethers.utils.parseEther("1") });
+      this.wavax
+        .connect(this.dev)
+        .transfer(pairAddress, ethers.utils.parseEther("1"));
+      this.AUCTOK.connect(this.dev).mint(
+        pairAddress,
+        ethers.utils.parseEther("100")
+      );
+
+      const pair = await ethers.getContractAt("IJoePair", pairAddress);
+      await pair.sync();
       await this.LaunchEvent.connect(this.participant).createPair();
     });
 
