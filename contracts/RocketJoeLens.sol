@@ -71,10 +71,9 @@ contract RocketJoeLens {
                 _user
             );
             if (userInfo.balance > 0) {
-                launchEventDatas[participatedEventCounter] = getLaunchEventData(
-                    launchEvent,
-                    _user
-                );
+                launchEventDatas[
+                    participatedEventCounter
+                ] = getUserLaunchEventData(launchEvent, _user);
                 participatedEventCounter += 1;
             }
         }
@@ -86,7 +85,22 @@ contract RocketJoeLens {
     /// @param _launchEvent Launch event to lookup
     /// @param _user User to look up
     /// @return Launch event data for the given `_launchEvent` and `_user`
-    function getLaunchEventData(ILaunchEvent _launchEvent, address _user)
+    function getUserLaunchEventData(ILaunchEvent _launchEvent, address _user)
+        public
+        view
+        returns (LaunchEventData memory)
+    {
+        LaunchEventData memory launchEventData = getLaunchEventData(
+            _launchEvent
+        );
+        launchEventData.userInfo = _launchEvent.getUserInfo(_user);
+        return launchEventData;
+    }
+
+    /// @notice Get launch event data for a given launch event
+    /// @param _launchEvent Launch event to lookup
+    /// @return Launch event data for the given `_launchEvent`
+    function getLaunchEventData(ILaunchEvent _launchEvent)
         public
         view
         returns (LaunchEventData memory)
@@ -105,7 +119,12 @@ contract RocketJoeLens {
                 rJoePerAvax: _launchEvent.rJoePerAvax(),
                 token: _launchEvent.token(),
                 pair: _launchEvent.pair(),
-                userInfo: _launchEvent.getUserInfo(_user)
+                userInfo: ILaunchEvent.UserInfo({
+                    allocation: 0,
+                    balance: 0,
+                    hasWithdrawnPair: false,
+                    hasWithdrawnIncentives: false
+                })
             });
     }
 }
