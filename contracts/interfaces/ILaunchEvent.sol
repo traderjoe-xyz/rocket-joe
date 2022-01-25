@@ -49,6 +49,8 @@ interface ILaunchEvent {
 
     function rJoePerAvax() external view returns (uint256);
 
+    function getReserves() external view returns (uint256, uint256);
+
     function token() external view returns (IERC20Metadata);
 
     function pair() external view returns (IJoePair);
