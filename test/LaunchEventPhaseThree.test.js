@@ -90,7 +90,7 @@ describe("launch event contract phase three", function () {
       );
     });
 
-    it("should revert if try do withdraw WAVAX", async function () {
+    it("should revert if try do withdraw AVAX", async function () {
       await expect(
         this.LaunchEvent.connect(this.participant).withdrawAVAX(
           ethers.utils.parseEther("1")
@@ -235,7 +235,7 @@ describe("launch event contract phase three", function () {
       await advanceTimeAndBlock(duration.days(4));
       await expect(
         this.LaunchEvent.connect(this.participant).createPair()
-      ).to.be.revertedWith("LaunchEvent: no wavax balance");
+      ).to.be.revertedWith("LaunchEvent: no avax balance");
     });
 
     it("should evenly distribute liquidity and incentives to issuer and participant", async function () {
@@ -442,7 +442,7 @@ describe("launch event contract phase three", function () {
       await advanceTimeAndBlock(duration.days(4));
       await expect(
         this.LaunchEvent.connect(this.participant).createPair()
-      ).to.be.revertedWith("LaunchEvent: no wavax balance");
+      ).to.be.revertedWith("LaunchEvent: no avax balance");
     });
 
     it("should evenly distribute liquidity and incentives to issuer and participant", async function () {

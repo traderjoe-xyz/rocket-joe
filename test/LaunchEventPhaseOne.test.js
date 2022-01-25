@@ -245,7 +245,7 @@ describe("launch event contract phase one", function () {
           value: ethers.utils.parseEther("1.0"),
         })
       ).to.be.revertedWith(
-        "LaunchEvent: you can't send AVAX directly to this contract"
+        "Transaction reverted: function selector was not recognized and there's no fallback nor receive function"
       );
     });
 
