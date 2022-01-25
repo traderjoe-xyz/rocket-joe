@@ -9,6 +9,7 @@ require("hardhat-deploy-ethers");
 require("solidity-coverage");
 
 require("./tasks/launchtoken");
+require("./tasks/enter");
 
 module.exports = {
   solidity: "0.8.6",
