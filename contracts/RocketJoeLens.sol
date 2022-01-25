@@ -33,6 +33,27 @@ contract RocketJoeLens {
         rocketJoeFactory = IRocketJoeFactory(_rocketJoeFactory);
     }
 
+    /// @notice Get all launch event datas
+    /// @return Array of all launch event datas
+    function getAllLaunchEvents()
+        external
+        view
+        returns (LaunchEventData[] memory)
+    {
+        uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();
+        LaunchEventData[] memory launchEventDatas = new LaunchEventData[](
+            numLaunchEvents
+        );
+
+        for (uint256 i = 0; i < numLaunchEvents; i++) {
+            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
+            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
+            launchEventDatas[i] = getLaunchEventData(launchEvent);
+        }
+
+        return launchEventDatas;
+    }
+
     /// @notice Get all launch event datas that a given `_user` has participated in
     /// @param _user User to lookup
     /// @return Array of launch event datas that `_user` has participated in
