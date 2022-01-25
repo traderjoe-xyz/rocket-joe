@@ -47,30 +47,34 @@ contract RocketJoeLens {
             ILaunchEvent.UserInfo memory userInfo = launchEvent.getUserInfo(
                 _user
             );
-            if (userInfo.balance == 0) {
-                continue;
+            if (userInfo.balance > 0) {
+                launchEventDatas[i] = getLaunchEventData(launchEvent);
             }
-
-            launchEventDatas[i].auctionStart = launchEvent.auctionStart();
-            launchEventDatas[i].phaseOneDuration = launchEvent
-                .PHASE_ONE_DURATION();
-            launchEventDatas[i].phaseOneNoFeeDuration = launchEvent
-                .PHASE_ONE_NO_FEE_DURATION();
-            launchEventDatas[i].phaseTwoDuration = launchEvent
-                .PHASE_TWO_DURATION();
-            launchEventDatas[i].tokenIncentivesPercent = launchEvent
-                .tokenIncentivesPercent();
-            launchEventDatas[i].floorPrice = launchEvent.floorPrice();
-            launchEventDatas[i].userTimelock = launchEvent.userTimelock();
-            launchEventDatas[i].issuerTimelock = launchEvent.issuerTimelock();
-            launchEventDatas[i].maxWithdrawPenalty = launchEvent
-                .maxWithdrawPenalty();
-            launchEventDatas[i].rJoePerAvax = launchEvent.rJoePerAvax();
-            launchEventDatas[i].token = launchEvent.token();
-            launchEventDatas[i].pair = launchEvent.pair();
-            launchEventDatas[i].userInfo = userInfo;
         }
 
         return launchEventDatas;
+    }
+
+    function getLaunchEventData(ILaunchEvent _launchEvent)
+        public
+        view
+        returns (LaunchEventData memory)
+    {
+        return
+            LaunchEventData({
+                auctionStart: _launchEvent.auctionStart(),
+                phaseOneDuration: _launchEvent.PHASE_ONE_DURATION(),
+                phaseOneNoFeeDuration: _launchEvent.PHASE_ONE_NO_FEE_DURATION(),
+                phaseTwoDuration: _launchEvent.PHASE_TWO_DURATION(),
+                tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),
+                floorPrice: _launchEvent.floorPrice(),
+                userTimelock: _launchEvent.userTimelock(),
+                issuerTimelock: _launchEvent.issuerTimelock(),
+                maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),
+                rJoePerAvax: _launchEvent.rJoePerAvax(),
+                token: _launchEvent.token(),
+                pair: _launchEvent.pair(),
+                userInfo: _launchEvent.getUserInfo(msg.sender)
+            });
     }
 }
