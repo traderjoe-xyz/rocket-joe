@@ -403,22 +403,15 @@ contract LaunchEvent is Ownable {
                 tokenIncentivesForUsers;
         }
 
-        WAVAX.approve(address(router), wavaxReserve);
-        token.approve(address(router), tokenAllocated);
+        if (factory.getPair(wavaxAddress, tokenAddress) == address(0)) {
+            pair = IJoePair(factory.createPair(wavaxAddress, tokenAddress));
+        } else {
+            pair = IJoePair(factory.getPair(wavaxAddress, tokenAddress));
+        }
+        WAVAX.transfer(address(pair), wavaxReserve);
+        token.transfer(address(pair), tokenAllocated);
+        lpSupply = pair.mint(address(this));
 
-        /// We can't trust the output cause of reflect tokens
-        (, , lpSupply) = router.addLiquidity(
-            wavaxAddress, // tokenA
-            tokenAddress, // tokenB
-            wavaxReserve, // amountADesired
-            tokenAllocated, // amountBDesired
-            wavaxReserve, // amountAMin
-            tokenAllocated, // amountBMin
-            address(this), // to
-            block.timestamp // deadline
-        );
-
-        pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
         wavaxAllocated = wavaxReserve;
         wavaxReserve = 0;
 
