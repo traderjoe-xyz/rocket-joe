@@ -5,12 +5,12 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   const rocketJoeFactoryAddress = (await deployments.get("RocketJoeFactory"))
     .address;
 
-  await deploy("RocketJoeLens", {
+  await deploy("LaunchEventLens", {
     from: deployer,
     args: [rocketJoeFactoryAddress],
     log: true,
   });
 };
 
-module.exports.tags = ["RocketJoeLens"];
+module.exports.tags = ["LaunchEventLens"];
 module.exports.dependencies = ["RocketJoeFactory"];
