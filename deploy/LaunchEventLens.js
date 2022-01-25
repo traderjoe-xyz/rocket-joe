@@ -1,5 +1,6 @@
-const RINKEBY_ROCKET_JOE_FACTORY_ADDRESS =
-  "0xE2a1631268cFfE307bb1Ed002dA43dA78EB8b8B6";
+const RINKEBY_ROCKET_JOE_FACTORY_ADDRESS = ethers.utils.getAddress(
+  "0xE2a1631268cFfE307bb1Ed002dA43dA78EB8b8B6"
+);
 
 module.exports = async function ({ getNamedAccounts, deployments }) {
   const { deploy } = deployments;
@@ -8,7 +9,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   const chainId = await getChainId();
 
   let rocketJoeFactoryAddress;
-  if (chainId === 4) {
+  if (chainId === "4") {
     // rinkeby contract addresses
     rocketJoeFactoryAddress = RINKEBY_ROCKET_JOE_FACTORY_ADDRESS;
   } else if (chainId == 43114 || chainId == 31337) {
