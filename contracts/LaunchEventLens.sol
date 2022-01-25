@@ -20,6 +20,8 @@ contract LaunchEventLens {
         uint256 issuerTimelock;
         uint256 maxWithdrawPenalty;
         uint256 rJoePerAvax;
+        uint256 tokenReserve;
+        uint256 wavaxReserve;
         IERC20Metadata token;
         IJoePair pair;
         ILaunchEvent.UserInfo userInfo;
@@ -126,6 +128,8 @@ contract LaunchEventLens {
         view
         returns (LaunchEventData memory)
     {
+        (uint256 wavaxReserve, uint256 tokenReserve) = _launchEvent
+            .getReserves();
         return
             LaunchEventData({
                 auctionStart: _launchEvent.auctionStart(),
@@ -138,6 +142,8 @@ contract LaunchEventLens {
                 issuerTimelock: _launchEvent.issuerTimelock(),
                 maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),
                 rJoePerAvax: _launchEvent.rJoePerAvax(),
+                tokenReserve: tokenReserve,
+                wavaxReserve: wavaxReserve,
                 token: _launchEvent.token(),
                 pair: _launchEvent.pair(),
                 userInfo: ILaunchEvent.UserInfo({
