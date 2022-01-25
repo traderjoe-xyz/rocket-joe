@@ -27,19 +27,24 @@ contract RocketJoeLens {
 
     IRocketJoeFactory public rocketJoeFactory;
 
+    /// @notice Create a new instance with required parameters
+    /// @param _rocketJoeFactory Address of the RocketJoeFactory
     constructor(address _rocketJoeFactory) {
         rocketJoeFactory = IRocketJoeFactory(_rocketJoeFactory);
     }
 
+    /// @notice Get all launch event datas that a given `_user` has participated in
+    /// @param _user User to lookup
+    /// @return Array of launch event datas that `_user` has participated in
     function getUserLaunchEvents(address _user)
         external
         view
         returns (LaunchEventData[] memory)
     {
+        // Since we cannot create dynamic arrays in memory, we first have
+        // to find the number of launch events the user has participated in
         uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();
-        LaunchEventData[] memory launchEventDatas = new LaunchEventData[](
-            numLaunchEvents
-        );
+        uint256 numParticipatedEvents = 0;
 
         for (uint256 i = 0; i < numLaunchEvents; i++) {
             address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
@@ -48,14 +53,40 @@ contract RocketJoeLens {
                 _user
             );
             if (userInfo.balance > 0) {
-                launchEventDatas[i] = getLaunchEventData(launchEvent);
+                numParticipatedEvents += 1;
+            }
+        }
+
+        // Then we can create a fixed size array of length `numParticipatedEvents`
+        // and simply loop through all the launch events again
+        LaunchEventData[] memory launchEventDatas = new LaunchEventData[](
+            numParticipatedEvents
+        );
+        uint256 participatedEventCounter = 0;
+
+        for (uint256 i = 0; i < numLaunchEvents; i++) {
+            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
+            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
+            ILaunchEvent.UserInfo memory userInfo = launchEvent.getUserInfo(
+                _user
+            );
+            if (userInfo.balance > 0) {
+                launchEventDatas[participatedEventCounter] = getLaunchEventData(
+                    launchEvent,
+                    _user
+                );
+                participatedEventCounter += 1;
             }
         }
 
         return launchEventDatas;
     }
 
-    function getLaunchEventData(ILaunchEvent _launchEvent)
+    /// @notice Get launch event data for a given launch event and user
+    /// @param _launchEvent Launch event to lookup
+    /// @param _user User to look up
+    /// @return Launch event data for the given `_launchEvent` and `_user`
+    function getLaunchEventData(ILaunchEvent _launchEvent, address _user)
         public
         view
         returns (LaunchEventData memory)
@@ -74,7 +105,7 @@ contract RocketJoeLens {
                 rJoePerAvax: _launchEvent.rJoePerAvax(),
                 token: _launchEvent.token(),
                 pair: _launchEvent.pair(),
-                userInfo: _launchEvent.getUserInfo(msg.sender)
+                userInfo: _launchEvent.getUserInfo(_user)
             });
     }
 }
