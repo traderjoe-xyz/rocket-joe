@@ -14,23 +14,25 @@ task("bid", "Bid on a rocket-joe launch event")
     );
 
     // Approve the launch event.
-    await rjoe.approve(taskArgs.event, hre.ethers.utils.parseEther(taskArgs.amount).mul(100));
+    await rjoe.approve(
+      taskArgs.event,
+      hre.ethers.utils.parseEther(taskArgs.amount).mul(100)
+    );
     console.log(`Approved event ${taskArgs.event} ${taskArgs.amount}`);
 
     // Get launch event
-    const event = await hre.ethers.getContractAt(
-      "LaunchEvent",
-      taskArgs.event
-    );
+    const event = await hre.ethers.getContractAt("LaunchEvent", taskArgs.event);
 
     const phase = await event.currentPhase();
     console.log(`Launch event is in phase ${phase}`);
     if (phase != 1) {
-        throw "Cannot enter event";
+      throw "Cannot enter event";
     }
 
     // Deposit funds to launch event
-    const entry = await event.depositAVAX({value: ethers.utils.parseEther(taskArgs.amount)});
+    const entry = await event.depositAVAX({
+      value: ethers.utils.parseEther(taskArgs.amount),
+    });
     console.log(`Entered event`);
   });
 
