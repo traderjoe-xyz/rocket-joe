@@ -103,6 +103,36 @@ describe("launch event contract phase one", function () {
         ).to.equal(ethers.utils.parseEther("1.0").number);
       });
 
+      it("should emit event on deposit", async function () {
+        await advanceTimeAndBlock(duration.seconds(120));
+        await expect(
+          this.LaunchEvent.connect(this.participant).depositAVAX({
+            value: ethers.utils.parseEther("1.0"),
+          })
+        )
+          .to.emit(this.LaunchEvent, "UserParticipated")
+          .withArgs(
+            this.participant.address,
+            ethers.utils.parseEther("1.0"),
+            ethers.utils.parseEther("100")
+          );
+        await this.LaunchEvent.connect(this.participant).withdrawAVAX(
+          ethers.utils.parseEther("1.0")
+        );
+        // User already has allocation rJOE in event should be 0
+        await expect(
+          this.LaunchEvent.connect(this.participant).depositAVAX({
+            value: ethers.utils.parseEther("1.0"),
+          })
+        )
+          .to.emit(this.LaunchEvent, "UserParticipated")
+          .withArgs(
+            this.participant.address,
+            ethers.utils.parseEther("1.0"),
+            0
+          );
+      });
+
       it("should revert on deposit if stopped", async function () {
         await advanceTimeAndBlock(duration.seconds(120));
         await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
