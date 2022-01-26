@@ -107,7 +107,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         user.amount = user.amount + _amount;
         user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
 
-        joe.safeTransferFrom(address(msg.sender), address(this), _amount);
+        joe.safeTransferFrom(msg.sender, address(this), _amount);
         emit Deposit(msg.sender, _amount);
     }
 
@@ -130,7 +130,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
 
         _safeRJoeTransfer(msg.sender, pending);
-        joe.safeTransfer(address(msg.sender), _amount);
+        joe.safeTransfer(msg.sender, _amount);
         emit Withdraw(msg.sender, _amount);
     }
 
@@ -142,7 +142,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         user.amount = 0;
         user.rewardDebt = 0;
 
-        joe.safeTransfer(address(msg.sender), _amount);
+        joe.safeTransfer(msg.sender, _amount);
         emit EmergencyWithdraw(msg.sender, _amount);
     }
 
@@ -181,9 +181,9 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     function _safeRJoeTransfer(address _to, uint256 _amount) internal {
         uint256 rJoeBal = rJoe.balanceOf(address(this));
         if (_amount > rJoeBal) {
-            rJoe.transfer(_to, rJoeBal);
+            IERC20Upgradeable(address(rJoe)).safeTransfer(_to, rJoeBal);
         } else {
-            rJoe.transfer(_to, _amount);
+            IERC20Upgradeable(address(rJoe)).safeTransfer(_to, _amount);
         }
     }
 }
