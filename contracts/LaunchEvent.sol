@@ -130,6 +130,12 @@ contract LaunchEvent is Ownable {
 
     event UserWithdrawn(address indexed user, uint256 avaxAmount);
 
+    event IncentiveTokenWithdraw(
+        address indexed user,
+        address indexed token,
+        uint256 amount
+    );
+
     event LiquidityPoolCreated(
         address indexed pair,
         address indexed token0,
@@ -481,6 +487,7 @@ contract LaunchEvent is Ownable {
         tokenIncentivesBalance -= amount;
 
         token.transfer(msg.sender, amount);
+        emit IncentiveTokenWithdraw(msg.sender, address(token), amount);
     }
 
     /// @notice Withdraw AVAX if launch has been cancelled
