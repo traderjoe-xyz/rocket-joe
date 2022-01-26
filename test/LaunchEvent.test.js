@@ -71,6 +71,27 @@ describe("launch event contract initialisation", function () {
   });
 
   describe("initialising the contract", function () {
+    it("should emit event when token added", async function () {
+      await this.factory.createPair(this.AUCTOK.address, this.wavax.address);
+      await expect(
+        this.RocketFactory.createRJLaunchEvent(
+          this.validParams._issuer,
+          this.validParams._auctionStart,
+          this.validParams._token,
+          this.validParams._tokenAmount,
+          this.validParams._tokenIncentivesPercent,
+          this.validParams._floorPrice,
+          this.validParams._withdrawPenaltyGradient,
+          this.validParams._fixedWithdrawPenalty,
+          this.validParams._maxAllocation,
+          this.validParams._userTimelock,
+          this.validParams._issuerTimelock
+        )
+      )
+        .to.emit(this.RocketFactory, "IssuingTokenDeposited")
+        .withArgs(this.AUCTOK.address, this.validParams._tokenAmount);
+    });
+
     it("should create a launch event if pair created with no liquidity", async function () {
       await this.factory.createPair(this.AUCTOK.address, this.wavax.address);
       await this.RocketFactory.createRJLaunchEvent(

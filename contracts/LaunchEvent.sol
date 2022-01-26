@@ -120,8 +120,6 @@ contract LaunchEvent is Ownable {
     /// penaltyCollector can collect the excess using `skim()`
     uint256 private avaxReserve;
 
-    event IssuingTokenDeposited(address indexed token, uint256 amount);
-
     event UserParticipated(
         address indexed user,
         uint256 avaxAmount,
