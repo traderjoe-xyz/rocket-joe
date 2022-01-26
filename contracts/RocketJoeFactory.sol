@@ -33,6 +33,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     mapping(address => bool) public override isRJLaunchEvent;
     address[] public override allRJLaunchEvents;
 
+    event IssuingTokenDeposited(address indexed token, uint256 amount);
+
     /// @notice Creates the launch event factory
     /// @dev Uses clone factory pattern to save space
     /// @param _eventImplementation Implementation of launch event contract
@@ -130,6 +132,8 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
 
         // msg.sender needs to approve RocketJoeFactory
         IERC20(_token).transferFrom(msg.sender, launchEvent, _tokenAmount);
+
+        emit IssuingTokenDeposited(_token, _tokenAmount);
 
         ILaunchEvent(payable(launchEvent)).initialize(
             _issuer,
