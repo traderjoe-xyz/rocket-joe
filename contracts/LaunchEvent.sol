@@ -292,7 +292,6 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Deposits AVAX and burns rJoe
-    /// @dev Checks are done in the `_depositAVAX` function
     function depositAVAX()
         external
         payable
@@ -555,6 +554,7 @@ contract LaunchEvent is Ownable {
 
     /// @notice The total amount of liquidity pool tokens the user can withdraw
     /// @param _user The address of the user to check
+    /// @return The user's balance of liquidity pool token
     function pairBalance(address _user) public view returns (uint256) {
         UserInfo memory user = getUserInfo[_user];
         if (avaxAllocated == 0 || user.hasWithdrawnPair) {
