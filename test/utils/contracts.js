@@ -73,7 +73,7 @@ async function createLaunchEvent(
   // Get a reference to the acutal launch event contract.
   LaunchEvent = await ethers.getContractAt(
     "LaunchEvent",
-    RocketFactory.getRJLaunchEvent(token.address)
+    await RocketFactory.getRJLaunchEvent(token.address)
   );
   return LaunchEvent;
 }

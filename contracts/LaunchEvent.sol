@@ -369,6 +369,7 @@ contract LaunchEvent is Ownable {
         if (feeAmount > 0) {
             _safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
         }
+        emit UserWithdrawn(msg.sender, _amount);
     }
 
     /// @notice Create the JoePair
