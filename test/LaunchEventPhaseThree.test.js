@@ -113,9 +113,16 @@ describe("launch event contract phase three", function () {
       ).to.be.revertedWith("LaunchEvent: pair not created");
     });
 
-    it("should create a JoePair", async function () {
-      await this.LaunchEvent.connect(this.participant).createPair();
-      // TODO: assert event emitted.
+    it.only("should emit an event when it creates a JoePair", async function () {
+      await expect(this.LaunchEvent.connect(this.participant).createPair())
+        .to.emit(this.LaunchEvent, "LiquidityPoolCreated")
+        .withArgs(
+          await this.factory.getPair(this.wavax.address, this.AUCTOK.address),
+          this.AUCTOK.address,
+          this.wavax.address,
+          ethers.utils.parseEther("1"), // This is 1 as floor price is set to 1
+          ethers.utils.parseEther("1")
+        );
     });
 
     it("should allow user to withdraw incentives if floor price is not met, and refund issuer", async function () {
