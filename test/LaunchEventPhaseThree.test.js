@@ -128,13 +128,27 @@ describe("launch event contract phase three", function () {
     it("should allow user to withdraw incentives if floor price is not met, and refund issuer", async function () {
       await this.LaunchEvent.connect(this.participant).createPair();
 
-      await this.LaunchEvent.connect(this.participant).withdrawIncentives();
+      await expect(
+        this.LaunchEvent.connect(this.participant).withdrawIncentives()
+      )
+        .to.emit(this.LaunchEvent, "IncentiveTokenWithdraw")
+        .withArgs(
+          this.participant.address,
+          this.AUCTOK.address,
+          ethers.utils.parseEther("0.05")
+        );
 
       expect(await this.AUCTOK.balanceOf(this.participant.address)).to.be.equal(
         ethers.utils.parseEther("0.05")
       );
 
-      await this.LaunchEvent.connect(this.issuer).withdrawIncentives();
+      await expect(this.LaunchEvent.connect(this.issuer).withdrawIncentives())
+        .to.emit(this.LaunchEvent, "IncentiveTokenWithdraw")
+        .withArgs(
+          this.issuer.address,
+          this.AUCTOK.address,
+          ethers.utils.parseEther("4.95")
+        );
 
       expect(await this.AUCTOK.balanceOf(this.issuer.address)).to.be.equal(
         ethers.utils.parseEther("4.95")
