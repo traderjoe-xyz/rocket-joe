@@ -17,6 +17,7 @@ interface IRocketJoeFactory {
     event SetRouter(address indexed router);
     event SetFactory(address indexed factory);
     event SetRJoePerAvax(uint256 rJoePerAvax);
+    event IssuingTokenDeposited(address indexed token, uint256 amount);
 
     function eventImplementation() external view returns (address);
 

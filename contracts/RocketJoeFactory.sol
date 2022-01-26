@@ -33,8 +33,6 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     mapping(address => bool) public override isRJLaunchEvent;
     address[] public override allRJLaunchEvents;
 
-    event IssuingTokenDeposited(address indexed token, uint256 amount);
-
     /// @notice Creates the launch event factory
     /// @dev Uses clone factory pattern to save space
     /// @param _eventImplementation Implementation of launch event contract
