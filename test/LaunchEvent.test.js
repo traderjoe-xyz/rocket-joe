@@ -59,7 +59,7 @@ describe("launch event contract initialisation", function () {
       _issuer: this.issuer.address,
       _auctionStart: this.block.timestamp + 60,
       _token: this.AUCTOK.address,
-      _tokenAmount: 100,
+      _tokenAmount: ethers.utils.parseEther("105"),
       _tokenIncentivesPercent: ethers.utils.parseEther("0.05"),
       _floorPrice: 1,
       _withdrawPenaltyGradient: 2893517,
@@ -89,7 +89,25 @@ describe("launch event contract initialisation", function () {
         )
       )
         .to.emit(this.RocketFactory, "IssuingTokenDeposited")
-        .withArgs(this.AUCTOK.address, this.validParams._tokenAmount);
+        .withArgs(this.AUCTOK.address, this.validParams._tokenAmount)
+        .to.emit(
+          await ethers.getContractAt(
+            "LaunchEvent",
+            await this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
+          ),
+          "LaunchEventInitialized"
+        )
+        .withArgs(
+          this.validParams._tokenIncentivesPercent,
+          this.validParams._floorPrice,
+          this.validParams._withdrawPenaltyGradient,
+          this.validParams._fixedWithdrawPenalty,
+          this.validParams._maxAllocation,
+          this.validParams._userTimelock,
+          this.validParams._issuerTimelock,
+          ethers.utils.parseEther("100"),
+          ethers.utils.parseEther("5")
+        );
     });
 
     it("should create a launch event if pair created with no liquidity", async function () {
