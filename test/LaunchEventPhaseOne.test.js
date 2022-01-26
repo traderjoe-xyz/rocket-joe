@@ -158,6 +158,20 @@ describe("launch event contract phase one", function () {
         );
       });
 
+      it("should emit an event when user withdraws", async function () {
+        const eventImplementation = await ethers.getContractAt(
+          "LaunchEvent",
+          await this.RocketFactory.eventImplementation()
+        );
+        await expect(
+          this.LaunchEvent.connect(this.participant).withdrawAVAX(
+            ethers.utils.parseEther("1.0")
+          )
+        )
+          .to.emit(await this.LaunchEvent, "UserWithdrawn")
+          .withArgs(this.participant.address, ethers.utils.parseEther("1.0"));
+      });
+
       it("should apply gradient fee if withdraw in second day", async function () {
         await advanceTimeAndBlock(duration.hours(36));
         await this.LaunchEvent.connect(this.participant).withdrawAVAX(
