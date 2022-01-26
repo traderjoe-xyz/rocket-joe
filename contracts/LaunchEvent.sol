@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./interfaces/IJoeFactory.sol";
 import "./interfaces/IJoePair.sol";
@@ -16,6 +17,8 @@ import "./interfaces/IWAVAX.sol";
 /// @author Trader Joe
 /// @notice A liquidity launch contract enabling price discovery and token distribution at secondary market listing price
 contract LaunchEvent is Ownable {
+    using SafeERC20 for IERC20Metadata;
+
     /// @notice The phases the launch event can be in
     /// @dev Should these have more semantic names: Bid, Cancel, Withdraw
     enum Phase {
@@ -402,7 +405,7 @@ contract LaunchEvent is Ownable {
             pair = IJoePair(factory.getPair(wavaxAddress, tokenAddress));
         }
         WAVAX.transfer(address(pair), avaxReserve);
-        token.transfer(address(pair), tokenAllocated);
+        token.safeTransfer(address(pair), tokenAllocated);
         lpSupply = pair.mint(address(this));
 
         avaxAllocated = avaxReserve;
@@ -440,7 +443,7 @@ contract LaunchEvent is Ownable {
             if (tokenReserve > 0) {
                 uint256 amount = tokenReserve;
                 tokenReserve = 0;
-                token.transfer(msg.sender, amount);
+                token.safeTransfer(msg.sender, amount);
             }
         } else {
             emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
@@ -472,7 +475,7 @@ contract LaunchEvent is Ownable {
 
         tokenIncentivesBalance -= amount;
 
-        token.transfer(msg.sender, amount);
+        token.safeTransfer(msg.sender, amount);
         emit IncentiveTokenWithdraw(msg.sender, address(token), amount);
     }
 
@@ -496,7 +499,7 @@ contract LaunchEvent is Ownable {
             uint256 balance = tokenReserve + tokenIncentivesBalance;
             tokenReserve = 0;
             tokenIncentivesBalance = 0;
-            token.transfer(issuer, balance);
+            token.safeTransfer(issuer, balance);
             emit TokenEmergencyWithdraw(msg.sender, balance);
         }
     }
@@ -520,7 +523,7 @@ contract LaunchEvent is Ownable {
             tokenReserve -
             tokenIncentivesBalance;
         if (excessToken > 0) {
-            token.transfer(penaltyCollector, excessToken);
+            token.safeTransfer(penaltyCollector, excessToken);
         }
 
         uint256 excessAvax = address(this).balance - avaxReserve;
