@@ -123,6 +123,18 @@ contract LaunchEvent is Ownable {
     /// penaltyCollector can collect the excess using `skim()`
     uint256 private avaxReserve;
 
+    event LaunchEventInitialized(
+        uint256 tokenIncentivesPercent,
+        uint256 floorPrice,
+        uint256 maxWithdrawPenalty,
+        uint256 fixedWithdrawPenalty,
+        uint256 maxAllocation,
+        uint256 userTimelock,
+        uint256 issuerTimelock,
+        uint256 tokenReserve,
+        uint256 tokenIncentives
+    );
+
     event UserParticipated(
         address indexed user,
         uint256 avaxAmount,
@@ -281,6 +293,18 @@ contract LaunchEvent is Ownable {
         userTimelock = _userTimelock;
         issuerTimelock = _issuerTimelock;
         initialized = true;
+
+        emit LaunchEventInitialized(
+            tokenIncentivesPercent,
+            floorPrice,
+            maxWithdrawPenalty,
+            fixedWithdrawPenalty,
+            maxAllocation,
+            userTimelock,
+            issuerTimelock,
+            tokenReserve,
+            tokenIncentivesBalance
+        );
     }
 
     /// @notice The current phase the auction is in
