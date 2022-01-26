@@ -107,7 +107,9 @@ describe("launch event contract initialisation", function () {
           this.validParams._issuerTimelock,
           ethers.utils.parseEther("100"),
           ethers.utils.parseEther("5")
-        );
+        )
+        .to.emit(this.RocketFactory, "RJLaunchEventCreated");
+      // We don't know the launch event address yet so not checking args
     });
 
     it("should create a launch event if pair created with no liquidity", async function () {

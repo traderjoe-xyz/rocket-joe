@@ -4,6 +4,7 @@ pragma solidity >=0.8.0;
 
 interface IRocketJoeFactory {
     event RJLaunchEventCreated(
+        address indexed launchEvent,
         address indexed issuer,
         address indexed token,
         uint256 phaseOneStartTime,
