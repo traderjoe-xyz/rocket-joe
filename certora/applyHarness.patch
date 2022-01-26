@@ -1,12 +1,46 @@
 diff -ruN .gitignore .gitignore
 --- .gitignore	1969-12-31 16:00:00.000000000 -0800
-+++ .gitignore	2022-01-19 15:11:02.000000000 -0800
++++ .gitignore	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,2 @@
 +*
 +!.gitignore
+diff -ruN mocks/ERC20Token6decimals.sol mocks/ERC20Token6decimals.sol
+--- mocks/ERC20Token6decimals.sol	1969-12-31 16:00:00.000000000 -0800
++++ mocks/ERC20Token6decimals.sol	2022-01-26 11:10:48.000000000 -0800
+@@ -0,0 +1,30 @@
++// SPDX-License-Identifier: MIT
++
++pragma solidity ^0.8.0;
++
++import "@openzeppeltoken/ERC20/ERC20.sol";
++import "@openzeppelaccess/Ownable.sol";
++
++/// @title Joe Token, JOE
++/// @author Trader Joe
++/// @dev ONLY FOR TESTS
++contract ERC20Token6decimals is ERC20("Token", "token"), Ownable {
++    /// @dev Mint _amount to _to. Callable only by owner
++    /// @param _to The address that will receive the mint
++    /// @param _amount The amount to be minted
++    function mint(address _to, uint256 _amount) external onlyOwner {
++        _mint(_to, _amount);
++    }
++
++    /// @dev Destroys `_amount` tokens from `msg.sender`
++    /// @param _amount The amount to be burned
++    function burn(uint256 _amount) external {
++        _burn(msg.sender, _amount);
++    }
++
++    /// @dev Define the number of decimals
++    /// @return The number of decimals
++    function decimals() public view virtual override returns (uint8) {
++        return 6;
++    }
++}
 diff -ruN traderjoe/FarmLens.sol traderjoe/FarmLens.sol
 --- traderjoe/FarmLens.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/FarmLens.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/FarmLens.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,244 @@
 +// SPDX-License-Identifier: MIT
 +pragma solidity 0.6.12;
@@ -254,7 +288,7 @@ diff -ruN traderjoe/FarmLens.sol traderjoe/FarmLens.sol
 +}
 diff -ruN traderjoe/JoeERC20.sol traderjoe/JoeERC20.sol
 --- traderjoe/JoeERC20.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/JoeERC20.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/JoeERC20.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,115 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -373,7 +407,7 @@ diff -ruN traderjoe/JoeERC20.sol traderjoe/JoeERC20.sol
 +}
 diff -ruN traderjoe/JoeFactory.sol traderjoe/JoeFactory.sol
 --- traderjoe/JoeFactory.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/JoeFactory.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/JoeFactory.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,67 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -444,7 +478,7 @@ diff -ruN traderjoe/JoeFactory.sol traderjoe/JoeFactory.sol
 +}
 diff -ruN traderjoe/JoePair.sol traderjoe/JoePair.sol
 --- traderjoe/JoePair.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/JoePair.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/JoePair.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,243 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -691,7 +725,7 @@ diff -ruN traderjoe/JoePair.sol traderjoe/JoePair.sol
 +}
 diff -ruN traderjoe/JoeRouter02.sol traderjoe/JoeRouter02.sol
 --- traderjoe/JoeRouter02.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/JoeRouter02.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/JoeRouter02.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,479 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1174,7 +1208,7 @@ diff -ruN traderjoe/JoeRouter02.sol traderjoe/JoeRouter02.sol
 +}
 diff -ruN traderjoe/LICENSE traderjoe/LICENSE
 --- traderjoe/LICENSE	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/LICENSE	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/LICENSE	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,674 @@
 +                    GNU GENERAL PUBLIC LICENSE
 +                       Version 3, 29 June 2007
@@ -1852,7 +1886,7 @@ diff -ruN traderjoe/LICENSE traderjoe/LICENSE
 +<https://www.gnu.org/licenses/why-not-lgpl.html>.
 diff -ruN traderjoe/README.md traderjoe/README.md
 --- traderjoe/README.md	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/README.md	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/README.md	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,13 @@
 +# Uniswap V2 Area
 +
@@ -1869,7 +1903,7 @@ diff -ruN traderjoe/README.md traderjoe/README.md
 +```
 diff -ruN traderjoe/interfaces/IERC20.sol traderjoe/interfaces/IERC20.sol
 --- traderjoe/interfaces/IERC20.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IERC20.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/interfaces/IERC20.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,30 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1903,7 +1937,7 @@ diff -ruN traderjoe/interfaces/IERC20.sol traderjoe/interfaces/IERC20.sol
 +}
 diff -ruN traderjoe/interfaces/IJoeCallee.sol traderjoe/interfaces/IJoeCallee.sol
 --- traderjoe/interfaces/IJoeCallee.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeCallee.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/interfaces/IJoeCallee.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,12 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1919,7 +1953,7 @@ diff -ruN traderjoe/interfaces/IJoeCallee.sol traderjoe/interfaces/IJoeCallee.so
 +}
 diff -ruN traderjoe/interfaces/IJoeERC20.sol traderjoe/interfaces/IJoeERC20.sol
 --- traderjoe/interfaces/IJoeERC20.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeERC20.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/interfaces/IJoeERC20.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,46 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1969,7 +2003,7 @@ diff -ruN traderjoe/interfaces/IJoeERC20.sol traderjoe/interfaces/IJoeERC20.sol
 +}
 diff -ruN traderjoe/interfaces/IJoeFactory.sol traderjoe/interfaces/IJoeFactory.sol
 --- traderjoe/interfaces/IJoeFactory.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeFactory.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/interfaces/IJoeFactory.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,27 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2000,7 +2034,7 @@ diff -ruN traderjoe/interfaces/IJoeFactory.sol traderjoe/interfaces/IJoeFactory.
 +}
 diff -ruN traderjoe/interfaces/IJoePair.sol traderjoe/interfaces/IJoePair.sol
 --- traderjoe/interfaces/IJoePair.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoePair.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/interfaces/IJoePair.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,98 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2102,7 +2136,7 @@ diff -ruN traderjoe/interfaces/IJoePair.sol traderjoe/interfaces/IJoePair.sol
 +}
 diff -ruN traderjoe/interfaces/IJoeRouter01.sol traderjoe/interfaces/IJoeRouter01.sol
 --- traderjoe/interfaces/IJoeRouter01.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeRouter01.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/interfaces/IJoeRouter01.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,156 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2262,7 +2296,7 @@ diff -ruN traderjoe/interfaces/IJoeRouter01.sol traderjoe/interfaces/IJoeRouter0
 +}
 diff -ruN traderjoe/interfaces/IJoeRouter02.sol traderjoe/interfaces/IJoeRouter02.sol
 --- traderjoe/interfaces/IJoeRouter02.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeRouter02.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/interfaces/IJoeRouter02.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,52 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2318,7 +2352,7 @@ diff -ruN traderjoe/interfaces/IJoeRouter02.sol traderjoe/interfaces/IJoeRouter0
 +}
 diff -ruN traderjoe/interfaces/IWAVAX.sol traderjoe/interfaces/IWAVAX.sol
 --- traderjoe/interfaces/IWAVAX.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IWAVAX.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/interfaces/IWAVAX.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,11 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2333,7 +2367,7 @@ diff -ruN traderjoe/interfaces/IWAVAX.sol traderjoe/interfaces/IWAVAX.sol
 +}
 diff -ruN traderjoe/libraries/JoeLibrary.sol traderjoe/libraries/JoeLibrary.sol
 --- traderjoe/libraries/JoeLibrary.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/JoeLibrary.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/libraries/JoeLibrary.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,118 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2455,7 +2489,7 @@ diff -ruN traderjoe/libraries/JoeLibrary.sol traderjoe/libraries/JoeLibrary.sol
 +}
 diff -ruN traderjoe/libraries/Math.sol traderjoe/libraries/Math.sol
 --- traderjoe/libraries/Math.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/Math.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/libraries/Math.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,25 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2484,7 +2518,7 @@ diff -ruN traderjoe/libraries/Math.sol traderjoe/libraries/Math.sol
 +}
 diff -ruN traderjoe/libraries/SafeMath.sol traderjoe/libraries/SafeMath.sol
 --- traderjoe/libraries/SafeMath.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/SafeMath.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/libraries/SafeMath.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,19 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2507,7 +2541,7 @@ diff -ruN traderjoe/libraries/SafeMath.sol traderjoe/libraries/SafeMath.sol
 +}
 diff -ruN traderjoe/libraries/TransferHelper.sol traderjoe/libraries/TransferHelper.sol
 --- traderjoe/libraries/TransferHelper.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/TransferHelper.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/libraries/TransferHelper.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,42 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2553,7 +2587,7 @@ diff -ruN traderjoe/libraries/TransferHelper.sol traderjoe/libraries/TransferHel
 +}
 diff -ruN traderjoe/libraries/UQ112x112.sol traderjoe/libraries/UQ112x112.sol
 --- traderjoe/libraries/UQ112x112.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/UQ112x112.sol	2022-01-19 15:09:19.000000000 -0800
++++ traderjoe/libraries/UQ112x112.sol	2022-01-26 11:10:48.000000000 -0800
 @@ -0,0 +1,22 @@
 +// SPDX-License-Identifier: GPL-3.0
 +

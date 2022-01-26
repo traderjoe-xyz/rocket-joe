@@ -3,12 +3,14 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./interfaces/IRocketJoeFactory.sol";
 import "./interfaces/IJoeFactory.sol";
+import "./interfaces/IJoePair.sol";
 import "./interfaces/ILaunchEvent.sol";
-
-import "./RocketJoeToken.sol";
+import "./interfaces/IRocketJoeToken.sol";
 
 /// @title Rocket Joe Factory
 /// @author Trader Joe
@@ -56,13 +58,10 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
                 _factory != address(0),
             "RJFactory: Addresses can't be null address"
         );
+        IRocketJoeToken(_rJoe).initialize();
+
         eventImplementation = _eventImplementation;
         rJoe = _rJoe;
-
-        (bool success, ) = address(_rJoe).call(
-            abi.encodeWithSignature("initialize()")
-        );
-        require(success, "RJFactory: failed to initialize RocketJoeToken");
 
         wavax = _wavax;
         penaltyCollector = _penaltyCollector;
@@ -112,6 +111,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
             getRJLaunchEvent[_token] == address(0),
             "RJFactory: token has already been issued"
         );
+        require(_issuer != address(0), "RJFactory: issuer can't be 0 address");
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
         require(
@@ -119,8 +119,11 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
             "RJFactory: token amount needs to be greater than 0"
         );
         require(
-            IJoeFactory(factory).getPair(wavax, _token) == address(0),
-            "RJFactory: pair already exists"
+            IJoeFactory(factory).getPair(_token, wavax) == address(0) ||
+                IJoePair(IJoeFactory(factory).getPair(_token, wavax))
+                    .totalSupply() ==
+                0,
+            "RJFactory: liquid pair already exists"
         );
 
         address launchEvent = Clones.clone(eventImplementation);
@@ -153,6 +156,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     /// @notice Set rJOE address
     /// @param _rJoe New rJOE address
     function setRJoe(address _rJoe) external override onlyOwner {
+        IRocketJoeToken(_rJoe).initialize();
         rJoe = _rJoe;
         emit SetRJoe(_rJoe);
     }

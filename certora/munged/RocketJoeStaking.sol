@@ -53,18 +53,26 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     /// @param _joe Address of the JOE token contract
     /// @param _rJoe Address of the rJOE token contract
     /// @param _rJoePerSec Number of rJOE tokens created per second
+    /// @param _startTime Timestamp at which rJOE rewards starts
     function initialize(
         IERC20Upgradeable _joe,
         RocketJoeToken _rJoe,
-        uint256 _rJoePerSec
+        uint256 _rJoePerSec,
+        uint256 _startTime
     ) public initializer {
         __Ownable_init();
+
+        require(
+            _startTime > block.timestamp,
+            "RocketJoeStaking: rJOE minting needs to start after the current timestamp"
+        );
 
         PRECISION = 1e18;
 
         joe = _joe;
         rJoe = _rJoe;
         rJoePerSec = _rJoePerSec;
+        lastRewardTimestamp = _startTime;
     }
 
     /// @notice Get pending rJoe for a given `_user`
@@ -107,7 +115,10 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     /// @param _amount Amount of JOE to withdraw
     function withdraw(uint256 _amount) external {
         UserInfo storage user = userInfo[msg.sender];
-        require(user.amount >= _amount, "withdraw: not good");
+        require(
+            user.amount >= _amount,
+            "RocketJoeStaking: withdraw amount exceeds balance"
+        );
 
         updatePool();
 
