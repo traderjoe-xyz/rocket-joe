@@ -133,6 +133,12 @@ describe("launch event contract phase one", function () {
           );
       });
 
+      it("should emit event when stopped", async function () {
+        await expect(
+          this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw()
+        ).to.emit(this.LaunchEvent, "Stopped");
+      });
+
       it("should revert on deposit if stopped", async function () {
         await advanceTimeAndBlock(duration.seconds(120));
         await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
