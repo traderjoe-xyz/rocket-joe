@@ -168,7 +168,7 @@ describe("launch event contract phase three", function () {
       await this.LaunchEvent.connect(this.participant).createPair();
     });
 
-    it.only("should add liquidity to pair where token0 balance > 0 and token1 balance > 0", async function () {
+    it("should add liquidity to pair where token0 balance > 0 and token1 balance > 0", async function () {
       await this.factory.createPair(this.wavax.address, this.AUCTOK.address);
       const pairAddress = await this.factory.getPair(
         this.wavax.address,

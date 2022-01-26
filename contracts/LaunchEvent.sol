@@ -91,7 +91,7 @@ contract LaunchEvent is Ownable {
     /// @dev The address of the JoePair, set after createLiquidityPool is called
     IJoePair public pair;
 
-    /// @dev The total amount of wavax that was sent to the router to create the initial liquidity pair.
+    /// @dev The total amount of avax that was sent to the router to create the initial liquidity pair.
     /// Used to calculate the amount of LP to send based on the user's participation in the launch event
     uint256 private avaxAllocated;
 
