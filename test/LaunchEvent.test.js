@@ -31,7 +31,6 @@ describe("launch event contract initialisation", function () {
   beforeEach(async function () {
     // Deploy the tokens used for tests.
     this.rJOE = await this.RocketJoeTokenCF.deploy();
-    // XXX: Should we replace this with a standard ERC20?
     this.AUCTOK = await this.ERC20TokenCF.deploy();
 
     this.RocketFactory = await deployRocketFactory(
@@ -90,6 +89,17 @@ describe("launch event contract initialisation", function () {
       )
         .to.emit(this.RocketFactory, "IssuingTokenDeposited")
         .withArgs(this.AUCTOK.address, this.validParams._tokenAmount)
+        .to.emit(this.RocketFactory, "RJLaunchEventCreated")
+        .withArgs(
+          await this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address),
+          this.issuer.address,
+          this.AUCTOK.address,
+          this.validParams._auctionStart,
+          this.validParams._auctionStart + 60 * 60 * 24 * 2,
+          this.validParams._auctionStart + 60 * 60 * 24 * 3,
+          this.rJOE.address,
+          100
+        )
         .to.emit(
           await ethers.getContractAt(
             "LaunchEvent",
@@ -107,9 +117,7 @@ describe("launch event contract initialisation", function () {
           this.validParams._issuerTimelock,
           ethers.utils.parseEther("100"),
           ethers.utils.parseEther("5")
-        )
-        .to.emit(this.RocketFactory, "RJLaunchEventCreated");
-      // We don't know the launch event address yet so not checking args
+        );
     });
 
     it("should create a launch event if pair created with no liquidity", async function () {
