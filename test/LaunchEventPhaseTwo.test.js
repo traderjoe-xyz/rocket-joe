@@ -129,6 +129,22 @@ describe("launch event contract phase two", function () {
       );
     });
 
+    it("should emit event when issuer emergency withdraws", async function () {
+      await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
+      await expect(this.LaunchEvent.connect(this.issuer).emergencyWithdraw())
+        .to.emit(this.LaunchEvent, "TokenEmergencyWithdraw")
+        .withArgs(this.issuer.address, ethers.utils.parseEther("105"));
+    });
+
+    it("should emit event when user emergency withdraws", async function () {
+      await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
+      await expect(
+        this.LaunchEvent.connect(this.participant).emergencyWithdraw()
+      )
+        .to.emit(this.LaunchEvent, "AvaxEmergencyWithdraw")
+        .withArgs(this.participant.address, ethers.utils.parseEther("1"));
+    });
+
     it("should allow emergency withdraw to user when stopped", async function () {
       await expect(
         this.LaunchEvent.connect(this.participant).emergencyWithdraw()
