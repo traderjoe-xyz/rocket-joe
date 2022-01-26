@@ -113,7 +113,7 @@ describe("launch event contract phase three", function () {
       ).to.be.revertedWith("LaunchEvent: pair not created");
     });
 
-    it.only("should emit an event when it creates a JoePair", async function () {
+    it("should emit an event when it creates a JoePair", async function () {
       await expect(this.LaunchEvent.connect(this.participant).createPair())
         .to.emit(this.LaunchEvent, "LiquidityPoolCreated")
         .withArgs(
@@ -196,6 +196,34 @@ describe("launch event contract phase three", function () {
       const pair = await ethers.getContractAt("IJoePair", pairAddress);
       await pair.sync();
       await this.LaunchEvent.connect(this.participant).createPair();
+    });
+
+    it("should emit event when issuer withdraws liquidity", async function () {
+      await this.LaunchEvent.connect(this.participant).createPair();
+      await advanceTimeAndBlock(duration.days(8));
+
+      await expect(this.LaunchEvent.connect(this.issuer).withdrawLiquidity())
+        .to.emit(this.LaunchEvent, "IssuerLiquidityWithdrawn")
+        .withArgs(
+          this.issuer.address,
+          await this.factory.getPair(this.wavax.address, this.AUCTOK.address),
+          ethers.utils.parseEther("0.4999999999999995")
+        ); // Uniswap burns small amount of pair so not 0.5
+    });
+
+    it("should emit event when user withdraws liquidity", async function () {
+      await this.LaunchEvent.connect(this.participant).createPair();
+      await advanceTimeAndBlock(duration.days(8));
+
+      await expect(
+        this.LaunchEvent.connect(this.participant).withdrawLiquidity()
+      )
+        .to.emit(this.LaunchEvent, "UserLiquidityWithdrawn")
+        .withArgs(
+          this.participant.address,
+          await this.factory.getPair(this.wavax.address, this.AUCTOK.address),
+          ethers.utils.parseEther("0.4999999999999995")
+        ); // Uniswap burns small amount of pair so not 0.5
     });
 
     it("should revert if issuer tries to withdraw liquidity more than once", async function () {
