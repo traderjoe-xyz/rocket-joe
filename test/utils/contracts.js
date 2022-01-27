@@ -31,7 +31,8 @@ async function deployRocketFactory(dev, rJoe, penaltyCollector) {
   // Deploy the rocket joe contracts.
   const LaunchEventPrototype = await LaunchEventCF.deploy();
 
-  const RocketFactory = await RocketJoeFactoryCF.deploy(
+  const RocketFactory = await RocketJoeFactoryCF.deploy();
+  await RocketFactory.initialize(
     LaunchEventPrototype.address,
     rJoe.address,
     wavax.address,
