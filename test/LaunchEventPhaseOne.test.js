@@ -205,7 +205,11 @@ describe("launch event contract phase one", function () {
           )
         )
           .to.emit(await this.LaunchEvent, "UserWithdrawn")
-          .withArgs(this.participant.address, ethers.utils.parseEther("1.0"));
+          .withArgs(
+            this.participant.address,
+            ethers.utils.parseEther("1.0"),
+            0
+          );
       });
 
       it("should apply gradient fee if withdraw in second day", async function () {
