@@ -10,7 +10,6 @@ import "./interfaces/IRocketJoeFactory.sol";
 /// @notice Helper contract to fetch launch event data
 contract LaunchEventLens {
     struct LaunchEventData {
-        address id;
         uint256 auctionStart;
         uint256 phaseOneDuration;
         uint256 phaseOneNoFeeDuration;
@@ -21,10 +20,12 @@ contract LaunchEventLens {
         uint256 issuerTimelock;
         uint256 maxWithdrawPenalty;
         uint256 rJoePerAvax;
+        uint256 tokenDecimals;
         uint256 tokenReserve;
         uint256 wavaxReserve;
-        IERC20Metadata token;
-        IJoePair pair;
+        address id;
+        address token;
+        address pair;
         ILaunchEvent.UserInfo userInfo;
     }
 
@@ -105,9 +106,10 @@ contract LaunchEventLens {
     {
         (uint256 wavaxReserve, uint256 tokenReserve) = _launchEvent
             .getReserves();
+        IERC20Metadata token = _launchEvent.token();
+
         return
             LaunchEventData({
-                id: address(_launchEvent),
                 auctionStart: _launchEvent.auctionStart(),
                 phaseOneDuration: _launchEvent.PHASE_ONE_DURATION(),
                 phaseOneNoFeeDuration: _launchEvent.PHASE_ONE_NO_FEE_DURATION(),
@@ -118,10 +120,12 @@ contract LaunchEventLens {
                 issuerTimelock: _launchEvent.issuerTimelock(),
                 maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),
                 rJoePerAvax: _launchEvent.rJoePerAvax(),
+                tokenDecimals: token.decimals(),
                 tokenReserve: tokenReserve,
                 wavaxReserve: wavaxReserve,
-                token: _launchEvent.token(),
-                pair: _launchEvent.pair(),
+                id: address(_launchEvent),
+                token: address(token),
+                pair: address(_launchEvent.pair()),
                 userInfo: ILaunchEvent.UserInfo({
                     allocation: 0,
                     balance: 0,
