@@ -12,6 +12,7 @@ contract LaunchEventLens {
     struct LaunchEventData {
         uint256 auctionStart;
         uint256 floorPrice;
+        uint256 incentives;
         uint256 issuerTimelock;
         uint256 maxAllocation;
         uint256 maxWithdrawPenalty;
@@ -95,6 +96,7 @@ contract LaunchEventLens {
         LaunchEventData memory launchEventData = getLaunchEventData(
             _launchEvent
         );
+        launchEventData.incentives = _launchEvent.getIncentives(_user);
         launchEventData.pairBalance = _launchEvent.pairBalance(_user);
         launchEventData.userInfo = _launchEvent.getUserInfo(_user);
         return launchEventData;
@@ -116,6 +118,7 @@ contract LaunchEventLens {
             LaunchEventData({
                 auctionStart: _launchEvent.auctionStart(),
                 floorPrice: _launchEvent.floorPrice(),
+                incentives: 0,
                 issuerTimelock: _launchEvent.issuerTimelock(),
                 maxAllocation: _launchEvent.maxAllocation(),
                 maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),

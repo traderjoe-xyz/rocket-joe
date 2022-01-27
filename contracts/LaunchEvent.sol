@@ -480,22 +480,11 @@ contract LaunchEvent is Ownable {
     function withdrawIncentives() external isStopped(false) {
         require(address(pair) != address(0), "LaunchEvent: pair not created");
 
-        UserInfo storage user = getUserInfo[msg.sender];
-        require(
-            !user.hasWithdrawnIncentives,
-            "LaunchEvent: incentives already withdrawn"
-        );
-
-        user.hasWithdrawnIncentives = true;
-        uint256 amount;
-
-        if (msg.sender == issuer) {
-            amount = tokenIncentiveIssuerRefund;
-        } else {
-            amount = (user.balance * tokenIncentivesForUsers) / avaxAllocated;
-        }
-
+        uint256 amount = getIncentives(msg.sender);
         require(amount > 0, "LaunchEvent: caller has no incentive to claim");
+
+        UserInfo storage user = getUserInfo[msg.sender];
+        user.hasWithdrawnIncentives = true;
 
         tokenIncentivesBalance -= amount;
 
@@ -569,6 +558,23 @@ contract LaunchEvent is Ownable {
                 uint256(PHASE_ONE_DURATION - PHASE_ONE_NO_FEE_DURATION);
         }
         return fixedWithdrawPenalty;
+    }
+
+    /// @notice Returns the incentives for a given user
+    /// @param _user The user to look up
+    /// @return The amount of incentives `_user` can withdraw
+    function getIncentives(address _user) public view returns (uint256) {
+        UserInfo storage user = getUserInfo[_user];
+
+        if (user.hasWithdrawnIncentives) {
+            return 0;
+        }
+
+        if (_user == issuer) {
+            return tokenIncentiveIssuerRefund;
+        } else {
+            return (user.balance * tokenIncentivesForUsers) / avaxAllocated;
+        }
     }
 
     /// @notice Returns the current balance of the pool
