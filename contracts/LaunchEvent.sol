@@ -564,7 +564,7 @@ contract LaunchEvent is Ownable {
     /// @param _user The user to look up
     /// @return The amount of incentives `_user` can withdraw
     function getIncentives(address _user) public view returns (uint256) {
-        UserInfo storage user = getUserInfo[_user];
+        UserInfo memory user = getUserInfo[_user];
 
         if (user.hasWithdrawnIncentives) {
             return 0;
