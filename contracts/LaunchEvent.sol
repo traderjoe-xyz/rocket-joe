@@ -345,7 +345,7 @@ contract LaunchEvent is Ownable {
         uint256 rJoeNeeded;
         // check if additional allocation is required.
         if (newAllocation > user.allocation) {
-            // Burn tokens and update allocation.
+            // Get amount of rJOE tokens needed to burn and update allocation
             rJoeNeeded = getRJoeAmount(newAllocation - user.allocation);
             // Set allocation to the current balance as it's impossible
             // to buy more allocation without sending AVAX too
