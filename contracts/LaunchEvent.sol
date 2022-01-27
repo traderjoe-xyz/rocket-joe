@@ -141,7 +141,7 @@ contract LaunchEvent is Ownable {
         uint256 rJoeAmount
     );
 
-    event UserWithdrawn(address indexed user, uint256 avaxAmount);
+    event UserWithdrawn(address indexed user, uint256 avaxAmount, uint256 penaltyAmount);
 
     event IncentiveTokenWithdraw(
         address indexed user,
@@ -387,7 +387,7 @@ contract LaunchEvent is Ownable {
         if (feeAmount > 0) {
             _safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
         }
-        emit UserWithdrawn(msg.sender, _amount);
+        emit UserWithdrawn(msg.sender, _amount, feeAmount);
     }
 
     /// @notice Create the JoePair
