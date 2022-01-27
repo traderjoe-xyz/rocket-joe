@@ -56,49 +56,23 @@ contract LaunchEventLens {
         return launchEventDatas;
     }
 
-    /// @notice Get all launch event datas that a given `_user` has participated in
+    /// @notice Get all launch event datas with a given `_user`
     /// @param _user User to lookup
-    /// @return Array of launch event datas that `_user` has participated in
-    function getUserLaunchEvents(address _user)
+    /// @return Array of all launch event datas with user info
+    function getAllLaunchEventsWithUser(address _user)
         external
         view
         returns (LaunchEventData[] memory)
     {
-        // Since we cannot create dynamic arrays in memory, we first have
-        // to find the number of launch events the user has participated in
         uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();
-        uint256 numParticipatedEvents = 0;
-
-        for (uint256 i = 0; i < numLaunchEvents; i++) {
-            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
-            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
-            ILaunchEvent.UserInfo memory userInfo = launchEvent.getUserInfo(
-                _user
-            );
-            if (userInfo.balance > 0) {
-                numParticipatedEvents += 1;
-            }
-        }
-
-        // Then we can create a fixed size array of length `numParticipatedEvents`
-        // and simply loop through all the launch events again
         LaunchEventData[] memory launchEventDatas = new LaunchEventData[](
-            numParticipatedEvents
+            numLaunchEvents
         );
-        uint256 participatedEventCounter = 0;
 
         for (uint256 i = 0; i < numLaunchEvents; i++) {
             address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
             ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
-            ILaunchEvent.UserInfo memory userInfo = launchEvent.getUserInfo(
-                _user
-            );
-            if (userInfo.balance > 0) {
-                launchEventDatas[
-                    participatedEventCounter
-                ] = getUserLaunchEventData(launchEvent, _user);
-                participatedEventCounter += 1;
-            }
+            launchEventDatas[i] = getUserLaunchEventData(launchEvent, _user);
         }
 
         return launchEventDatas;
