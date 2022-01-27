@@ -89,57 +89,77 @@ rule stake_duration_correlates_return() {
 }
 
 //  - No front-running for deposit:   `f(); deposit(...)` has same result as `deposit()`)
-rule deposit_no_frontrunning() {
-    assert false, "not yet implemented";
-    // storage state
-
-    f(e, args); 
-    // deposit
-
-    // deposit again at storage state
-
-    // compare results
-}
-//  - No front-running for withdraw   `f(); withdraw(...)` has same result as `withdraw()`)
-rule withdraw_no_frontrunning(method f) {
-    assert false, "not yet implemented";
-
-    // storage state
-
-    // withdraw
+rule deposit_no_frontrunning() filtered { f-> (f.selector != withdraw(uint256).selector &&
+                                                       f.selector != deposit(uint256).selector)
+}{
+    env e;
+    uint256 x;
+    storage init;
 
     f(e, args);
+    deposit(x);
+    uint256 bal_f = userJoe(e.msg.sender);
 
-    // withdraw again at storage state
+    deposit(x) at init;
+    uint256 bal_clean = userJoe(e.msg.sender);
+    assert bal_f == bal_clean, "frontrunning found";
+}
+//  - No front-running for withdraw   `f(); withdraw(...)` has same result as `withdraw()`)
+rule withdraw_no_frontrunning(method f) filtered { f-> (f.selector != withdraw(uint256).selector &&
+                                                       f.selector != deposit(uint256).selector)
+}{
+    env e;
+    uint256 x;
+    storage init;
 
-    // compare results
+    f(e, args);
+    withdraw(x);
+    uint256 bal_f = userJoe(e.msg.sender);
+
+    withdraw(x) at init;
+    uint256 bal_clean = userJoe(e.msg.sender);
+    assert bal_f == bal_clean, "frontrunning found";
 }
 
 // additivty with frontrunning for greater coverage?
 rule additivity_withdraw() {
-    assert false, "not yet implemented";
+    uint256 x;
+    uint256 y;
+    env e; 
+    require x > 0 && y > 0;
+    require userJoe > x + y;
 
-    // storage state init 
+    storage init;
 
-    // withdraw x + y
+    withdraw(x);
+    withdraw(y);
 
-    // withdraw x
-    // withdraw y
+    uint256 bal_sep = userJoe(e.msg.sender);
 
-    // compare results
+    withdraw(x+y) at init;
+    uint256 bal_sum = userJoe(e.msg.sender);
+    
+    assert bal_sep == bal_sum, "additivity failed";
 }
 
 rule additivity_deposit() {
-    assert false, "noet yet implemented";
+    uint256 x;
+    uint256 y;
+    env e; 
+    require x > 0 && y > 0;
 
-    // storage state init
+    storage init;
 
-    // deopsit x
-    // deposit y
+    deposit(x);
+    deposit(y);
 
-    // deposit xy at storage state
+    uint256 bal_sep = userJoe(e.msg.sender);
 
-    // compare results
+    deposit(x+y) at init;
+    uint256 bal_sum = userJoe(e.msg.sender);
+
+    assert bal_sep == bal_sum, "additivity failed";
+
 }
 
 //  - updatePool is a no-op (`updatePool(); f(...)` has same result as `f()`)
