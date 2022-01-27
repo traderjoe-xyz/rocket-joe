@@ -18,6 +18,10 @@ methods {
     emergencyWithdraw()
     updateEmissionRate(uint256)
     _safeRJoeTransfer(address, uint256)
+
+    // harness functions
+    userJoe(address) returns(uint256) envfree
+    userRewardDebt(address) returns(uint256) envfree
 }
 
 rule sanity(method f) {
@@ -41,7 +45,7 @@ invariant staking_RJ_balance_eq_pending_rewards()
 //joe.balanceOf(RJStaking)  ≥ Σ userInfo[user].amount
 invariant staking_joe_bal_sums_user_balance()
     false
-
+ 
 ////////////////////////////////////////////////////////////////////////////
 //                       Rules                                            //
 ////////////////////////////////////////////////////////////////////////////

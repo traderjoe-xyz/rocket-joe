@@ -14,6 +14,16 @@ import "./RocketJoeToken.sol";
 contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
+    // harness functions
+
+    function userJoe(address user) public view returns (uint256) {
+        return userInfo(user).amount;
+    }
+
+    function userRewardDebt(address user) public view returns (uint256) {
+        return userInfo(user).rewardDebt;
+    }
+
     struct UserInfo {
         uint256 amount; // How many JOE tokens the user has provided
         uint256 rewardDebt; // Reward debt. See explanation below
