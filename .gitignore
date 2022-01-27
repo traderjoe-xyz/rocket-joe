@@ -12,3 +12,4 @@ coverage.json
 
 .openzeppelin
 .env
+env
