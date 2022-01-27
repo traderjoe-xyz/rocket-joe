@@ -2,8 +2,9 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -16,7 +17,11 @@ import "./interfaces/IRocketJoeToken.sol";
 /// @title Rocket Joe Factory
 /// @author Trader Joe
 /// @notice Factory that creates Rocket Joe events
-contract RocketJoeFactory is IRocketJoeFactory, Ownable {
+contract RocketJoeFactory is
+    IRocketJoeFactory,
+    Initializable,
+    OwnableUpgradeable
+{
     using SafeERC20 for IERC20;
 
     address public override penaltyCollector;
@@ -36,7 +41,7 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     mapping(address => bool) public override isRJLaunchEvent;
     address[] public override allRJLaunchEvents;
 
-    /// @notice Creates the launch event factory
+    /// @notice initializes the launch event factory
     /// @dev Uses clone factory pattern to save space
     /// @param _eventImplementation Implementation of launch event contract
     /// @param _rJoe rJOE token address
@@ -44,14 +49,15 @@ contract RocketJoeFactory is IRocketJoeFactory, Ownable {
     /// @param _penaltyCollector Address that collects all withdrawal penalties
     /// @param _router Router used to create LP on Trader Joe AMM
     /// @param _factory Factory used to get info of JoePairs
-    constructor(
+    function initialize(
         address _eventImplementation,
         address _rJoe,
         address _wavax,
         address _penaltyCollector,
         address _router,
         address _factory
-    ) {
+    ) public initializer {
+        __Ownable_init();
         require(
             _eventImplementation != address(0) &&
                 _rJoe != address(0) &&

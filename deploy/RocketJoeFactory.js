@@ -34,25 +34,24 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
 
   const factory = await deploy("RocketJoeFactory", {
     from: deployer,
-    args: [
-      launchEventAddress,
-      rJoeAddress,
-      wavaxAddress,
-      deployer,
-      routerAddress,
-      factoryAddress,
-    ],
+    proxy: {
+      proxyContract: "OpenZeppelinTransparentProxy",
+      execute: {
+        init: {
+          methodName: "initialize",
+          args: [
+            launchEventAddress,
+            rJoeAddress,
+            wavaxAddress,
+            deployer,
+            routerAddress,
+            factoryAddress,
+          ],
+        },
+      },
+    },
     log: true,
   });
-  if (factory.newlyDeployed) {
-    const rocketJoeFactoryAddress = (await deployments.get("RocketJoeFactory"))
-      .address;
-    const launchEvent = await ethers.getContractAt(
-      "LaunchEvent",
-      launchEventAddress
-    );
-    await launchEvent.transferOwnership(rocketJoeFactoryAddress);
-  }
 };
 
 module.exports.tags = ["RocketJoeFactory"];
