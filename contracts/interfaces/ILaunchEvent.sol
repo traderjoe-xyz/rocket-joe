@@ -58,4 +58,6 @@ interface ILaunchEvent {
     function pair() external view returns (IJoePair);
 
     function getUserInfo(address) external view returns (UserInfo memory);
+
+    function getPenalty() external view returns (uint256);
 }
