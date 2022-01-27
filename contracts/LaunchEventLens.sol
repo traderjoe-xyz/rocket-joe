@@ -15,6 +15,7 @@ contract LaunchEventLens {
         uint256 issuerTimelock;
         uint256 maxAllocation;
         uint256 maxWithdrawPenalty;
+        uint256 penalty;
         uint256 phaseOneDuration;
         uint256 phaseOneNoFeeDuration;
         uint256 phaseTwoDuration;
@@ -116,6 +117,7 @@ contract LaunchEventLens {
                 issuerTimelock: _launchEvent.issuerTimelock(),
                 maxAllocation: _launchEvent.maxAllocation(),
                 maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),
+                penalty: _launchEvent.getPenalty(),
                 phaseOneDuration: _launchEvent.PHASE_ONE_DURATION(),
                 phaseOneNoFeeDuration: _launchEvent.PHASE_ONE_NO_FEE_DURATION(),
                 phaseTwoDuration: _launchEvent.PHASE_TWO_DURATION(),
