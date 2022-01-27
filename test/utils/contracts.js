@@ -39,9 +39,6 @@ async function deployRocketFactory(dev, rJoe, penaltyCollector) {
     router.address,
     factory.address
   );
-  await LaunchEventPrototype.connect(dev).transferOwnership(
-    RocketFactory.address
-  );
   return RocketFactory;
 }
 
