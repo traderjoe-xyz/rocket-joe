@@ -77,15 +77,40 @@ rule pending_reward_decreased_only_user() {
 
 //  - If I am staked, I get some RJoe
 rule staking_non-trivial_rJoe() {
-    assert false, "not yet implemented";
-    // deposit joe
-    // delta_t > 0 (for t = 0 I should have no rewards)
-    // pendingRJoe > 0
+    uint256 joe;
+    require joe > 0;
+    env e0;
+    deposit(e0, joe);
+
+    env e1; 
+    int delta_t = e1.msg.sender - e0.msg.sender; // store this as a variable for more readable cex
+    require delta_t > 0;
+    uint256 rJoe = pendingRJoe(e1, e0.msg.sender);
+    assert rJoe != 0;
 }
 
 //  - If I stake longer, I get more reward
 rule stake_duration_correlates_return() {
-    assert false, "not yet implemented";
+
+    storage init; 
+    uint256 joe;
+    require joe > 0;
+    env e0;
+    deposit(e0, joe);
+
+    env e1; 
+    int delta_t1 = e1.msg.sender - e0.msg.sender; // store this as a variable for more readable cex
+    require delta_t1 > 0;
+    uint256 rJoe1 = pendingRJoe(e1, e0.msg.sender);
+
+    deposit(e0, joe) at init;
+
+    env e3; 
+    int delta_t2 = e2.msg.sender - e0.msg.sender; // store this as a variable for more readable cex
+    require delta_t2 > delta_t1;
+    uint256 rJoe2 = pendingRJoe(e2, e0.msg.sender);
+
+    assert delta_t2 > delta_t1 => rJoe2 > rJoe1; 
 }
 
 //  - No front-running for deposit:   `f(); deposit(...)` has same result as `deposit()`)
@@ -97,10 +122,10 @@ rule deposit_no_frontrunning() filtered { f-> (f.selector != withdraw(uint256).s
     storage init;
 
     f(e, args);
-    deposit(x);
+    deposit(e, x);
     uint256 bal_f = userJoe(e.msg.sender);
 
-    deposit(x) at init;
+    deposit(e, x) at init;
     uint256 bal_clean = userJoe(e.msg.sender);
     assert bal_f == bal_clean, "frontrunning found";
 }
@@ -113,10 +138,10 @@ rule withdraw_no_frontrunning(method f) filtered { f-> (f.selector != withdraw(u
     storage init;
 
     f(e, args);
-    withdraw(x);
+    withdraw(e, x);
     uint256 bal_f = userJoe(e.msg.sender);
 
-    withdraw(x) at init;
+    withdraw(e, x) at init;
     uint256 bal_clean = userJoe(e.msg.sender);
     assert bal_f == bal_clean, "frontrunning found";
 }
@@ -131,12 +156,12 @@ rule additivity_withdraw() {
 
     storage init;
 
-    withdraw(x);
-    withdraw(y);
+    withdraw(e, x);
+    withdraw(e, y);
 
     uint256 bal_sep = userJoe(e.msg.sender);
 
-    withdraw(x+y) at init;
+    withdraw(e, x+y) at init;
     uint256 bal_sum = userJoe(e.msg.sender);
     
     assert bal_sep == bal_sum, "additivity failed";
@@ -150,12 +175,12 @@ rule additivity_deposit() {
 
     storage init;
 
-    deposit(x);
-    deposit(y);
+    deposit(e, x);
+    deposit(e, y);
 
     uint256 bal_sep = userJoe(e.msg.sender);
 
-    deposit(x+y) at init;
+    deposit(e, x+y) at init;
     uint256 bal_sum = userJoe(e.msg.sender);
 
     assert bal_sep == bal_sum, "additivity failed";
