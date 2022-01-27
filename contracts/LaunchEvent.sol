@@ -16,7 +16,7 @@ import "./interfaces/IWAVAX.sol";
 /// @title Rocket Joe Launch Event
 /// @author Trader Joe
 /// @notice A liquidity launch contract enabling price discovery and token distribution at secondary market listing price
-contract LaunchEvent is Ownable {
+contract LaunchEvent {
     using SafeERC20 for IERC20Metadata;
 
     /// @notice The phases the launch event can be in
