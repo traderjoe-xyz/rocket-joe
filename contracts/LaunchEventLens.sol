@@ -11,6 +11,7 @@ import "./interfaces/IRocketJoeFactory.sol";
 contract LaunchEventLens {
     struct LaunchEventData {
         uint256 auctionStart;
+        uint256 avaxReserve;
         uint256 floorPrice;
         uint256 incentives;
         uint256 issuerTimelock;
@@ -26,7 +27,6 @@ contract LaunchEventLens {
         uint256 tokenIncentivesPercent;
         uint256 tokenReserve;
         uint256 userTimelock;
-        uint256 wavaxReserve;
         address id;
         address token;
         address pair;
@@ -110,7 +110,7 @@ contract LaunchEventLens {
         view
         returns (LaunchEventData memory)
     {
-        (uint256 wavaxReserve, uint256 tokenReserve) = _launchEvent
+        (uint256 avaxReserve, uint256 tokenReserve) = _launchEvent
             .getReserves();
         IERC20Metadata token = _launchEvent.token();
 
@@ -132,7 +132,7 @@ contract LaunchEventLens {
                 tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),
                 tokenReserve: tokenReserve,
                 userTimelock: _launchEvent.userTimelock(),
-                wavaxReserve: wavaxReserve,
+                avaxReserve: avaxReserve,
                 id: address(_launchEvent),
                 token: address(token),
                 pair: address(_launchEvent.pair()),
