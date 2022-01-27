@@ -43,6 +43,8 @@ interface ILaunchEvent {
 
     function issuerTimelock() external view returns (uint256);
 
+    function maxAllocation() external view returns (uint256);
+
     function maxWithdrawPenalty() external view returns (uint256);
 
     function fixedWithdrawPenalty() external view returns (uint256);

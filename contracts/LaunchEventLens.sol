@@ -11,17 +11,18 @@ import "./interfaces/IRocketJoeFactory.sol";
 contract LaunchEventLens {
     struct LaunchEventData {
         uint256 auctionStart;
+        uint256 floorPrice;
+        uint256 issuerTimelock;
+        uint256 maxAllocation;
+        uint256 maxWithdrawPenalty;
         uint256 phaseOneDuration;
         uint256 phaseOneNoFeeDuration;
         uint256 phaseTwoDuration;
-        uint256 tokenIncentivesPercent;
-        uint256 floorPrice;
-        uint256 userTimelock;
-        uint256 issuerTimelock;
-        uint256 maxWithdrawPenalty;
         uint256 rJoePerAvax;
         uint256 tokenDecimals;
+        uint256 tokenIncentivesPercent;
         uint256 tokenReserve;
+        uint256 userTimelock;
         uint256 wavaxReserve;
         address id;
         address token;
@@ -111,17 +112,18 @@ contract LaunchEventLens {
         return
             LaunchEventData({
                 auctionStart: _launchEvent.auctionStart(),
+                floorPrice: _launchEvent.floorPrice(),
+                issuerTimelock: _launchEvent.issuerTimelock(),
+                maxAllocation: _launchEvent.maxAllocation(),
+                maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),
                 phaseOneDuration: _launchEvent.PHASE_ONE_DURATION(),
                 phaseOneNoFeeDuration: _launchEvent.PHASE_ONE_NO_FEE_DURATION(),
                 phaseTwoDuration: _launchEvent.PHASE_TWO_DURATION(),
-                tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),
-                floorPrice: _launchEvent.floorPrice(),
-                userTimelock: _launchEvent.userTimelock(),
-                issuerTimelock: _launchEvent.issuerTimelock(),
-                maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),
                 rJoePerAvax: _launchEvent.rJoePerAvax(),
                 tokenDecimals: token.decimals(),
+                tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),
                 tokenReserve: tokenReserve,
+                userTimelock: _launchEvent.userTimelock(),
                 wavaxReserve: wavaxReserve,
                 id: address(_launchEvent),
                 token: address(token),
