@@ -117,6 +117,7 @@ contract LaunchEventLens {
         return
             LaunchEventData({
                 auctionStart: _launchEvent.auctionStart(),
+                avaxReserve: avaxReserve,
                 floorPrice: _launchEvent.floorPrice(),
                 incentives: 0,
                 issuerTimelock: _launchEvent.issuerTimelock(),
@@ -132,7 +133,6 @@ contract LaunchEventLens {
                 tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),
                 tokenReserve: tokenReserve,
                 userTimelock: _launchEvent.userTimelock(),
-                avaxReserve: avaxReserve,
                 id: address(_launchEvent),
                 token: address(token),
                 pair: address(_launchEvent.pair()),
