@@ -10,6 +10,7 @@ import "./interfaces/IRocketJoeFactory.sol";
 /// @notice Helper contract to fetch launch event data
 contract LaunchEventLens {
     struct LaunchEventData {
+        address id;
         uint256 auctionStart;
         uint256 phaseOneDuration;
         uint256 phaseOneNoFeeDuration;
@@ -106,6 +107,7 @@ contract LaunchEventLens {
             .getReserves();
         return
             LaunchEventData({
+                id: address(_launchEvent),
                 auctionStart: _launchEvent.auctionStart(),
                 phaseOneDuration: _launchEvent.PHASE_ONE_DURATION(),
                 phaseOneNoFeeDuration: _launchEvent.PHASE_ONE_NO_FEE_DURATION(),
