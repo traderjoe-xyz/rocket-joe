@@ -118,6 +118,12 @@ describe("rocket factory test", function () {
 
   it("should set event implementation address", async function () {
     await expect(
+      this.RocketFactory.connect(this.dev).setEventImplementation(
+        ethers.constants.AddressZero
+      )
+    ).to.be.revertedWith("RJFactory: can't be null");
+
+    await expect(
       this.RocketFactory.connect(this.issuer).setEventImplementation(
         this.signers[9].address
       )
