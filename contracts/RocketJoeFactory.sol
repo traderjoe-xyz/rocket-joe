@@ -33,9 +33,9 @@ contract RocketJoeFactory is
     address public override router;
     address public override factory;
 
-    uint256 public override PHASE_ONE_DURATION = 2 days;
-    uint256 public override PHASE_ONE_NO_FEE_DURATION = 1 days;
-    uint256 public override PHASE_TWO_DURATION = 1 days;
+    uint256 public override PHASE_ONE_DURATION;
+    uint256 public override PHASE_ONE_NO_FEE_DURATION;
+    uint256 public override PHASE_TWO_DURATION;
 
     mapping(address => address) public override getRJLaunchEvent;
     mapping(address => bool) public override isRJLaunchEvent;
@@ -77,6 +77,10 @@ contract RocketJoeFactory is
         router = _router;
         factory = _factory;
         rJoePerAvax = 100e18;
+
+        PHASE_ONE_DURATION = 2 days;
+        PHASE_ONE_NO_FEE_DURATION = 1 days;
+        PHASE_TWO_DURATION = 1 days;
     }
 
     /// @notice Returns the number of launch events
