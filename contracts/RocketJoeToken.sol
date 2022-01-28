@@ -59,6 +59,7 @@ contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
         address _to,
         uint256 _amount
     ) internal virtual override {
+        super._beforeTokenTransfer(_from, _to, _amount);
         require(
             _from == address(0) || _to == address(0) || _from == owner(),
             "RocketJoeToken: can't send token"
