@@ -190,30 +190,13 @@ contract LaunchEvent {
 
     /// @notice Modifier which ensures the caller's timelock to withdraw has elapsed
     modifier timelockElapsed() {
-        uint256 phase3Start = auctionStart +
-            PHASE_ONE_DURATION +
-            PHASE_TWO_DURATION;
-        if (msg.sender == issuer) {
-            require(
-                block.timestamp > phase3Start + issuerTimelock,
-                "LaunchEvent: can't withdraw before issuer's timelock"
-            );
-        } else {
-            require(
-                block.timestamp > phase3Start + userTimelock,
-                "LaunchEvent: can't withdraw before user's timelock"
-            );
-        }
+        _timelockElapsed();
         _;
     }
 
     /// @notice Ensures launch event is stopped/running
     modifier isStopped(bool _stopped) {
-        if (_stopped) {
-            require(stopped, "LaunchEvent: is still running");
-        } else {
-            require(!stopped, "LaunchEvent: stopped");
-        }
+        _isStopped(_stopped);
         _;
     }
 
@@ -269,6 +252,15 @@ contract LaunchEvent {
         require(
             _auctionStart > block.timestamp,
             "LaunchEvent: start of phase 1 cannot be in the past"
+        );
+        require(
+            _issuer != address(0),
+            "LaunchEvent: issuer must be address zero"
+        );
+        require(_floorPrice > 0, "LaunchEvent: floor price must not be zero");
+        require(
+            _maxAllocation > 0,
+            "LaunchEvent: max allocation must not be zero"
         );
 
         issuer = _issuer;
@@ -637,7 +629,7 @@ contract LaunchEvent {
         return (user.balance * lpSupply) / avaxAllocated / 2;
     }
 
-    /// @dev Bytecode size optimization for the `atPhase` modifier.
+    /// @dev Bytecode size optimization for the `atPhase` modifier
     /// This works becuase internal functions are not in-lined in modifiers
     function _atPhase(Phase _phase) internal view {
         if (_phase == Phase.NotStarted) {
@@ -662,6 +654,35 @@ contract LaunchEvent {
             );
         } else {
             revert("LaunchEvent: unknown state");
+        }
+    }
+
+    /// @dev Bytecode size optimization for the `timelockElapsed` modifier
+    /// This works becuase internal functions are not in-lined in modifiers
+    function _timelockElapsed() internal view {
+        uint256 phase3Start = auctionStart +
+            PHASE_ONE_DURATION +
+            PHASE_TWO_DURATION;
+        if (msg.sender == issuer) {
+            require(
+                block.timestamp > phase3Start + issuerTimelock,
+                "LaunchEvent: can't withdraw before issuer's timelock"
+            );
+        } else {
+            require(
+                block.timestamp > phase3Start + userTimelock,
+                "LaunchEvent: can't withdraw before user's timelock"
+            );
+        }
+    }
+
+    /// @dev Bytecode size optimization for the `isStopped` modifier
+    /// This works becuase internal functions are not in-lined in modifiers
+    function _isStopped(bool _stopped) internal view {
+        if (_stopped) {
+            require(stopped, "LaunchEvent: is still running");
+        } else {
+            require(!stopped, "LaunchEvent: stopped");
         }
     }
 
