@@ -54,7 +54,7 @@ contract LaunchEvent {
     /// @dev Amount of tokens used as incentives for locking up LPs during phase 3,
     /// in parts per 1e18 and expressed as an additional percentage to the tokens for auction.
     /// E.g. if tokenIncentivesPercent = 5e16 (5%), and issuer sends 105 000 tokens,
-    /// then 105 000 * 1e18 / (1e18 + 5e16) = 5 000 tokens are used for incentives
+    /// then 105 000 * 5e16 / (1e18 + 5e16) = 5 000 tokens are used for incentives
     uint256 public tokenIncentivesPercent;
 
     /// @notice Floor price in AVAX per token (can be 0)
@@ -387,10 +387,10 @@ contract LaunchEvent {
 
         avaxReserve -= _amount;
 
-        _safeTransferAVAX(msg.sender, amountMinusFee);
         if (feeAmount > 0) {
             _safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
         }
+        _safeTransferAVAX(msg.sender, amountMinusFee);
         emit UserWithdrawn(msg.sender, _amount, feeAmount);
     }
 
@@ -455,12 +455,10 @@ contract LaunchEvent {
         require(address(pair) != address(0), "LaunchEvent: pair not created");
 
         UserInfo storage user = getUserInfo[msg.sender];
-        require(
-            !user.hasWithdrawnPair,
-            "LaunchEvent: liquidity already withdrawn"
-        );
 
         uint256 balance = pairBalance(msg.sender);
+        require(balance > 0, "LaunchEvent: caller has no liquidity to claim");
+
         user.hasWithdrawnPair = true;
 
         if (msg.sender == issuer) {
@@ -607,7 +605,7 @@ contract LaunchEvent {
         }
     }
 
-    /// @notice Returns the current balance of the pool
+    /// @notice Returns the outstanding balance of the launch event contract
     /// @return The balances of AVAX and issued token held by the launch contract
     function getReserves() external view returns (uint256, uint256) {
         return (avaxReserve, tokenReserve + tokenIncentivesBalance);
