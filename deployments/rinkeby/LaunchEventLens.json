@@ -1,5 +1,5 @@
 {
-  "address": "0xC845c4eD43c3389628fe36F25bd39f02294C47B9",
+  "address": "0x0C0b497829E2fF5a1479f7aa74f06Fd73D20bd4B",
   "abi": [
     {
       "inputs": [
@@ -25,6 +25,46 @@
             },
             {
               "internalType": "uint256",
+              "name": "avaxReserve",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "floorPrice",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "incentives",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "issuerTimelock",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxAllocation",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxWithdrawPenalty",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "pairBalance",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "penalty",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "phaseOneDuration",
               "type": "uint256"
             },
@@ -40,32 +80,17 @@
             },
             {
               "internalType": "uint256",
-              "name": "tokenIncentivesPercent",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "floorPrice",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "userTimelock",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "issuerTimelock",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "maxWithdrawPenalty",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
               "name": "rJoePerAvax",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenDecimals",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenIncentivesPercent",
               "type": "uint256"
             },
             {
@@ -75,16 +100,169 @@
             },
             {
               "internalType": "uint256",
-              "name": "wavaxReserve",
+              "name": "userTimelock",
               "type": "uint256"
             },
             {
-              "internalType": "contract IERC20Metadata",
+              "internalType": "address",
+              "name": "id",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
               "name": "token",
               "type": "address"
             },
             {
-              "internalType": "contract IJoePair",
+              "internalType": "address",
+              "name": "pair",
+              "type": "address"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "allocation",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "balance",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "hasWithdrawnPair",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "hasWithdrawnIncentives",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct ILaunchEvent.UserInfo",
+              "name": "userInfo",
+              "type": "tuple"
+            }
+          ],
+          "internalType": "struct LaunchEventLens.LaunchEventData[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        }
+      ],
+      "name": "getAllLaunchEventsWithUser",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "auctionStart",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "avaxReserve",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "floorPrice",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "incentives",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "issuerTimelock",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxAllocation",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxWithdrawPenalty",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "pairBalance",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "penalty",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "phaseOneDuration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "phaseOneNoFeeDuration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "phaseTwoDuration",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "rJoePerAvax",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenDecimals",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenIncentivesPercent",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenReserve",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "userTimelock",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "id",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
               "name": "pair",
               "type": "address"
             },
@@ -143,6 +321,46 @@
             },
             {
               "internalType": "uint256",
+              "name": "avaxReserve",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "floorPrice",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "incentives",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "issuerTimelock",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxAllocation",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxWithdrawPenalty",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "pairBalance",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "penalty",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "phaseOneDuration",
               "type": "uint256"
             },
@@ -158,32 +376,17 @@
             },
             {
               "internalType": "uint256",
-              "name": "tokenIncentivesPercent",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "floorPrice",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "userTimelock",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "issuerTimelock",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "maxWithdrawPenalty",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
               "name": "rJoePerAvax",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenDecimals",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenIncentivesPercent",
               "type": "uint256"
             },
             {
@@ -193,16 +396,21 @@
             },
             {
               "internalType": "uint256",
-              "name": "wavaxReserve",
+              "name": "userTimelock",
               "type": "uint256"
             },
             {
-              "internalType": "contract IERC20Metadata",
+              "internalType": "address",
+              "name": "id",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
               "name": "token",
               "type": "address"
             },
             {
-              "internalType": "contract IJoePair",
+              "internalType": "address",
               "name": "pair",
               "type": "address"
             },
@@ -266,6 +474,46 @@
             },
             {
               "internalType": "uint256",
+              "name": "avaxReserve",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "floorPrice",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "incentives",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "issuerTimelock",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxAllocation",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "maxWithdrawPenalty",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "pairBalance",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "penalty",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
               "name": "phaseOneDuration",
               "type": "uint256"
             },
@@ -281,32 +529,17 @@
             },
             {
               "internalType": "uint256",
-              "name": "tokenIncentivesPercent",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "floorPrice",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "userTimelock",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "issuerTimelock",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "maxWithdrawPenalty",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
               "name": "rJoePerAvax",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenDecimals",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "tokenIncentivesPercent",
               "type": "uint256"
             },
             {
@@ -316,16 +549,21 @@
             },
             {
               "internalType": "uint256",
-              "name": "wavaxReserve",
+              "name": "userTimelock",
               "type": "uint256"
             },
             {
-              "internalType": "contract IERC20Metadata",
+              "internalType": "address",
+              "name": "id",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
               "name": "token",
               "type": "address"
             },
             {
-              "internalType": "contract IJoePair",
+              "internalType": "address",
               "name": "pair",
               "type": "address"
             },
@@ -366,124 +604,6 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_user",
-          "type": "address"
-        }
-      ],
-      "name": "getUserLaunchEvents",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "uint256",
-              "name": "auctionStart",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "phaseOneDuration",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "phaseOneNoFeeDuration",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "phaseTwoDuration",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenIncentivesPercent",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "floorPrice",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "userTimelock",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "issuerTimelock",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "maxWithdrawPenalty",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "rJoePerAvax",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "tokenReserve",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "wavaxReserve",
-              "type": "uint256"
-            },
-            {
-              "internalType": "contract IERC20Metadata",
-              "name": "token",
-              "type": "address"
-            },
-            {
-              "internalType": "contract IJoePair",
-              "name": "pair",
-              "type": "address"
-            },
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "allocation",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "balance",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "hasWithdrawnPair",
-                  "type": "bool"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "hasWithdrawnIncentives",
-                  "type": "bool"
-                }
-              ],
-              "internalType": "struct ILaunchEvent.UserInfo",
-              "name": "userInfo",
-              "type": "tuple"
-            }
-          ],
-          "internalType": "struct LaunchEventLens.LaunchEventData[]",
-          "name": "",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "rocketJoeFactory",
       "outputs": [
@@ -497,28 +617,30 @@
       "type": "function"
     }
   ],
-  "transactionHash": "0x789b60be077a682b8fc3c5cbbb7af8aff974ca8ec3c2ee93b7b6dc7e946d8298",
+  "transactionHash": "0x10a41eda8318d7d7856b441aa5d4f060637dff539b7b5ce01b12d5ccfa4129a0",
   "receipt": {
     "to": null,
     "from": "0x1d9D82344E76769EB727521822D1EacB834A9024",
-    "contractAddress": "0xC845c4eD43c3389628fe36F25bd39f02294C47B9",
-    "transactionIndex": 4,
-    "gasUsed": "1549832",
+    "contractAddress": "0x0C0b497829E2fF5a1479f7aa74f06Fd73D20bd4B",
+    "transactionIndex": 1,
+    "gasUsed": "1641152",
     "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-    "blockHash": "0x5f52969a0ea71cd6b947fd5ae53dbf1e799c5599f553ac3d911b183af3eb6a12",
-    "transactionHash": "0x789b60be077a682b8fc3c5cbbb7af8aff974ca8ec3c2ee93b7b6dc7e946d8298",
+    "blockHash": "0xaac2a43da70c27039e1e8e1f408a73a8eae455c7d865152d3449051ba30e61eb",
+    "transactionHash": "0x10a41eda8318d7d7856b441aa5d4f060637dff539b7b5ce01b12d5ccfa4129a0",
     "logs": [],
-    "blockNumber": 10061272,
-    "cumulativeGasUsed": "2261936",
+    "blockNumber": 10067348,
+    "cumulativeGasUsed": "1663176",
     "status": 1,
     "byzantium": true
   },
-  "args": ["0x24f4250c359BF0dfd63ae29929Fd2E676076206C"],
+  "args": [
+    "0xAc829948902b0f0a78862ed4149E17D5928b3d96"
+  ],
   "numDeployments": 1,
-  "solcInputHash": "78faad8a28cb02fea5e782298582f602",
-  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_rocketJoeFactory\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"getAllLaunchEvents\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"auctionStart\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneNoFeeDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseTwoDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenIncentivesPercent\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"floorPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"userTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"issuerTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxWithdrawPenalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rJoePerAvax\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"wavaxReserve\",\"type\":\"uint256\"},{\"internalType\":\"contract IERC20Metadata\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"contract IJoePair\",\"name\":\"pair\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"allocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnPair\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnIncentives\",\"type\":\"bool\"}],\"internalType\":\"struct ILaunchEvent.UserInfo\",\"name\":\"userInfo\",\"type\":\"tuple\"}],\"internalType\":\"struct LaunchEventLens.LaunchEventData[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract ILaunchEvent\",\"name\":\"_launchEvent\",\"type\":\"address\"}],\"name\":\"getLaunchEventData\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"auctionStart\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneNoFeeDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseTwoDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenIncentivesPercent\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"floorPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"userTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"issuerTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxWithdrawPenalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rJoePerAvax\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"wavaxReserve\",\"type\":\"uint256\"},{\"internalType\":\"contract IERC20Metadata\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"contract IJoePair\",\"name\":\"pair\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"allocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnPair\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnIncentives\",\"type\":\"bool\"}],\"internalType\":\"struct ILaunchEvent.UserInfo\",\"name\":\"userInfo\",\"type\":\"tuple\"}],\"internalType\":\"struct LaunchEventLens.LaunchEventData\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract ILaunchEvent\",\"name\":\"_launchEvent\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_user\",\"type\":\"address\"}],\"name\":\"getUserLaunchEventData\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"auctionStart\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneNoFeeDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseTwoDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenIncentivesPercent\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"floorPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"userTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"issuerTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxWithdrawPenalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rJoePerAvax\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"wavaxReserve\",\"type\":\"uint256\"},{\"internalType\":\"contract IERC20Metadata\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"contract IJoePair\",\"name\":\"pair\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"allocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnPair\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnIncentives\",\"type\":\"bool\"}],\"internalType\":\"struct ILaunchEvent.UserInfo\",\"name\":\"userInfo\",\"type\":\"tuple\"}],\"internalType\":\"struct LaunchEventLens.LaunchEventData\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_user\",\"type\":\"address\"}],\"name\":\"getUserLaunchEvents\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"auctionStart\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneNoFeeDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseTwoDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenIncentivesPercent\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"floorPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"userTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"issuerTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxWithdrawPenalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rJoePerAvax\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"wavaxReserve\",\"type\":\"uint256\"},{\"internalType\":\"contract IERC20Metadata\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"contract IJoePair\",\"name\":\"pair\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"allocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnPair\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnIncentives\",\"type\":\"bool\"}],\"internalType\":\"struct ILaunchEvent.UserInfo\",\"name\":\"userInfo\",\"type\":\"tuple\"}],\"internalType\":\"struct LaunchEventLens.LaunchEventData[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rocketJoeFactory\",\"outputs\":[{\"internalType\":\"contract IRocketJoeFactory\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Trader Joe\",\"kind\":\"dev\",\"methods\":{\"constructor\":{\"params\":{\"_rocketJoeFactory\":\"Address of the RocketJoeFactory\"}},\"getAllLaunchEvents()\":{\"returns\":{\"_0\":\"Array of all launch event datas\"}},\"getLaunchEventData(address)\":{\"params\":{\"_launchEvent\":\"Launch event to lookup\"},\"returns\":{\"_0\":\"Launch event data for the given `_launchEvent`\"}},\"getUserLaunchEventData(address,address)\":{\"params\":{\"_launchEvent\":\"Launch event to lookup\",\"_user\":\"User to look up\"},\"returns\":{\"_0\":\"Launch event data for the given `_launchEvent` and `_user`\"}},\"getUserLaunchEvents(address)\":{\"params\":{\"_user\":\"User to lookup\"},\"returns\":{\"_0\":\"Array of launch event datas that `_user` has participated in\"}}},\"title\":\"Launch Event Lens\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"constructor\":{\"notice\":\"Create a new instance with required parameters\"},\"getAllLaunchEvents()\":{\"notice\":\"Get all launch event datas\"},\"getLaunchEventData(address)\":{\"notice\":\"Get launch event data for a given launch event\"},\"getUserLaunchEventData(address,address)\":{\"notice\":\"Get launch event data for a given launch event and user\"},\"getUserLaunchEvents(address)\":{\"notice\":\"Get all launch event datas that a given `_user` has participated in\"}},\"notice\":\"Helper contract to fetch launch event data\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/LaunchEventLens.sol\":\"LaunchEventLens\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0x61437cb513a887a1bbad006e7b1c8b414478427d33de47c5600af3c748f108da\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (token/ERC20/extensions/IERC20Metadata.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"../IERC20.sol\\\";\\n\\n/**\\n * @dev Interface for the optional metadata functions from the ERC20 standard.\\n *\\n * _Available since v4.1._\\n */\\ninterface IERC20Metadata is IERC20 {\\n    /**\\n     * @dev Returns the name of the token.\\n     */\\n    function name() external view returns (string memory);\\n\\n    /**\\n     * @dev Returns the symbol of the token.\\n     */\\n    function symbol() external view returns (string memory);\\n\\n    /**\\n     * @dev Returns the decimals places of the token.\\n     */\\n    function decimals() external view returns (uint8);\\n}\\n\",\"keccak256\":\"0x8de418a5503946cabe331f35fe242d3201a73f67f77aaeb7110acb1f30423aca\",\"license\":\"MIT\"},\"contracts/LaunchEventLens.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./interfaces/ILaunchEvent.sol\\\";\\nimport \\\"./interfaces/IRocketJoeFactory.sol\\\";\\n\\n/// @title Launch Event Lens\\n/// @author Trader Joe\\n/// @notice Helper contract to fetch launch event data\\ncontract LaunchEventLens {\\n    struct LaunchEventData {\\n        uint256 auctionStart;\\n        uint256 phaseOneDuration;\\n        uint256 phaseOneNoFeeDuration;\\n        uint256 phaseTwoDuration;\\n        uint256 tokenIncentivesPercent;\\n        uint256 floorPrice;\\n        uint256 userTimelock;\\n        uint256 issuerTimelock;\\n        uint256 maxWithdrawPenalty;\\n        uint256 rJoePerAvax;\\n        uint256 tokenReserve;\\n        uint256 wavaxReserve;\\n        IERC20Metadata token;\\n        IJoePair pair;\\n        ILaunchEvent.UserInfo userInfo;\\n    }\\n\\n    IRocketJoeFactory public rocketJoeFactory;\\n\\n    /// @notice Create a new instance with required parameters\\n    /// @param _rocketJoeFactory Address of the RocketJoeFactory\\n    constructor(address _rocketJoeFactory) {\\n        rocketJoeFactory = IRocketJoeFactory(_rocketJoeFactory);\\n    }\\n\\n    /// @notice Get all launch event datas\\n    /// @return Array of all launch event datas\\n    function getAllLaunchEvents()\\n        external\\n        view\\n        returns (LaunchEventData[] memory)\\n    {\\n        uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();\\n        LaunchEventData[] memory launchEventDatas = new LaunchEventData[](\\n            numLaunchEvents\\n        );\\n\\n        for (uint256 i = 0; i < numLaunchEvents; i++) {\\n            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);\\n            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);\\n            launchEventDatas[i] = getLaunchEventData(launchEvent);\\n        }\\n\\n        return launchEventDatas;\\n    }\\n\\n    /// @notice Get all launch event datas that a given `_user` has participated in\\n    /// @param _user User to lookup\\n    /// @return Array of launch event datas that `_user` has participated in\\n    function getUserLaunchEvents(address _user)\\n        external\\n        view\\n        returns (LaunchEventData[] memory)\\n    {\\n        // Since we cannot create dynamic arrays in memory, we first have\\n        // to find the number of launch events the user has participated in\\n        uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();\\n        uint256 numParticipatedEvents = 0;\\n\\n        for (uint256 i = 0; i < numLaunchEvents; i++) {\\n            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);\\n            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);\\n            ILaunchEvent.UserInfo memory userInfo = launchEvent.getUserInfo(\\n                _user\\n            );\\n            if (userInfo.balance > 0) {\\n                numParticipatedEvents += 1;\\n            }\\n        }\\n\\n        // Then we can create a fixed size array of length `numParticipatedEvents`\\n        // and simply loop through all the launch events again\\n        LaunchEventData[] memory launchEventDatas = new LaunchEventData[](\\n            numParticipatedEvents\\n        );\\n        uint256 participatedEventCounter = 0;\\n\\n        for (uint256 i = 0; i < numLaunchEvents; i++) {\\n            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);\\n            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);\\n            ILaunchEvent.UserInfo memory userInfo = launchEvent.getUserInfo(\\n                _user\\n            );\\n            if (userInfo.balance > 0) {\\n                launchEventDatas[\\n                    participatedEventCounter\\n                ] = getUserLaunchEventData(launchEvent, _user);\\n                participatedEventCounter += 1;\\n            }\\n        }\\n\\n        return launchEventDatas;\\n    }\\n\\n    /// @notice Get launch event data for a given launch event and user\\n    /// @param _launchEvent Launch event to lookup\\n    /// @param _user User to look up\\n    /// @return Launch event data for the given `_launchEvent` and `_user`\\n    function getUserLaunchEventData(ILaunchEvent _launchEvent, address _user)\\n        public\\n        view\\n        returns (LaunchEventData memory)\\n    {\\n        LaunchEventData memory launchEventData = getLaunchEventData(\\n            _launchEvent\\n        );\\n        launchEventData.userInfo = _launchEvent.getUserInfo(_user);\\n        return launchEventData;\\n    }\\n\\n    /// @notice Get launch event data for a given launch event\\n    /// @param _launchEvent Launch event to lookup\\n    /// @return Launch event data for the given `_launchEvent`\\n    function getLaunchEventData(ILaunchEvent _launchEvent)\\n        public\\n        view\\n        returns (LaunchEventData memory)\\n    {\\n        (uint256 wavaxReserve, uint256 tokenReserve) = _launchEvent\\n            .getReserves();\\n        return\\n            LaunchEventData({\\n                auctionStart: _launchEvent.auctionStart(),\\n                phaseOneDuration: _launchEvent.PHASE_ONE_DURATION(),\\n                phaseOneNoFeeDuration: _launchEvent.PHASE_ONE_NO_FEE_DURATION(),\\n                phaseTwoDuration: _launchEvent.PHASE_TWO_DURATION(),\\n                tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),\\n                floorPrice: _launchEvent.floorPrice(),\\n                userTimelock: _launchEvent.userTimelock(),\\n                issuerTimelock: _launchEvent.issuerTimelock(),\\n                maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),\\n                rJoePerAvax: _launchEvent.rJoePerAvax(),\\n                tokenReserve: tokenReserve,\\n                wavaxReserve: wavaxReserve,\\n                token: _launchEvent.token(),\\n                pair: _launchEvent.pair(),\\n                userInfo: ILaunchEvent.UserInfo({\\n                    allocation: 0,\\n                    balance: 0,\\n                    hasWithdrawnPair: false,\\n                    hasWithdrawnIncentives: false\\n                })\\n            });\\n    }\\n}\\n\",\"keccak256\":\"0xa5439e5a0ffdeed23a3f0d8d23b3745d3e58618db2e5c04cdef5a44dd4b709e7\",\"license\":\"MIT\"},\"contracts/interfaces/IJoePair.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\n\\npragma solidity >=0.8.0;\\n\\ninterface IJoePair {\\n    event Approval(\\n        address indexed owner,\\n        address indexed spender,\\n        uint256 value\\n    );\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    function name() external pure returns (string memory);\\n\\n    function symbol() external pure returns (string memory);\\n\\n    function decimals() external pure returns (uint8);\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function balanceOf(address owner) external view returns (uint256);\\n\\n    function allowance(address owner, address spender)\\n        external\\n        view\\n        returns (uint256);\\n\\n    function approve(address spender, uint256 value) external returns (bool);\\n\\n    function transfer(address to, uint256 value) external returns (bool);\\n\\n    function transferFrom(\\n        address from,\\n        address to,\\n        uint256 value\\n    ) external returns (bool);\\n\\n    function DOMAIN_SEPARATOR() external view returns (bytes32);\\n\\n    function PERMIT_TYPEHASH() external pure returns (bytes32);\\n\\n    function nonces(address owner) external view returns (uint256);\\n\\n    function permit(\\n        address owner,\\n        address spender,\\n        uint256 value,\\n        uint256 deadline,\\n        uint8 v,\\n        bytes32 r,\\n        bytes32 s\\n    ) external;\\n\\n    event Mint(address indexed sender, uint256 amount0, uint256 amount1);\\n    event Burn(\\n        address indexed sender,\\n        uint256 amount0,\\n        uint256 amount1,\\n        address indexed to\\n    );\\n    event Swap(\\n        address indexed sender,\\n        uint256 amount0In,\\n        uint256 amount1In,\\n        uint256 amount0Out,\\n        uint256 amount1Out,\\n        address indexed to\\n    );\\n    event Sync(uint112 reserve0, uint112 reserve1);\\n\\n    function MINIMUM_LIQUIDITY() external pure returns (uint256);\\n\\n    function factory() external view returns (address);\\n\\n    function token0() external view returns (address);\\n\\n    function token1() external view returns (address);\\n\\n    function getReserves()\\n        external\\n        view\\n        returns (\\n            uint112 reserve0,\\n            uint112 reserve1,\\n            uint32 blockTimestampLast\\n        );\\n\\n    function price0CumulativeLast() external view returns (uint256);\\n\\n    function price1CumulativeLast() external view returns (uint256);\\n\\n    function kLast() external view returns (uint256);\\n\\n    function mint(address to) external returns (uint256 liquidity);\\n\\n    function burn(address to)\\n        external\\n        returns (uint256 amount0, uint256 amount1);\\n\\n    function swap(\\n        uint256 amount0Out,\\n        uint256 amount1Out,\\n        address to,\\n        bytes calldata data\\n    ) external;\\n\\n    function skim(address to) external;\\n\\n    function sync() external;\\n\\n    function initialize(address, address) external;\\n}\\n\",\"keccak256\":\"0x04c20e91f949852d3b8d6387443abc7816e8bd851de53676ab0fe948699fb63e\",\"license\":\"GPL-3.0\"},\"contracts/interfaces/ILaunchEvent.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol\\\";\\n\\nimport \\\"./IJoePair.sol\\\";\\n\\ninterface ILaunchEvent {\\n    struct UserInfo {\\n        uint256 allocation;\\n        uint256 balance;\\n        bool hasWithdrawnPair;\\n        bool hasWithdrawnIncentives;\\n    }\\n\\n    function initialize(\\n        address _issuer,\\n        uint256 _phaseOne,\\n        address _token,\\n        uint256 _tokenIncentivesPercent,\\n        uint256 _floorPrice,\\n        uint256 _maxWithdrawPenalty,\\n        uint256 _fixedWithdrawPenalty,\\n        uint256 _maxAllocation,\\n        uint256 _userTimelock,\\n        uint256 _issuerTimelock\\n    ) external;\\n\\n    function auctionStart() external view returns (uint256);\\n\\n    function PHASE_ONE_DURATION() external view returns (uint256);\\n\\n    function PHASE_ONE_NO_FEE_DURATION() external view returns (uint256);\\n\\n    function PHASE_TWO_DURATION() external view returns (uint256);\\n\\n    function tokenIncentivesPercent() external view returns (uint256);\\n\\n    function floorPrice() external view returns (uint256);\\n\\n    function userTimelock() external view returns (uint256);\\n\\n    function issuerTimelock() external view returns (uint256);\\n\\n    function maxWithdrawPenalty() external view returns (uint256);\\n\\n    function fixedWithdrawPenalty() external view returns (uint256);\\n\\n    function rJoePerAvax() external view returns (uint256);\\n\\n    function getReserves() external view returns (uint256, uint256);\\n\\n    function token() external view returns (IERC20Metadata);\\n\\n    function pair() external view returns (IJoePair);\\n\\n    function getUserInfo(address) external view returns (UserInfo memory);\\n}\\n\",\"keccak256\":\"0x88816221b4b35970191eeaa8fc869e71f772047c75f003c9c73816b2bb6f2b0e\",\"license\":\"MIT\"},\"contracts/interfaces/IRocketJoeFactory.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.8.0;\\n\\ninterface IRocketJoeFactory {\\n    event RJLaunchEventCreated(\\n        address indexed launchEvent,\\n        address indexed issuer,\\n        address indexed token,\\n        uint256 phaseOneStartTime,\\n        uint256 phaseTwoStartTime,\\n        uint256 phaseThreeStartTime,\\n        address rJoe,\\n        uint256 rJoePerAvax\\n    );\\n    event SetRJoe(address indexed token);\\n    event SetPenaltyCollector(address indexed collector);\\n    event SetRouter(address indexed router);\\n    event SetFactory(address indexed factory);\\n    event SetRJoePerAvax(uint256 rJoePerAvax);\\n    event IssuingTokenDeposited(address indexed token, uint256 amount);\\n\\n    function eventImplementation() external view returns (address);\\n\\n    function penaltyCollector() external view returns (address);\\n\\n    function wavax() external view returns (address);\\n\\n    function rJoePerAvax() external view returns (uint256);\\n\\n    function router() external view returns (address);\\n\\n    function factory() external view returns (address);\\n\\n    function rJoe() external view returns (address);\\n\\n    function PHASE_ONE_DURATION() external view returns (uint256);\\n\\n    function PHASE_ONE_NO_FEE_DURATION() external view returns (uint256);\\n\\n    function PHASE_TWO_DURATION() external view returns (uint256);\\n\\n    function getRJLaunchEvent(address token)\\n        external\\n        view\\n        returns (address launchEvent);\\n\\n    function isRJLaunchEvent(address token) external view returns (bool);\\n\\n    function allRJLaunchEvents(uint256) external view returns (address pair);\\n\\n    function numLaunchEvents() external view returns (uint256);\\n\\n    function createRJLaunchEvent(\\n        address _issuer,\\n        uint256 _phaseOneStartTime,\\n        address _token,\\n        uint256 _tokenAmount,\\n        uint256 _tokenIncentivesPercent,\\n        uint256 _floorPrice,\\n        uint256 _maxWithdrawPenalty,\\n        uint256 _fixedWithdrawPenalty,\\n        uint256 _maxAllocation,\\n        uint256 _userTimelock,\\n        uint256 _issuerTimelock\\n    ) external returns (address pair);\\n\\n    function setPenaltyCollector(address) external;\\n\\n    function setRouter(address) external;\\n\\n    function setFactory(address) external;\\n\\n    function setRJoe(address) external;\\n\\n    function setRJoePerAvax(uint256) external;\\n\\n    function setPhaseDuration(uint256, uint256) external;\\n\\n    function setPhaseOneNoFeeDuration(uint256) external;\\n}\\n\",\"keccak256\":\"0x87f4358f2978fb2313bab69a100b1be4c4e68d4f3df7c61d69bf8b9c29adda33\",\"license\":\"MIT\"}},\"version\":1}",
-  "bytecode": "0x60806040523480156200001157600080fd5b5060405162001bc938038062001bc9833981810160405281019062000037919062000095565b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550506200011a565b6000815190506200008f8162000100565b92915050565b600060208284031215620000ae57620000ad620000fb565b5b6000620000be848285016200007e565b91505092915050565b6000620000d482620000db565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b600080fd5b6200010b81620000c7565b81146200011757600080fd5b50565b611a9f806200012a6000396000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c806336cbb9ab1461005c578063473123fe1461008c5780639ed6c9d6146100aa578063a0677aac146100da578063f3fbd7d61461010a575b600080fd5b61007660048036038101906100719190611136565b610128565b60405161008391906116ab565b60405180910390f35b610094610559565b6040516100a191906116ab565b60405180910390f35b6100c460048036038101906100bf9190611217565b610759565b6040516100d191906116e8565b60405180910390f35b6100f460048036038101906100ef91906111ea565b61080a565b60405161010191906116e8565b60405180910390f35b610112610f33565b60405161011f91906116cd565b60405180910390f35b606060008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663fbaab6d96040518163ffffffff1660e01b815260040160206040518083038186803b15801561019357600080fd5b505afa1580156101a7573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101cb9190611284565b90506000805b8281101561034c5760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b81526004016102359190611704565b60206040518083038186803b15801561024d57600080fd5b505afa158015610261573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102859190611163565b9050600081905060008173ffffffffffffffffffffffffffffffffffffffff16636386c1c7896040518263ffffffff1660e01b81526004016102c79190611690565b60806040518083038186803b1580156102df57600080fd5b505afa1580156102f3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103179190611257565b905060008160200151111561033657600185610333919061177d565b94505b5050508080610344906118ee565b9150506101d1565b5060008167ffffffffffffffff81111561036957610368611995565b5b6040519080825280602002602001820160405280156103a257816020015b61038f610f57565b8152602001906001900390816103875790505b5090506000805b8481101561054c5760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b815260040161040d9190611704565b60206040518083038186803b15801561042557600080fd5b505afa158015610439573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061045d9190611163565b9050600081905060008173ffffffffffffffffffffffffffffffffffffffff16636386c1c78b6040518263ffffffff1660e01b815260040161049f9190611690565b60806040518083038186803b1580156104b757600080fd5b505afa1580156104cb573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104ef9190611257565b905060008160200151111561053657610508828b610759565b86868151811061051b5761051a611966565b5b6020026020010181905250600185610533919061177d565b94505b5050508080610544906118ee565b9150506103a9565b5081945050505050919050565b606060008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663fbaab6d96040518163ffffffff1660e01b815260040160206040518083038186803b1580156105c457600080fd5b505afa1580156105d8573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105fc9190611284565b905060008167ffffffffffffffff81111561061a57610619611995565b5b60405190808252806020026020018201604052801561065357816020015b610640610f57565b8152602001906001900390816106385790505b50905060005b828110156107505760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b81526004016106bd9190611704565b60206040518083038186803b1580156106d557600080fd5b505afa1580156106e9573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061070d9190611163565b9050600081905061071d8161080a565b8484815181106107305761072f611966565b5b602002602001018190525050508080610748906118ee565b915050610659565b50809250505090565b610761610f57565b600061076c8461080a565b90508373ffffffffffffffffffffffffffffffffffffffff16636386c1c7846040518263ffffffff1660e01b81526004016107a79190611690565b60806040518083038186803b1580156107bf57600080fd5b505afa1580156107d3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107f79190611257565b816101c001819052508091505092915050565b610812610f57565b6000808373ffffffffffffffffffffffffffffffffffffffff16630902f1ac6040518163ffffffff1660e01b8152600401604080518083038186803b15801561085a57600080fd5b505afa15801561086e573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061089291906112b1565b91509150604051806101e001604052808573ffffffffffffffffffffffffffffffffffffffff16634f245ef76040518163ffffffff1660e01b815260040160206040518083038186803b1580156108e857600080fd5b505afa1580156108fc573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109209190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16633e9e8d5f6040518163ffffffff1660e01b815260040160206040518083038186803b15801561096b57600080fd5b505afa15801561097f573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109a39190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff1663db069a516040518163ffffffff1660e01b815260040160206040518083038186803b1580156109ee57600080fd5b505afa158015610a02573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610a269190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16634edd499b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610a7157600080fd5b505afa158015610a85573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610aa99190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff1663f4b3b7d76040518163ffffffff1660e01b815260040160206040518083038186803b158015610af457600080fd5b505afa158015610b08573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610b2c9190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16639363c8126040518163ffffffff1660e01b815260040160206040518083038186803b158015610b7757600080fd5b505afa158015610b8b573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610baf9190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff1663da5a9ded6040518163ffffffff1660e01b815260040160206040518083038186803b158015610bfa57600080fd5b505afa158015610c0e573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610c329190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16635822213f6040518163ffffffff1660e01b815260040160206040518083038186803b158015610c7d57600080fd5b505afa158015610c91573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610cb59190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16632a0a8d5b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610d0057600080fd5b505afa158015610d14573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d389190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff1663853920406040518163ffffffff1660e01b815260040160206040518083038186803b158015610d8357600080fd5b505afa158015610d97573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610dbb9190611284565b81526020018281526020018381526020018573ffffffffffffffffffffffffffffffffffffffff1663fc0c546a6040518163ffffffff1660e01b815260040160206040518083038186803b158015610e1257600080fd5b505afa158015610e26573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610e4a9190611190565b73ffffffffffffffffffffffffffffffffffffffff1681526020018573ffffffffffffffffffffffffffffffffffffffff1663a8aa1b316040518163ffffffff1660e01b815260040160206040518083038186803b158015610eab57600080fd5b505afa158015610ebf573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ee391906111bd565b73ffffffffffffffffffffffffffffffffffffffff168152602001604051806080016040528060008152602001600081526020016000151581526020016000151581525081525092505050919050565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b604051806101e00160405280600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff168152602001600073ffffffffffffffffffffffffffffffffffffffff168152602001610ff9610fff565b81525090565b604051806080016040528060008152602001600081526020016000151581526020016000151581525090565b60008135905061103a816119df565b92915050565b60008151905061104f816119df565b92915050565b600081519050611064816119f6565b92915050565b60008151905061107981611a0d565b92915050565b60008151905061108e81611a24565b92915050565b6000813590506110a381611a3b565b92915050565b6000608082840312156110bf576110be6119c4565b5b6110c9608061171f565b905060006110d984828501611121565b60008301525060206110ed84828501611121565b602083015250604061110184828501611055565b604083015250606061111584828501611055565b60608301525092915050565b60008151905061113081611a52565b92915050565b60006020828403121561114c5761114b6119c9565b5b600061115a8482850161102b565b91505092915050565b600060208284031215611179576111786119c9565b5b600061118784828501611040565b91505092915050565b6000602082840312156111a6576111a56119c9565b5b60006111b48482850161106a565b91505092915050565b6000602082840312156111d3576111d26119c9565b5b60006111e18482850161107f565b91505092915050565b600060208284031215611200576111ff6119c9565b5b600061120e84828501611094565b91505092915050565b6000806040838503121561122e5761122d6119c9565b5b600061123c85828601611094565b925050602061124d8582860161102b565b9150509250929050565b60006080828403121561126d5761126c6119c9565b5b600061127b848285016110a9565b91505092915050565b60006020828403121561129a576112996119c9565b5b60006112a884828501611121565b91505092915050565b600080604083850312156112c8576112c76119c9565b5b60006112d685828601611121565b92505060206112e785828601611121565b9150509250929050565b60006112fd83836113b3565b6102408301905092915050565b611313816117d3565b82525050565b600061132482611754565b61132e818561176c565b935061133983611744565b8060005b8381101561136a57815161135188826112f1565b975061135c8361175f565b92505060018101905061133d565b5085935050505092915050565b611380816117e5565b82525050565b61138f81611851565b82525050565b61139e81611875565b82525050565b6113ad81611899565b82525050565b610240820160008201516113ca6000850182611672565b5060208201516113dd6020850182611672565b5060408201516113f06040850182611672565b5060608201516114036060850182611672565b5060808201516114166080850182611672565b5060a082015161142960a0850182611672565b5060c082015161143c60c0850182611672565b5060e082015161144f60e0850182611672565b50610100820151611464610100850182611672565b50610120820151611479610120850182611672565b5061014082015161148e610140850182611672565b506101608201516114a3610160850182611672565b506101808201516114b8610180850182611386565b506101a08201516114cd6101a0850182611395565b506101c08201516114e26101c085018261161d565b50505050565b610240820160008201516114ff6000850182611672565b5060208201516115126020850182611672565b5060408201516115256040850182611672565b5060608201516115386060850182611672565b50608082015161154b6080850182611672565b5060a082015161155e60a0850182611672565b5060c082015161157160c0850182611672565b5060e082015161158460e0850182611672565b50610100820151611599610100850182611672565b506101208201516115ae610120850182611672565b506101408201516115c3610140850182611672565b506101608201516115d8610160850182611672565b506101808201516115ed610180850182611386565b506101a08201516116026101a0850182611395565b506101c08201516116176101c085018261161d565b50505050565b6080820160008201516116336000850182611672565b5060208201516116466020850182611672565b5060408201516116596040850182611377565b50606082015161166c6060850182611377565b50505050565b61167b81611847565b82525050565b61168a81611847565b82525050565b60006020820190506116a5600083018461130a565b92915050565b600060208201905081810360008301526116c58184611319565b905092915050565b60006020820190506116e260008301846113a4565b92915050565b6000610240820190506116fe60008301846114e8565b92915050565b60006020820190506117196000830184611681565b92915050565b600061172961173a565b905061173582826118bd565b919050565b6000604051905090565b6000819050602082019050919050565b600081519050919050565b6000602082019050919050565b600082825260208201905092915050565b600061178882611847565b915061179383611847565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff038211156117c8576117c7611937565b5b828201905092915050565b60006117de82611827565b9050919050565b60008115159050919050565b60006117fc826117d3565b9050919050565b600061180e826117d3565b9050919050565b6000611820826117d3565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b600061185c82611863565b9050919050565b600061186e82611827565b9050919050565b600061188082611887565b9050919050565b600061189282611827565b9050919050565b60006118a4826118ab565b9050919050565b60006118b682611827565b9050919050565b6118c6826119ce565b810181811067ffffffffffffffff821117156118e5576118e4611995565b5b80604052505050565b60006118f982611847565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82141561192c5761192b611937565b5b600182019050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b6119e8816117d3565b81146119f357600080fd5b50565b6119ff816117e5565b8114611a0a57600080fd5b50565b611a16816117f1565b8114611a2157600080fd5b50565b611a2d81611803565b8114611a3857600080fd5b50565b611a4481611815565b8114611a4f57600080fd5b50565b611a5b81611847565b8114611a6657600080fd5b5056fea2646970667358221220053286d22351292e65fae1c190d83f34eca56fadc5c8946826f5cb489ef341b864736f6c63430008060033",
-  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100575760003560e01c806336cbb9ab1461005c578063473123fe1461008c5780639ed6c9d6146100aa578063a0677aac146100da578063f3fbd7d61461010a575b600080fd5b61007660048036038101906100719190611136565b610128565b60405161008391906116ab565b60405180910390f35b610094610559565b6040516100a191906116ab565b60405180910390f35b6100c460048036038101906100bf9190611217565b610759565b6040516100d191906116e8565b60405180910390f35b6100f460048036038101906100ef91906111ea565b61080a565b60405161010191906116e8565b60405180910390f35b610112610f33565b60405161011f91906116cd565b60405180910390f35b606060008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663fbaab6d96040518163ffffffff1660e01b815260040160206040518083038186803b15801561019357600080fd5b505afa1580156101a7573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101cb9190611284565b90506000805b8281101561034c5760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b81526004016102359190611704565b60206040518083038186803b15801561024d57600080fd5b505afa158015610261573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102859190611163565b9050600081905060008173ffffffffffffffffffffffffffffffffffffffff16636386c1c7896040518263ffffffff1660e01b81526004016102c79190611690565b60806040518083038186803b1580156102df57600080fd5b505afa1580156102f3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103179190611257565b905060008160200151111561033657600185610333919061177d565b94505b5050508080610344906118ee565b9150506101d1565b5060008167ffffffffffffffff81111561036957610368611995565b5b6040519080825280602002602001820160405280156103a257816020015b61038f610f57565b8152602001906001900390816103875790505b5090506000805b8481101561054c5760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b815260040161040d9190611704565b60206040518083038186803b15801561042557600080fd5b505afa158015610439573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061045d9190611163565b9050600081905060008173ffffffffffffffffffffffffffffffffffffffff16636386c1c78b6040518263ffffffff1660e01b815260040161049f9190611690565b60806040518083038186803b1580156104b757600080fd5b505afa1580156104cb573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104ef9190611257565b905060008160200151111561053657610508828b610759565b86868151811061051b5761051a611966565b5b6020026020010181905250600185610533919061177d565b94505b5050508080610544906118ee565b9150506103a9565b5081945050505050919050565b606060008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663fbaab6d96040518163ffffffff1660e01b815260040160206040518083038186803b1580156105c457600080fd5b505afa1580156105d8573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105fc9190611284565b905060008167ffffffffffffffff81111561061a57610619611995565b5b60405190808252806020026020018201604052801561065357816020015b610640610f57565b8152602001906001900390816106385790505b50905060005b828110156107505760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b81526004016106bd9190611704565b60206040518083038186803b1580156106d557600080fd5b505afa1580156106e9573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061070d9190611163565b9050600081905061071d8161080a565b8484815181106107305761072f611966565b5b602002602001018190525050508080610748906118ee565b915050610659565b50809250505090565b610761610f57565b600061076c8461080a565b90508373ffffffffffffffffffffffffffffffffffffffff16636386c1c7846040518263ffffffff1660e01b81526004016107a79190611690565b60806040518083038186803b1580156107bf57600080fd5b505afa1580156107d3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107f79190611257565b816101c001819052508091505092915050565b610812610f57565b6000808373ffffffffffffffffffffffffffffffffffffffff16630902f1ac6040518163ffffffff1660e01b8152600401604080518083038186803b15801561085a57600080fd5b505afa15801561086e573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061089291906112b1565b91509150604051806101e001604052808573ffffffffffffffffffffffffffffffffffffffff16634f245ef76040518163ffffffff1660e01b815260040160206040518083038186803b1580156108e857600080fd5b505afa1580156108fc573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109209190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16633e9e8d5f6040518163ffffffff1660e01b815260040160206040518083038186803b15801561096b57600080fd5b505afa15801561097f573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109a39190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff1663db069a516040518163ffffffff1660e01b815260040160206040518083038186803b1580156109ee57600080fd5b505afa158015610a02573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610a269190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16634edd499b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610a7157600080fd5b505afa158015610a85573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610aa99190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff1663f4b3b7d76040518163ffffffff1660e01b815260040160206040518083038186803b158015610af457600080fd5b505afa158015610b08573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610b2c9190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16639363c8126040518163ffffffff1660e01b815260040160206040518083038186803b158015610b7757600080fd5b505afa158015610b8b573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610baf9190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff1663da5a9ded6040518163ffffffff1660e01b815260040160206040518083038186803b158015610bfa57600080fd5b505afa158015610c0e573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610c329190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16635822213f6040518163ffffffff1660e01b815260040160206040518083038186803b158015610c7d57600080fd5b505afa158015610c91573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610cb59190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff16632a0a8d5b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610d0057600080fd5b505afa158015610d14573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d389190611284565b81526020018573ffffffffffffffffffffffffffffffffffffffff1663853920406040518163ffffffff1660e01b815260040160206040518083038186803b158015610d8357600080fd5b505afa158015610d97573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610dbb9190611284565b81526020018281526020018381526020018573ffffffffffffffffffffffffffffffffffffffff1663fc0c546a6040518163ffffffff1660e01b815260040160206040518083038186803b158015610e1257600080fd5b505afa158015610e26573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610e4a9190611190565b73ffffffffffffffffffffffffffffffffffffffff1681526020018573ffffffffffffffffffffffffffffffffffffffff1663a8aa1b316040518163ffffffff1660e01b815260040160206040518083038186803b158015610eab57600080fd5b505afa158015610ebf573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ee391906111bd565b73ffffffffffffffffffffffffffffffffffffffff168152602001604051806080016040528060008152602001600081526020016000151581526020016000151581525081525092505050919050565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b604051806101e00160405280600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff168152602001600073ffffffffffffffffffffffffffffffffffffffff168152602001610ff9610fff565b81525090565b604051806080016040528060008152602001600081526020016000151581526020016000151581525090565b60008135905061103a816119df565b92915050565b60008151905061104f816119df565b92915050565b600081519050611064816119f6565b92915050565b60008151905061107981611a0d565b92915050565b60008151905061108e81611a24565b92915050565b6000813590506110a381611a3b565b92915050565b6000608082840312156110bf576110be6119c4565b5b6110c9608061171f565b905060006110d984828501611121565b60008301525060206110ed84828501611121565b602083015250604061110184828501611055565b604083015250606061111584828501611055565b60608301525092915050565b60008151905061113081611a52565b92915050565b60006020828403121561114c5761114b6119c9565b5b600061115a8482850161102b565b91505092915050565b600060208284031215611179576111786119c9565b5b600061118784828501611040565b91505092915050565b6000602082840312156111a6576111a56119c9565b5b60006111b48482850161106a565b91505092915050565b6000602082840312156111d3576111d26119c9565b5b60006111e18482850161107f565b91505092915050565b600060208284031215611200576111ff6119c9565b5b600061120e84828501611094565b91505092915050565b6000806040838503121561122e5761122d6119c9565b5b600061123c85828601611094565b925050602061124d8582860161102b565b9150509250929050565b60006080828403121561126d5761126c6119c9565b5b600061127b848285016110a9565b91505092915050565b60006020828403121561129a576112996119c9565b5b60006112a884828501611121565b91505092915050565b600080604083850312156112c8576112c76119c9565b5b60006112d685828601611121565b92505060206112e785828601611121565b9150509250929050565b60006112fd83836113b3565b6102408301905092915050565b611313816117d3565b82525050565b600061132482611754565b61132e818561176c565b935061133983611744565b8060005b8381101561136a57815161135188826112f1565b975061135c8361175f565b92505060018101905061133d565b5085935050505092915050565b611380816117e5565b82525050565b61138f81611851565b82525050565b61139e81611875565b82525050565b6113ad81611899565b82525050565b610240820160008201516113ca6000850182611672565b5060208201516113dd6020850182611672565b5060408201516113f06040850182611672565b5060608201516114036060850182611672565b5060808201516114166080850182611672565b5060a082015161142960a0850182611672565b5060c082015161143c60c0850182611672565b5060e082015161144f60e0850182611672565b50610100820151611464610100850182611672565b50610120820151611479610120850182611672565b5061014082015161148e610140850182611672565b506101608201516114a3610160850182611672565b506101808201516114b8610180850182611386565b506101a08201516114cd6101a0850182611395565b506101c08201516114e26101c085018261161d565b50505050565b610240820160008201516114ff6000850182611672565b5060208201516115126020850182611672565b5060408201516115256040850182611672565b5060608201516115386060850182611672565b50608082015161154b6080850182611672565b5060a082015161155e60a0850182611672565b5060c082015161157160c0850182611672565b5060e082015161158460e0850182611672565b50610100820151611599610100850182611672565b506101208201516115ae610120850182611672565b506101408201516115c3610140850182611672565b506101608201516115d8610160850182611672565b506101808201516115ed610180850182611386565b506101a08201516116026101a0850182611395565b506101c08201516116176101c085018261161d565b50505050565b6080820160008201516116336000850182611672565b5060208201516116466020850182611672565b5060408201516116596040850182611377565b50606082015161166c6060850182611377565b50505050565b61167b81611847565b82525050565b61168a81611847565b82525050565b60006020820190506116a5600083018461130a565b92915050565b600060208201905081810360008301526116c58184611319565b905092915050565b60006020820190506116e260008301846113a4565b92915050565b6000610240820190506116fe60008301846114e8565b92915050565b60006020820190506117196000830184611681565b92915050565b600061172961173a565b905061173582826118bd565b919050565b6000604051905090565b6000819050602082019050919050565b600081519050919050565b6000602082019050919050565b600082825260208201905092915050565b600061178882611847565b915061179383611847565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff038211156117c8576117c7611937565b5b828201905092915050565b60006117de82611827565b9050919050565b60008115159050919050565b60006117fc826117d3565b9050919050565b600061180e826117d3565b9050919050565b6000611820826117d3565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b600061185c82611863565b9050919050565b600061186e82611827565b9050919050565b600061188082611887565b9050919050565b600061189282611827565b9050919050565b60006118a4826118ab565b9050919050565b60006118b682611827565b9050919050565b6118c6826119ce565b810181811067ffffffffffffffff821117156118e5576118e4611995565b5b80604052505050565b60006118f982611847565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82141561192c5761192b611937565b5b600182019050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b6119e8816117d3565b81146119f357600080fd5b50565b6119ff816117e5565b8114611a0a57600080fd5b50565b611a16816117f1565b8114611a2157600080fd5b50565b611a2d81611803565b8114611a3857600080fd5b50565b611a4481611815565b8114611a4f57600080fd5b50565b611a5b81611847565b8114611a6657600080fd5b5056fea2646970667358221220053286d22351292e65fae1c190d83f34eca56fadc5c8946826f5cb489ef341b864736f6c63430008060033",
+  "solcInputHash": "977bda480a1feafa8a5740e8a6f310a5",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.6+commit.11564f7e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_rocketJoeFactory\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"getAllLaunchEvents\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"auctionStart\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"avaxReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"floorPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"incentives\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"issuerTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxAllocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxWithdrawPenalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pairBalance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"penalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneNoFeeDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseTwoDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rJoePerAvax\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenDecimals\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenIncentivesPercent\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"userTimelock\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"id\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"pair\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"allocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnPair\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnIncentives\",\"type\":\"bool\"}],\"internalType\":\"struct ILaunchEvent.UserInfo\",\"name\":\"userInfo\",\"type\":\"tuple\"}],\"internalType\":\"struct LaunchEventLens.LaunchEventData[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_user\",\"type\":\"address\"}],\"name\":\"getAllLaunchEventsWithUser\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"auctionStart\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"avaxReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"floorPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"incentives\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"issuerTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxAllocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxWithdrawPenalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pairBalance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"penalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneNoFeeDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseTwoDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rJoePerAvax\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenDecimals\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenIncentivesPercent\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"userTimelock\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"id\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"pair\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"allocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnPair\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnIncentives\",\"type\":\"bool\"}],\"internalType\":\"struct ILaunchEvent.UserInfo\",\"name\":\"userInfo\",\"type\":\"tuple\"}],\"internalType\":\"struct LaunchEventLens.LaunchEventData[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract ILaunchEvent\",\"name\":\"_launchEvent\",\"type\":\"address\"}],\"name\":\"getLaunchEventData\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"auctionStart\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"avaxReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"floorPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"incentives\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"issuerTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxAllocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxWithdrawPenalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pairBalance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"penalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneNoFeeDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseTwoDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rJoePerAvax\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenDecimals\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenIncentivesPercent\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"userTimelock\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"id\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"pair\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"allocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnPair\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnIncentives\",\"type\":\"bool\"}],\"internalType\":\"struct ILaunchEvent.UserInfo\",\"name\":\"userInfo\",\"type\":\"tuple\"}],\"internalType\":\"struct LaunchEventLens.LaunchEventData\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract ILaunchEvent\",\"name\":\"_launchEvent\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_user\",\"type\":\"address\"}],\"name\":\"getUserLaunchEventData\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"auctionStart\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"avaxReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"floorPrice\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"incentives\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"issuerTimelock\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxAllocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxWithdrawPenalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pairBalance\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"penalty\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseOneNoFeeDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"phaseTwoDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"rJoePerAvax\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenDecimals\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenIncentivesPercent\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tokenReserve\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"userTimelock\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"id\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"pair\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"allocation\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"balance\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnPair\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"hasWithdrawnIncentives\",\"type\":\"bool\"}],\"internalType\":\"struct ILaunchEvent.UserInfo\",\"name\":\"userInfo\",\"type\":\"tuple\"}],\"internalType\":\"struct LaunchEventLens.LaunchEventData\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rocketJoeFactory\",\"outputs\":[{\"internalType\":\"contract IRocketJoeFactory\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Trader Joe\",\"kind\":\"dev\",\"methods\":{\"constructor\":{\"params\":{\"_rocketJoeFactory\":\"Address of the RocketJoeFactory\"}},\"getAllLaunchEvents()\":{\"returns\":{\"_0\":\"Array of all launch event datas\"}},\"getAllLaunchEventsWithUser(address)\":{\"params\":{\"_user\":\"User to lookup\"},\"returns\":{\"_0\":\"Array of all launch event datas with user info\"}},\"getLaunchEventData(address)\":{\"params\":{\"_launchEvent\":\"Launch event to lookup\"},\"returns\":{\"_0\":\"Launch event data for the given `_launchEvent`\"}},\"getUserLaunchEventData(address,address)\":{\"params\":{\"_launchEvent\":\"Launch event to lookup\",\"_user\":\"User to look up\"},\"returns\":{\"_0\":\"Launch event data for the given `_launchEvent` and `_user`\"}}},\"title\":\"Launch Event Lens\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"constructor\":{\"notice\":\"Create a new instance with required parameters\"},\"getAllLaunchEvents()\":{\"notice\":\"Get all launch event datas\"},\"getAllLaunchEventsWithUser(address)\":{\"notice\":\"Get all launch event datas with a given `_user`\"},\"getLaunchEventData(address)\":{\"notice\":\"Get launch event data for a given launch event\"},\"getUserLaunchEventData(address,address)\":{\"notice\":\"Get launch event data for a given launch event and user\"}},\"notice\":\"Helper contract to fetch launch event data\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/LaunchEventLens.sol\":\"LaunchEventLens\"},\"evmVersion\":\"berlin\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0x61437cb513a887a1bbad006e7b1c8b414478427d33de47c5600af3c748f108da\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts v4.4.1 (token/ERC20/extensions/IERC20Metadata.sol)\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"../IERC20.sol\\\";\\n\\n/**\\n * @dev Interface for the optional metadata functions from the ERC20 standard.\\n *\\n * _Available since v4.1._\\n */\\ninterface IERC20Metadata is IERC20 {\\n    /**\\n     * @dev Returns the name of the token.\\n     */\\n    function name() external view returns (string memory);\\n\\n    /**\\n     * @dev Returns the symbol of the token.\\n     */\\n    function symbol() external view returns (string memory);\\n\\n    /**\\n     * @dev Returns the decimals places of the token.\\n     */\\n    function decimals() external view returns (uint8);\\n}\\n\",\"keccak256\":\"0x8de418a5503946cabe331f35fe242d3201a73f67f77aaeb7110acb1f30423aca\",\"license\":\"MIT\"},\"contracts/LaunchEventLens.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./interfaces/ILaunchEvent.sol\\\";\\nimport \\\"./interfaces/IRocketJoeFactory.sol\\\";\\n\\n/// @title Launch Event Lens\\n/// @author Trader Joe\\n/// @notice Helper contract to fetch launch event data\\ncontract LaunchEventLens {\\n    struct LaunchEventData {\\n        uint256 auctionStart;\\n        uint256 avaxReserve;\\n        uint256 floorPrice;\\n        uint256 incentives;\\n        uint256 issuerTimelock;\\n        uint256 maxAllocation;\\n        uint256 maxWithdrawPenalty;\\n        uint256 pairBalance;\\n        uint256 penalty;\\n        uint256 phaseOneDuration;\\n        uint256 phaseOneNoFeeDuration;\\n        uint256 phaseTwoDuration;\\n        uint256 rJoePerAvax;\\n        uint256 tokenDecimals;\\n        uint256 tokenIncentivesPercent;\\n        uint256 tokenReserve;\\n        uint256 userTimelock;\\n        address id;\\n        address token;\\n        address pair;\\n        ILaunchEvent.UserInfo userInfo;\\n    }\\n\\n    IRocketJoeFactory public rocketJoeFactory;\\n\\n    /// @notice Create a new instance with required parameters\\n    /// @param _rocketJoeFactory Address of the RocketJoeFactory\\n    constructor(address _rocketJoeFactory) {\\n        rocketJoeFactory = IRocketJoeFactory(_rocketJoeFactory);\\n    }\\n\\n    /// @notice Get all launch event datas\\n    /// @return Array of all launch event datas\\n    function getAllLaunchEvents()\\n        external\\n        view\\n        returns (LaunchEventData[] memory)\\n    {\\n        uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();\\n        LaunchEventData[] memory launchEventDatas = new LaunchEventData[](\\n            numLaunchEvents\\n        );\\n\\n        for (uint256 i = 0; i < numLaunchEvents; i++) {\\n            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);\\n            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);\\n            launchEventDatas[i] = getLaunchEventData(launchEvent);\\n        }\\n\\n        return launchEventDatas;\\n    }\\n\\n    /// @notice Get all launch event datas with a given `_user`\\n    /// @param _user User to lookup\\n    /// @return Array of all launch event datas with user info\\n    function getAllLaunchEventsWithUser(address _user)\\n        external\\n        view\\n        returns (LaunchEventData[] memory)\\n    {\\n        uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();\\n        LaunchEventData[] memory launchEventDatas = new LaunchEventData[](\\n            numLaunchEvents\\n        );\\n\\n        for (uint256 i = 0; i < numLaunchEvents; i++) {\\n            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);\\n            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);\\n            launchEventDatas[i] = getUserLaunchEventData(launchEvent, _user);\\n        }\\n\\n        return launchEventDatas;\\n    }\\n\\n    /// @notice Get launch event data for a given launch event and user\\n    /// @param _launchEvent Launch event to lookup\\n    /// @param _user User to look up\\n    /// @return Launch event data for the given `_launchEvent` and `_user`\\n    function getUserLaunchEventData(ILaunchEvent _launchEvent, address _user)\\n        public\\n        view\\n        returns (LaunchEventData memory)\\n    {\\n        LaunchEventData memory launchEventData = getLaunchEventData(\\n            _launchEvent\\n        );\\n        launchEventData.incentives = _launchEvent.getIncentives(_user);\\n        launchEventData.pairBalance = _launchEvent.pairBalance(_user);\\n        launchEventData.userInfo = _launchEvent.getUserInfo(_user);\\n        return launchEventData;\\n    }\\n\\n    /// @notice Get launch event data for a given launch event\\n    /// @param _launchEvent Launch event to lookup\\n    /// @return Launch event data for the given `_launchEvent`\\n    function getLaunchEventData(ILaunchEvent _launchEvent)\\n        public\\n        view\\n        returns (LaunchEventData memory)\\n    {\\n        (uint256 avaxReserve, uint256 tokenReserve) = _launchEvent\\n            .getReserves();\\n        IERC20Metadata token = _launchEvent.token();\\n\\n        return\\n            LaunchEventData({\\n                auctionStart: _launchEvent.auctionStart(),\\n                avaxReserve: avaxReserve,\\n                floorPrice: _launchEvent.floorPrice(),\\n                incentives: 0,\\n                issuerTimelock: _launchEvent.issuerTimelock(),\\n                maxAllocation: _launchEvent.maxAllocation(),\\n                maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),\\n                penalty: _launchEvent.getPenalty(),\\n                pairBalance: 0,\\n                phaseOneDuration: _launchEvent.PHASE_ONE_DURATION(),\\n                phaseOneNoFeeDuration: _launchEvent.PHASE_ONE_NO_FEE_DURATION(),\\n                phaseTwoDuration: _launchEvent.PHASE_TWO_DURATION(),\\n                rJoePerAvax: _launchEvent.rJoePerAvax(),\\n                tokenDecimals: token.decimals(),\\n                tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),\\n                tokenReserve: tokenReserve,\\n                userTimelock: _launchEvent.userTimelock(),\\n                id: address(_launchEvent),\\n                token: address(token),\\n                pair: address(_launchEvent.pair()),\\n                userInfo: ILaunchEvent.UserInfo({\\n                    allocation: 0,\\n                    balance: 0,\\n                    hasWithdrawnPair: false,\\n                    hasWithdrawnIncentives: false\\n                })\\n            });\\n    }\\n}\\n\",\"keccak256\":\"0xd1bf56a2dce43d849fa3a752e8bdf1eeb941b8b71e16150033ba8ac8967d9f9c\",\"license\":\"MIT\"},\"contracts/interfaces/IJoePair.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\n\\npragma solidity >=0.8.0;\\n\\ninterface IJoePair {\\n    event Approval(\\n        address indexed owner,\\n        address indexed spender,\\n        uint256 value\\n    );\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    function name() external pure returns (string memory);\\n\\n    function symbol() external pure returns (string memory);\\n\\n    function decimals() external pure returns (uint8);\\n\\n    function totalSupply() external view returns (uint256);\\n\\n    function balanceOf(address owner) external view returns (uint256);\\n\\n    function allowance(address owner, address spender)\\n        external\\n        view\\n        returns (uint256);\\n\\n    function approve(address spender, uint256 value) external returns (bool);\\n\\n    function transfer(address to, uint256 value) external returns (bool);\\n\\n    function transferFrom(\\n        address from,\\n        address to,\\n        uint256 value\\n    ) external returns (bool);\\n\\n    function DOMAIN_SEPARATOR() external view returns (bytes32);\\n\\n    function PERMIT_TYPEHASH() external pure returns (bytes32);\\n\\n    function nonces(address owner) external view returns (uint256);\\n\\n    function permit(\\n        address owner,\\n        address spender,\\n        uint256 value,\\n        uint256 deadline,\\n        uint8 v,\\n        bytes32 r,\\n        bytes32 s\\n    ) external;\\n\\n    event Mint(address indexed sender, uint256 amount0, uint256 amount1);\\n    event Burn(\\n        address indexed sender,\\n        uint256 amount0,\\n        uint256 amount1,\\n        address indexed to\\n    );\\n    event Swap(\\n        address indexed sender,\\n        uint256 amount0In,\\n        uint256 amount1In,\\n        uint256 amount0Out,\\n        uint256 amount1Out,\\n        address indexed to\\n    );\\n    event Sync(uint112 reserve0, uint112 reserve1);\\n\\n    function MINIMUM_LIQUIDITY() external pure returns (uint256);\\n\\n    function factory() external view returns (address);\\n\\n    function token0() external view returns (address);\\n\\n    function token1() external view returns (address);\\n\\n    function getReserves()\\n        external\\n        view\\n        returns (\\n            uint112 reserve0,\\n            uint112 reserve1,\\n            uint32 blockTimestampLast\\n        );\\n\\n    function price0CumulativeLast() external view returns (uint256);\\n\\n    function price1CumulativeLast() external view returns (uint256);\\n\\n    function kLast() external view returns (uint256);\\n\\n    function mint(address to) external returns (uint256 liquidity);\\n\\n    function burn(address to)\\n        external\\n        returns (uint256 amount0, uint256 amount1);\\n\\n    function swap(\\n        uint256 amount0Out,\\n        uint256 amount1Out,\\n        address to,\\n        bytes calldata data\\n    ) external;\\n\\n    function skim(address to) external;\\n\\n    function sync() external;\\n\\n    function initialize(address, address) external;\\n}\\n\",\"keccak256\":\"0x04c20e91f949852d3b8d6387443abc7816e8bd851de53676ab0fe948699fb63e\",\"license\":\"GPL-3.0\"},\"contracts/interfaces/ILaunchEvent.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol\\\";\\n\\nimport \\\"./IJoePair.sol\\\";\\n\\ninterface ILaunchEvent {\\n    struct UserInfo {\\n        uint256 allocation;\\n        uint256 balance;\\n        bool hasWithdrawnPair;\\n        bool hasWithdrawnIncentives;\\n    }\\n\\n    function initialize(\\n        address _issuer,\\n        uint256 _phaseOne,\\n        address _token,\\n        uint256 _tokenIncentivesPercent,\\n        uint256 _floorPrice,\\n        uint256 _maxWithdrawPenalty,\\n        uint256 _fixedWithdrawPenalty,\\n        uint256 _maxAllocation,\\n        uint256 _userTimelock,\\n        uint256 _issuerTimelock\\n    ) external;\\n\\n    function auctionStart() external view returns (uint256);\\n\\n    function PHASE_ONE_DURATION() external view returns (uint256);\\n\\n    function PHASE_ONE_NO_FEE_DURATION() external view returns (uint256);\\n\\n    function PHASE_TWO_DURATION() external view returns (uint256);\\n\\n    function tokenIncentivesPercent() external view returns (uint256);\\n\\n    function floorPrice() external view returns (uint256);\\n\\n    function userTimelock() external view returns (uint256);\\n\\n    function issuerTimelock() external view returns (uint256);\\n\\n    function maxAllocation() external view returns (uint256);\\n\\n    function maxWithdrawPenalty() external view returns (uint256);\\n\\n    function fixedWithdrawPenalty() external view returns (uint256);\\n\\n    function rJoePerAvax() external view returns (uint256);\\n\\n    function getReserves() external view returns (uint256, uint256);\\n\\n    function token() external view returns (IERC20Metadata);\\n\\n    function pair() external view returns (IJoePair);\\n\\n    function pairBalance(address) external view returns (uint256);\\n\\n    function getUserInfo(address) external view returns (UserInfo memory);\\n\\n    function getPenalty() external view returns (uint256);\\n\\n    function getIncentives(address) external view returns (uint256);\\n}\\n\",\"keccak256\":\"0xdb8de63844ae85bbfccc9d9cf273460e9ba980cb1b4de8e771a390db8107ef00\",\"license\":\"MIT\"},\"contracts/interfaces/IRocketJoeFactory.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.8.0;\\n\\ninterface IRocketJoeFactory {\\n    event RJLaunchEventCreated(\\n        address indexed launchEvent,\\n        address indexed issuer,\\n        address indexed token,\\n        uint256 phaseOneStartTime,\\n        uint256 phaseTwoStartTime,\\n        uint256 phaseThreeStartTime,\\n        address rJoe,\\n        uint256 rJoePerAvax\\n    );\\n    event SetRJoe(address indexed token);\\n    event SetPenaltyCollector(address indexed collector);\\n    event SetRouter(address indexed router);\\n    event SetFactory(address indexed factory);\\n    event SetRJoePerAvax(uint256 rJoePerAvax);\\n    event IssuingTokenDeposited(address indexed token, uint256 amount);\\n\\n    function eventImplementation() external view returns (address);\\n\\n    function penaltyCollector() external view returns (address);\\n\\n    function wavax() external view returns (address);\\n\\n    function rJoePerAvax() external view returns (uint256);\\n\\n    function router() external view returns (address);\\n\\n    function factory() external view returns (address);\\n\\n    function rJoe() external view returns (address);\\n\\n    function PHASE_ONE_DURATION() external view returns (uint256);\\n\\n    function PHASE_ONE_NO_FEE_DURATION() external view returns (uint256);\\n\\n    function PHASE_TWO_DURATION() external view returns (uint256);\\n\\n    function getRJLaunchEvent(address token)\\n        external\\n        view\\n        returns (address launchEvent);\\n\\n    function isRJLaunchEvent(address token) external view returns (bool);\\n\\n    function allRJLaunchEvents(uint256) external view returns (address pair);\\n\\n    function numLaunchEvents() external view returns (uint256);\\n\\n    function createRJLaunchEvent(\\n        address _issuer,\\n        uint256 _phaseOneStartTime,\\n        address _token,\\n        uint256 _tokenAmount,\\n        uint256 _tokenIncentivesPercent,\\n        uint256 _floorPrice,\\n        uint256 _maxWithdrawPenalty,\\n        uint256 _fixedWithdrawPenalty,\\n        uint256 _maxAllocation,\\n        uint256 _userTimelock,\\n        uint256 _issuerTimelock\\n    ) external returns (address pair);\\n\\n    function setPenaltyCollector(address) external;\\n\\n    function setRouter(address) external;\\n\\n    function setFactory(address) external;\\n\\n    function setRJoe(address) external;\\n\\n    function setRJoePerAvax(uint256) external;\\n\\n    function setPhaseDuration(uint256, uint256) external;\\n\\n    function setPhaseOneNoFeeDuration(uint256) external;\\n}\\n\",\"keccak256\":\"0x87f4358f2978fb2313bab69a100b1be4c4e68d4f3df7c61d69bf8b9c29adda33\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60806040523480156200001157600080fd5b5060405162001d7038038062001d70833981810160405281019062000037919062000095565b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550506200011a565b6000815190506200008f8162000100565b92915050565b600060208284031215620000ae57620000ad620000fb565b5b6000620000be848285016200007e565b91505092915050565b6000620000d482620000db565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b600080fd5b6200010b81620000c7565b81146200011757600080fd5b50565b611c46806200012a6000396000f3fe608060405234801561001057600080fd5b50600436106100575760003560e01c8063473123fe1461005c5780639ed6c9d61461007a578063a0677aac146100aa578063bc105654146100da578063f3fbd7d61461010a575b600080fd5b610064610128565b60405161007191906118cc565b60405180910390f35b610094600480360381019061008f919061131e565b610328565b6040516100a19190611909565b60405180910390f35b6100c460048036038101906100bf91906112f1565b6104fd565b6040516100d19190611909565b60405180910390f35b6100f460048036038101906100ef919061123d565b610de2565b60405161010191906118cc565b60405180910390f35b610112610fe5565b60405161011f91906118ee565b60405180910390f35b606060008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663fbaab6d96040518163ffffffff1660e01b815260040160206040518083038186803b15801561019357600080fd5b505afa1580156101a7573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101cb919061138b565b905060008167ffffffffffffffff8111156101e9576101e8611b25565b5b60405190808252806020026020018201604052801561022257816020015b61020f611009565b8152602001906001900390816102075790505b50905060005b8281101561031f5760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b815260040161028c9190611925565b60206040518083038186803b1580156102a457600080fd5b505afa1580156102b8573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102dc919061126a565b905060008190506102ec816104fd565b8484815181106102ff576102fe611af6565b5b60200260200101819052505050808061031790611a7e565b915050610228565b50809250505090565b610330611009565b600061033b846104fd565b90508373ffffffffffffffffffffffffffffffffffffffff166378912f53846040518263ffffffff1660e01b815260040161037691906118b1565b60206040518083038186803b15801561038e57600080fd5b505afa1580156103a2573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103c6919061138b565b8160600181815250508373ffffffffffffffffffffffffffffffffffffffff1663382db5b5846040518263ffffffff1660e01b815260040161040891906118b1565b60206040518083038186803b15801561042057600080fd5b505afa158015610434573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610458919061138b565b8160e00181815250508373ffffffffffffffffffffffffffffffffffffffff16636386c1c7846040518263ffffffff1660e01b815260040161049a91906118b1565b60806040518083038186803b1580156104b257600080fd5b505afa1580156104c6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104ea919061135e565b8161028001819052508091505092915050565b610505611009565b6000808373ffffffffffffffffffffffffffffffffffffffff16630902f1ac6040518163ffffffff1660e01b8152600401604080518083038186803b15801561054d57600080fd5b505afa158015610561573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061058591906113b8565b9150915060008473ffffffffffffffffffffffffffffffffffffffff1663fc0c546a6040518163ffffffff1660e01b815260040160206040518083038186803b1580156105d157600080fd5b505afa1580156105e5573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906106099190611297565b9050604051806102a001604052808673ffffffffffffffffffffffffffffffffffffffff16634f245ef76040518163ffffffff1660e01b815260040160206040518083038186803b15801561065d57600080fd5b505afa158015610671573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610695919061138b565b81526020018481526020018673ffffffffffffffffffffffffffffffffffffffff16639363c8126040518163ffffffff1660e01b815260040160206040518083038186803b1580156106e657600080fd5b505afa1580156106fa573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061071e919061138b565b8152602001600081526020018673ffffffffffffffffffffffffffffffffffffffff16635822213f6040518163ffffffff1660e01b815260040160206040518083038186803b15801561077057600080fd5b505afa158015610784573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107a8919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff16639b3ba79f6040518163ffffffff1660e01b815260040160206040518083038186803b1580156107f357600080fd5b505afa158015610807573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061082b919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff16632a0a8d5b6040518163ffffffff1660e01b815260040160206040518083038186803b15801561087657600080fd5b505afa15801561088a573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906108ae919061138b565b8152602001600081526020018673ffffffffffffffffffffffffffffffffffffffff1663e56e56db6040518163ffffffff1660e01b815260040160206040518083038186803b15801561090057600080fd5b505afa158015610914573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610938919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff16633e9e8d5f6040518163ffffffff1660e01b815260040160206040518083038186803b15801561098357600080fd5b505afa158015610997573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109bb919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff1663db069a516040518163ffffffff1660e01b815260040160206040518083038186803b158015610a0657600080fd5b505afa158015610a1a573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610a3e919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff16634edd499b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610a8957600080fd5b505afa158015610a9d573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ac1919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff1663853920406040518163ffffffff1660e01b815260040160206040518083038186803b158015610b0c57600080fd5b505afa158015610b20573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610b44919061138b565b81526020018273ffffffffffffffffffffffffffffffffffffffff1663313ce5676040518163ffffffff1660e01b815260040160206040518083038186803b158015610b8f57600080fd5b505afa158015610ba3573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610bc791906113f8565b60ff1681526020018673ffffffffffffffffffffffffffffffffffffffff1663f4b3b7d76040518163ffffffff1660e01b815260040160206040518083038186803b158015610c1557600080fd5b505afa158015610c29573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610c4d919061138b565b81526020018381526020018673ffffffffffffffffffffffffffffffffffffffff1663da5a9ded6040518163ffffffff1660e01b815260040160206040518083038186803b158015610c9e57600080fd5b505afa158015610cb2573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610cd6919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff1681526020018273ffffffffffffffffffffffffffffffffffffffff1681526020018673ffffffffffffffffffffffffffffffffffffffff1663a8aa1b316040518163ffffffff1660e01b815260040160206040518083038186803b158015610d5957600080fd5b505afa158015610d6d573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d9191906112c4565b73ffffffffffffffffffffffffffffffffffffffff16815260200160405180608001604052806000815260200160008152602001600015158152602001600015158152508152509350505050919050565b606060008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663fbaab6d96040518163ffffffff1660e01b815260040160206040518083038186803b158015610e4d57600080fd5b505afa158015610e61573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610e85919061138b565b905060008167ffffffffffffffff811115610ea357610ea2611b25565b5b604051908082528060200260200182016040528015610edc57816020015b610ec9611009565b815260200190600190039081610ec15790505b50905060005b82811015610fda5760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b8152600401610f469190611925565b60206040518083038186803b158015610f5e57600080fd5b505afa158015610f72573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610f96919061126a565b90506000819050610fa78188610328565b848481518110610fba57610fb9611af6565b5b602002602001018190525050508080610fd290611a7e565b915050610ee2565b508092505050919050565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b604051806102a001604052806000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff168152602001600073ffffffffffffffffffffffffffffffffffffffff168152602001600073ffffffffffffffffffffffffffffffffffffffff1681526020016110eb6110f1565b81525090565b604051806080016040528060008152602001600081526020016000151581526020016000151581525090565b60008135905061112c81611b6f565b92915050565b60008151905061114181611b6f565b92915050565b60008151905061115681611b86565b92915050565b60008151905061116b81611b9d565b92915050565b60008151905061118081611bb4565b92915050565b60008135905061119581611bcb565b92915050565b6000608082840312156111b1576111b0611b54565b5b6111bb6080611940565b905060006111cb84828501611213565b60008301525060206111df84828501611213565b60208301525060406111f384828501611147565b604083015250606061120784828501611147565b60608301525092915050565b60008151905061122281611be2565b92915050565b60008151905061123781611bf9565b92915050565b60006020828403121561125357611252611b59565b5b60006112618482850161111d565b91505092915050565b6000602082840312156112805761127f611b59565b5b600061128e84828501611132565b91505092915050565b6000602082840312156112ad576112ac611b59565b5b60006112bb8482850161115c565b91505092915050565b6000602082840312156112da576112d9611b59565b5b60006112e884828501611171565b91505092915050565b60006020828403121561130757611306611b59565b5b600061131584828501611186565b91505092915050565b6000806040838503121561133557611334611b59565b5b600061134385828601611186565b92505060206113548582860161111d565b9150509250929050565b60006080828403121561137457611373611b59565b5b60006113828482850161119b565b91505092915050565b6000602082840312156113a1576113a0611b59565b5b60006113af84828501611213565b91505092915050565b600080604083850312156113cf576113ce611b59565b5b60006113dd85828601611213565b92505060206113ee85828601611213565b9150509250929050565b60006020828403121561140e5761140d611b59565b5b600061141c84828501611228565b91505092915050565b600061143183836114d8565b6103008301905092915050565b6114478161199e565b82525050565b6114568161199e565b82525050565b600061146782611975565b611471818561198d565b935061147c83611965565b8060005b838110156114ad5781516114948882611425565b975061149f83611980565b925050600181019050611480565b5085935050505092915050565b6114c3816119b0565b82525050565b6114d281611a29565b82525050565b610300820160008201516114ef6000850182611893565b5060208201516115026020850182611893565b5060408201516115156040850182611893565b5060608201516115286060850182611893565b50608082015161153b6080850182611893565b5060a082015161154e60a0850182611893565b5060c082015161156160c0850182611893565b5060e082015161157460e0850182611893565b50610100820151611589610100850182611893565b5061012082015161159e610120850182611893565b506101408201516115b3610140850182611893565b506101608201516115c8610160850182611893565b506101808201516115dd610180850182611893565b506101a08201516115f26101a0850182611893565b506101c08201516116076101c0850182611893565b506101e082015161161c6101e0850182611893565b50610200820151611631610200850182611893565b5061022082015161164661022085018261143e565b5061024082015161165b61024085018261143e565b5061026082015161167061026085018261143e565b5061028082015161168561028085018261183e565b50505050565b610300820160008201516116a26000850182611893565b5060208201516116b56020850182611893565b5060408201516116c86040850182611893565b5060608201516116db6060850182611893565b5060808201516116ee6080850182611893565b5060a082015161170160a0850182611893565b5060c082015161171460c0850182611893565b5060e082015161172760e0850182611893565b5061010082015161173c610100850182611893565b50610120820151611751610120850182611893565b50610140820151611766610140850182611893565b5061016082015161177b610160850182611893565b50610180820151611790610180850182611893565b506101a08201516117a56101a0850182611893565b506101c08201516117ba6101c0850182611893565b506101e08201516117cf6101e0850182611893565b506102008201516117e4610200850182611893565b506102208201516117f961022085018261143e565b5061024082015161180e61024085018261143e565b5061026082015161182361026085018261143e565b5061028082015161183861028085018261183e565b50505050565b6080820160008201516118546000850182611893565b5060208201516118676020850182611893565b50604082015161187a60408501826114ba565b50606082015161188d60608501826114ba565b50505050565b61189c81611a12565b82525050565b6118ab81611a12565b82525050565b60006020820190506118c6600083018461144d565b92915050565b600060208201905081810360008301526118e6818461145c565b905092915050565b600060208201905061190360008301846114c9565b92915050565b60006103008201905061191f600083018461168b565b92915050565b600060208201905061193a60008301846118a2565b92915050565b600061194a61195b565b90506119568282611a4d565b919050565b6000604051905090565b6000819050602082019050919050565b600081519050919050565b6000602082019050919050565b600082825260208201905092915050565b60006119a9826119f2565b9050919050565b60008115159050919050565b60006119c78261199e565b9050919050565b60006119d98261199e565b9050919050565b60006119eb8261199e565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b600060ff82169050919050565b6000611a3482611a3b565b9050919050565b6000611a46826119f2565b9050919050565b611a5682611b5e565b810181811067ffffffffffffffff82111715611a7557611a74611b25565b5b80604052505050565b6000611a8982611a12565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff821415611abc57611abb611ac7565b5b600182019050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b611b788161199e565b8114611b8357600080fd5b50565b611b8f816119b0565b8114611b9a57600080fd5b50565b611ba6816119bc565b8114611bb157600080fd5b50565b611bbd816119ce565b8114611bc857600080fd5b50565b611bd4816119e0565b8114611bdf57600080fd5b50565b611beb81611a12565b8114611bf657600080fd5b50565b611c0281611a1c565b8114611c0d57600080fd5b5056fea2646970667358221220482f07c00110186e8c07b68543043badca9731813c4009f81fbbc4837af0880764736f6c63430008060033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100575760003560e01c8063473123fe1461005c5780639ed6c9d61461007a578063a0677aac146100aa578063bc105654146100da578063f3fbd7d61461010a575b600080fd5b610064610128565b60405161007191906118cc565b60405180910390f35b610094600480360381019061008f919061131e565b610328565b6040516100a19190611909565b60405180910390f35b6100c460048036038101906100bf91906112f1565b6104fd565b6040516100d19190611909565b60405180910390f35b6100f460048036038101906100ef919061123d565b610de2565b60405161010191906118cc565b60405180910390f35b610112610fe5565b60405161011f91906118ee565b60405180910390f35b606060008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663fbaab6d96040518163ffffffff1660e01b815260040160206040518083038186803b15801561019357600080fd5b505afa1580156101a7573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101cb919061138b565b905060008167ffffffffffffffff8111156101e9576101e8611b25565b5b60405190808252806020026020018201604052801561022257816020015b61020f611009565b8152602001906001900390816102075790505b50905060005b8281101561031f5760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b815260040161028c9190611925565b60206040518083038186803b1580156102a457600080fd5b505afa1580156102b8573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102dc919061126a565b905060008190506102ec816104fd565b8484815181106102ff576102fe611af6565b5b60200260200101819052505050808061031790611a7e565b915050610228565b50809250505090565b610330611009565b600061033b846104fd565b90508373ffffffffffffffffffffffffffffffffffffffff166378912f53846040518263ffffffff1660e01b815260040161037691906118b1565b60206040518083038186803b15801561038e57600080fd5b505afa1580156103a2573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103c6919061138b565b8160600181815250508373ffffffffffffffffffffffffffffffffffffffff1663382db5b5846040518263ffffffff1660e01b815260040161040891906118b1565b60206040518083038186803b15801561042057600080fd5b505afa158015610434573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610458919061138b565b8160e00181815250508373ffffffffffffffffffffffffffffffffffffffff16636386c1c7846040518263ffffffff1660e01b815260040161049a91906118b1565b60806040518083038186803b1580156104b257600080fd5b505afa1580156104c6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906104ea919061135e565b8161028001819052508091505092915050565b610505611009565b6000808373ffffffffffffffffffffffffffffffffffffffff16630902f1ac6040518163ffffffff1660e01b8152600401604080518083038186803b15801561054d57600080fd5b505afa158015610561573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061058591906113b8565b9150915060008473ffffffffffffffffffffffffffffffffffffffff1663fc0c546a6040518163ffffffff1660e01b815260040160206040518083038186803b1580156105d157600080fd5b505afa1580156105e5573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906106099190611297565b9050604051806102a001604052808673ffffffffffffffffffffffffffffffffffffffff16634f245ef76040518163ffffffff1660e01b815260040160206040518083038186803b15801561065d57600080fd5b505afa158015610671573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610695919061138b565b81526020018481526020018673ffffffffffffffffffffffffffffffffffffffff16639363c8126040518163ffffffff1660e01b815260040160206040518083038186803b1580156106e657600080fd5b505afa1580156106fa573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061071e919061138b565b8152602001600081526020018673ffffffffffffffffffffffffffffffffffffffff16635822213f6040518163ffffffff1660e01b815260040160206040518083038186803b15801561077057600080fd5b505afa158015610784573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107a8919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff16639b3ba79f6040518163ffffffff1660e01b815260040160206040518083038186803b1580156107f357600080fd5b505afa158015610807573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061082b919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff16632a0a8d5b6040518163ffffffff1660e01b815260040160206040518083038186803b15801561087657600080fd5b505afa15801561088a573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906108ae919061138b565b8152602001600081526020018673ffffffffffffffffffffffffffffffffffffffff1663e56e56db6040518163ffffffff1660e01b815260040160206040518083038186803b15801561090057600080fd5b505afa158015610914573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610938919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff16633e9e8d5f6040518163ffffffff1660e01b815260040160206040518083038186803b15801561098357600080fd5b505afa158015610997573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109bb919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff1663db069a516040518163ffffffff1660e01b815260040160206040518083038186803b158015610a0657600080fd5b505afa158015610a1a573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610a3e919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff16634edd499b6040518163ffffffff1660e01b815260040160206040518083038186803b158015610a8957600080fd5b505afa158015610a9d573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ac1919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff1663853920406040518163ffffffff1660e01b815260040160206040518083038186803b158015610b0c57600080fd5b505afa158015610b20573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610b44919061138b565b81526020018273ffffffffffffffffffffffffffffffffffffffff1663313ce5676040518163ffffffff1660e01b815260040160206040518083038186803b158015610b8f57600080fd5b505afa158015610ba3573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610bc791906113f8565b60ff1681526020018673ffffffffffffffffffffffffffffffffffffffff1663f4b3b7d76040518163ffffffff1660e01b815260040160206040518083038186803b158015610c1557600080fd5b505afa158015610c29573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610c4d919061138b565b81526020018381526020018673ffffffffffffffffffffffffffffffffffffffff1663da5a9ded6040518163ffffffff1660e01b815260040160206040518083038186803b158015610c9e57600080fd5b505afa158015610cb2573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610cd6919061138b565b81526020018673ffffffffffffffffffffffffffffffffffffffff1681526020018273ffffffffffffffffffffffffffffffffffffffff1681526020018673ffffffffffffffffffffffffffffffffffffffff1663a8aa1b316040518163ffffffff1660e01b815260040160206040518083038186803b158015610d5957600080fd5b505afa158015610d6d573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610d9191906112c4565b73ffffffffffffffffffffffffffffffffffffffff16815260200160405180608001604052806000815260200160008152602001600015158152602001600015158152508152509350505050919050565b606060008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663fbaab6d96040518163ffffffff1660e01b815260040160206040518083038186803b158015610e4d57600080fd5b505afa158015610e61573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610e85919061138b565b905060008167ffffffffffffffff811115610ea357610ea2611b25565b5b604051908082528060200260200182016040528015610edc57816020015b610ec9611009565b815260200190600190039081610ec15790505b50905060005b82811015610fda5760008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663831b000d836040518263ffffffff1660e01b8152600401610f469190611925565b60206040518083038186803b158015610f5e57600080fd5b505afa158015610f72573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610f96919061126a565b90506000819050610fa78188610328565b848481518110610fba57610fb9611af6565b5b602002602001018190525050508080610fd290611a7e565b915050610ee2565b508092505050919050565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b604051806102a001604052806000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600081526020016000815260200160008152602001600073ffffffffffffffffffffffffffffffffffffffff168152602001600073ffffffffffffffffffffffffffffffffffffffff168152602001600073ffffffffffffffffffffffffffffffffffffffff1681526020016110eb6110f1565b81525090565b604051806080016040528060008152602001600081526020016000151581526020016000151581525090565b60008135905061112c81611b6f565b92915050565b60008151905061114181611b6f565b92915050565b60008151905061115681611b86565b92915050565b60008151905061116b81611b9d565b92915050565b60008151905061118081611bb4565b92915050565b60008135905061119581611bcb565b92915050565b6000608082840312156111b1576111b0611b54565b5b6111bb6080611940565b905060006111cb84828501611213565b60008301525060206111df84828501611213565b60208301525060406111f384828501611147565b604083015250606061120784828501611147565b60608301525092915050565b60008151905061122281611be2565b92915050565b60008151905061123781611bf9565b92915050565b60006020828403121561125357611252611b59565b5b60006112618482850161111d565b91505092915050565b6000602082840312156112805761127f611b59565b5b600061128e84828501611132565b91505092915050565b6000602082840312156112ad576112ac611b59565b5b60006112bb8482850161115c565b91505092915050565b6000602082840312156112da576112d9611b59565b5b60006112e884828501611171565b91505092915050565b60006020828403121561130757611306611b59565b5b600061131584828501611186565b91505092915050565b6000806040838503121561133557611334611b59565b5b600061134385828601611186565b92505060206113548582860161111d565b9150509250929050565b60006080828403121561137457611373611b59565b5b60006113828482850161119b565b91505092915050565b6000602082840312156113a1576113a0611b59565b5b60006113af84828501611213565b91505092915050565b600080604083850312156113cf576113ce611b59565b5b60006113dd85828601611213565b92505060206113ee85828601611213565b9150509250929050565b60006020828403121561140e5761140d611b59565b5b600061141c84828501611228565b91505092915050565b600061143183836114d8565b6103008301905092915050565b6114478161199e565b82525050565b6114568161199e565b82525050565b600061146782611975565b611471818561198d565b935061147c83611965565b8060005b838110156114ad5781516114948882611425565b975061149f83611980565b925050600181019050611480565b5085935050505092915050565b6114c3816119b0565b82525050565b6114d281611a29565b82525050565b610300820160008201516114ef6000850182611893565b5060208201516115026020850182611893565b5060408201516115156040850182611893565b5060608201516115286060850182611893565b50608082015161153b6080850182611893565b5060a082015161154e60a0850182611893565b5060c082015161156160c0850182611893565b5060e082015161157460e0850182611893565b50610100820151611589610100850182611893565b5061012082015161159e610120850182611893565b506101408201516115b3610140850182611893565b506101608201516115c8610160850182611893565b506101808201516115dd610180850182611893565b506101a08201516115f26101a0850182611893565b506101c08201516116076101c0850182611893565b506101e082015161161c6101e0850182611893565b50610200820151611631610200850182611893565b5061022082015161164661022085018261143e565b5061024082015161165b61024085018261143e565b5061026082015161167061026085018261143e565b5061028082015161168561028085018261183e565b50505050565b610300820160008201516116a26000850182611893565b5060208201516116b56020850182611893565b5060408201516116c86040850182611893565b5060608201516116db6060850182611893565b5060808201516116ee6080850182611893565b5060a082015161170160a0850182611893565b5060c082015161171460c0850182611893565b5060e082015161172760e0850182611893565b5061010082015161173c610100850182611893565b50610120820151611751610120850182611893565b50610140820151611766610140850182611893565b5061016082015161177b610160850182611893565b50610180820151611790610180850182611893565b506101a08201516117a56101a0850182611893565b506101c08201516117ba6101c0850182611893565b506101e08201516117cf6101e0850182611893565b506102008201516117e4610200850182611893565b506102208201516117f961022085018261143e565b5061024082015161180e61024085018261143e565b5061026082015161182361026085018261143e565b5061028082015161183861028085018261183e565b50505050565b6080820160008201516118546000850182611893565b5060208201516118676020850182611893565b50604082015161187a60408501826114ba565b50606082015161188d60608501826114ba565b50505050565b61189c81611a12565b82525050565b6118ab81611a12565b82525050565b60006020820190506118c6600083018461144d565b92915050565b600060208201905081810360008301526118e6818461145c565b905092915050565b600060208201905061190360008301846114c9565b92915050565b60006103008201905061191f600083018461168b565b92915050565b600060208201905061193a60008301846118a2565b92915050565b600061194a61195b565b90506119568282611a4d565b919050565b6000604051905090565b6000819050602082019050919050565b600081519050919050565b6000602082019050919050565b600082825260208201905092915050565b60006119a9826119f2565b9050919050565b60008115159050919050565b60006119c78261199e565b9050919050565b60006119d98261199e565b9050919050565b60006119eb8261199e565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b600060ff82169050919050565b6000611a3482611a3b565b9050919050565b6000611a46826119f2565b9050919050565b611a5682611b5e565b810181811067ffffffffffffffff82111715611a7557611a74611b25565b5b80604052505050565b6000611a8982611a12565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff821415611abc57611abb611ac7565b5b600182019050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b600080fd5b600080fd5b6000601f19601f8301169050919050565b611b788161199e565b8114611b8357600080fd5b50565b611b8f816119b0565b8114611b9a57600080fd5b50565b611ba6816119bc565b8114611bb157600080fd5b50565b611bbd816119ce565b8114611bc857600080fd5b50565b611bd4816119e0565b8114611bdf57600080fd5b50565b611beb81611a12565b8114611bf657600080fd5b50565b611c0281611a1c565b8114611c0d57600080fd5b5056fea2646970667358221220482f07c00110186e8c07b68543043badca9731813c4009f81fbbc4837af0880764736f6c63430008060033",
   "devdoc": {
     "author": "Trader Joe",
     "kind": "dev",
@@ -531,6 +653,14 @@
       "getAllLaunchEvents()": {
         "returns": {
           "_0": "Array of all launch event datas"
+        }
+      },
+      "getAllLaunchEventsWithUser(address)": {
+        "params": {
+          "_user": "User to lookup"
+        },
+        "returns": {
+          "_0": "Array of all launch event datas with user info"
         }
       },
       "getLaunchEventData(address)": {
@@ -549,14 +679,6 @@
         "returns": {
           "_0": "Launch event data for the given `_launchEvent` and `_user`"
         }
-      },
-      "getUserLaunchEvents(address)": {
-        "params": {
-          "_user": "User to lookup"
-        },
-        "returns": {
-          "_0": "Array of launch event datas that `_user` has participated in"
-        }
       }
     },
     "title": "Launch Event Lens",
@@ -571,14 +693,14 @@
       "getAllLaunchEvents()": {
         "notice": "Get all launch event datas"
       },
+      "getAllLaunchEventsWithUser(address)": {
+        "notice": "Get all launch event datas with a given `_user`"
+      },
       "getLaunchEventData(address)": {
         "notice": "Get launch event data for a given launch event"
       },
       "getUserLaunchEventData(address,address)": {
         "notice": "Get launch event data for a given launch event and user"
-      },
-      "getUserLaunchEvents(address)": {
-        "notice": "Get all launch event datas that a given `_user` has participated in"
       }
     },
     "notice": "Helper contract to fetch launch event data",
@@ -587,16 +709,16 @@
   "storageLayout": {
     "storage": [
       {
-        "astId": 3754,
+        "astId": 3779,
         "contract": "contracts/LaunchEventLens.sol:LaunchEventLens",
         "label": "rocketJoeFactory",
         "offset": 0,
         "slot": "0",
-        "type": "t_contract(IRocketJoeFactory)6282"
+        "type": "t_contract(IRocketJoeFactory)6309"
       }
     ],
     "types": {
-      "t_contract(IRocketJoeFactory)6282": {
+      "t_contract(IRocketJoeFactory)6309": {
         "encoding": "inplace",
         "label": "contract IRocketJoeFactory",
         "numberOfBytes": "20"
