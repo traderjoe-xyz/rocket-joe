@@ -116,6 +116,24 @@ describe("rocket factory test", function () {
     );
   });
 
+  it("should set event implementation address", async function () {
+    await expect(
+      this.RocketFactory.connect(this.issuer).setEventImplementation(
+        this.signers[9].address
+      )
+    ).to.be.revertedWith("Ownable: caller is not the owner");
+    await expect(
+      this.RocketFactory.connect(this.dev).setEventImplementation(
+        this.signers[8].address
+      )
+    )
+      .to.emit(this.RocketFactory, "SetEventImplementation")
+      .withArgs(this.signers[8].address);
+    expect(await this.RocketFactory.eventImplementation()).to.equal(
+      this.signers[8].address
+    );
+  });
+
   it("should increment the number of launch events", async function () {
     expect(await this.RocketFactory.numLaunchEvents()).to.equal(0);
     const token1 = await this.RocketJoeTokenCF.deploy();
