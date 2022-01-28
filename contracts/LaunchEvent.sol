@@ -573,6 +573,9 @@ contract LaunchEvent {
     /// @notice Returns the current penalty for early withdrawal
     /// @return The penalty to apply to a withdrawal amount
     function getPenalty() public view returns (uint256) {
+        if (block.timestamp < auctionStart) {
+            return 0;
+        }
         uint256 timeElapsed = block.timestamp - auctionStart;
         if (timeElapsed < PHASE_ONE_NO_FEE_DURATION) {
             return 0;
