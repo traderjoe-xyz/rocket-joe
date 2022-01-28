@@ -261,7 +261,7 @@ describe("launch event contract phase three", function () {
 
       await expect(
         this.LaunchEvent.connect(this.issuer).withdrawLiquidity()
-      ).to.be.revertedWith("LaunchEvent: liquidity already withdrawn");
+      ).to.be.revertedWith("LaunchEvent: caller has no liquidity to claim");
     });
 
     it("should report it is in the correct phase", async function () {

@@ -462,8 +462,6 @@ contract LaunchEvent {
         user.hasWithdrawnPair = true;
 
         if (msg.sender == issuer) {
-            balance = lpSupply / 2;
-
             emit IssuerLiquidityWithdrawn(msg.sender, address(pair), balance);
         } else {
             emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
@@ -625,6 +623,9 @@ contract LaunchEvent {
         UserInfo memory user = getUserInfo[_user];
         if (avaxAllocated == 0 || user.hasWithdrawnPair) {
             return 0;
+        }
+        if (msg.sender == issuer) {
+            return lpSupply / 2;
         }
         return (user.balance * lpSupply) / avaxAllocated / 2;
     }
