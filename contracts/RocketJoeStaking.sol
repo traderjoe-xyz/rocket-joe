@@ -102,7 +102,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
             uint256 pending = (user.amount * accRJoePerShare) /
                 PRECISION -
                 user.rewardDebt;
-            _safeRJoeTransfer(msg.sender, pending);
+            if (pending > 0) _safeRJoeTransfer(msg.sender, pending);
         }
         user.amount = user.amount + _amount;
         user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
@@ -129,7 +129,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         user.amount = user.amount - _amount;
         user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
 
-        _safeRJoeTransfer(msg.sender, pending);
+        if (pending > 0) _safeRJoeTransfer(msg.sender, pending);
         joe.safeTransfer(msg.sender, _amount);
         emit Withdraw(msg.sender, _amount);
     }
