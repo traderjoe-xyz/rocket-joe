@@ -93,10 +93,13 @@ contract RocketJoeFactory is
     /// @param _issuer Address of the project issuing tokens for auction
     /// @param _phaseOneStartTime Timestamp of when launch event will start
     /// @param _token Token that will be issued through this launch event
-    /// @param _tokenAmount Amount of tokens that will be issued
+    /// @param _tokenAmountIncludingIncentives Amount of tokens that will be issued
     /// @param _tokenIncentivesPercent Additional tokens that will be given as
     /// incentive for locking up LPs during phase 3 expressed as a percentage
     /// of the issuing tokens for sale, scaled to 1e18
+    /// @param _tokenIncentivesPercent is the percentage of the issued tokens for sale that will be used as incentives for locking the LP during phase 3.
+    /// These incentives are on top of the tokens for sale.
+    /// For example, if we issue 100 tokens for sale and 5% of incentives, then 5 tokens will be given as incentives and in total the contract should have 105 tokens
     /// @param _floorPrice Price of each token in AVAX, scaled to 1e18
     /// @param _maxWithdrawPenalty Maximum withdrawal penalty that can be met
     /// during phase 1
@@ -111,7 +114,7 @@ contract RocketJoeFactory is
         address _issuer,
         uint256 _phaseOneStartTime,
         address _token,
-        uint256 _tokenAmount,
+        uint256 _tokenAmountIncludingIncentives,
         uint256 _tokenIncentivesPercent,
         uint256 _floorPrice,
         uint256 _maxWithdrawPenalty,
@@ -128,8 +131,8 @@ contract RocketJoeFactory is
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
         require(
-            _tokenAmount > 0,
-            "RJFactory: token amount needs to be greater than 0"
+            _tokenAmountIncludingIncentives > 0,
+            "RJFactory: token amount including incentives needs to be greater than 0"
         );
         require(
             IJoeFactory(factory).getPair(_token, wavax) == address(0) ||
@@ -142,9 +145,13 @@ contract RocketJoeFactory is
         address launchEvent = Clones.clone(eventImplementation);
 
         // msg.sender needs to approve RocketJoeFactory
-        IERC20(_token).safeTransferFrom(msg.sender, launchEvent, _tokenAmount);
+        IERC20(_token).safeTransferFrom(
+            msg.sender,
+            launchEvent,
+            _tokenAmountIncludingIncentives
+        );
 
-        emit IssuingTokenDeposited(_token, _tokenAmount);
+        emit IssuingTokenDeposited(_token, _tokenAmountIncludingIncentives);
 
         ILaunchEvent(payable(launchEvent)).initialize(
             _issuer,
