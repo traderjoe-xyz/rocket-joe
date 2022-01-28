@@ -90,3 +90,7 @@ To verify the contracts on rinkeby you will need an etherscan API key, see [.env
 ```
 yarn hardhat verify --network rinkeby "${contract_address}"
 ```
+
+## License
+
+[MIT](LICENSE)
