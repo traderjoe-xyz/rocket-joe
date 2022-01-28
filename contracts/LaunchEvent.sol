@@ -368,7 +368,7 @@ contract LaunchEvent {
 
     /// @notice Withdraw AVAX, only permitted during phase 1 and 2
     /// @param _amount The amount of AVAX to withdraw
-    function withdrawAVAX(uint256 _amount) public isStopped(false) {
+    function withdrawAVAX(uint256 _amount) external isStopped(false) {
         Phase _currentPhase = currentPhase();
         require(
             _currentPhase == Phase.PhaseOne || _currentPhase == Phase.PhaseTwo,
