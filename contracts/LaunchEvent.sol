@@ -467,12 +467,6 @@ contract LaunchEvent {
             balance = lpSupply / 2;
 
             emit IssuerLiquidityWithdrawn(msg.sender, address(pair), balance);
-
-            if (tokenReserve > 0) {
-                uint256 amount = tokenReserve;
-                tokenReserve = 0;
-                token.safeTransfer(msg.sender, amount);
-            }
         } else {
             emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
         }
@@ -481,7 +475,7 @@ contract LaunchEvent {
     }
 
     /// @notice Withdraw incentives tokens
-    function withdrawIncentives() external isStopped(false) {
+    function withdrawIncentives() external {
         require(address(pair) != address(0), "LaunchEvent: pair not created");
 
         uint256 amount = getIncentives(msg.sender);
@@ -498,26 +492,52 @@ contract LaunchEvent {
 
     /// @notice Withdraw AVAX if launch has been cancelled
     function emergencyWithdraw() external isStopped(true) {
-        if (msg.sender != issuer) {
+        if (address(pair) == address(0)) {
+            if (msg.sender != issuer) {
+                UserInfo storage user = getUserInfo[msg.sender];
+                require(
+                    user.balance > 0,
+                    "LaunchEvent: expected user to have non-zero balance to perform emergency withdraw"
+                );
+
+                uint256 balance = user.balance;
+                user.balance = 0;
+                avaxReserve -= balance;
+
+                _safeTransferAVAX(msg.sender, balance);
+
+                emit AvaxEmergencyWithdraw(msg.sender, balance);
+            } else {
+                uint256 balance = tokenReserve + tokenIncentivesBalance;
+                tokenReserve = 0;
+                tokenIncentivesBalance = 0;
+                token.safeTransfer(issuer, balance);
+                emit TokenEmergencyWithdraw(msg.sender, balance);
+            }
+        } else {
             UserInfo storage user = getUserInfo[msg.sender];
+
             require(
-                user.balance > 0,
-                "LaunchEvent: expected user to have non-zero balance to perform emergency withdraw"
+                !user.hasWithdrawnPair,
+                "LaunchEvent: liquidity already withdrawn"
             );
 
-            uint256 balance = user.balance;
-            user.balance = 0;
-            avaxReserve -= balance;
+            uint256 balance = pairBalance(msg.sender);
+            user.hasWithdrawnPair = true;
 
-            _safeTransferAVAX(msg.sender, balance);
+            if (msg.sender == issuer) {
+                balance = lpSupply / 2;
 
-            emit AvaxEmergencyWithdraw(msg.sender, balance);
-        } else {
-            uint256 balance = tokenReserve + tokenIncentivesBalance;
-            tokenReserve = 0;
-            tokenIncentivesBalance = 0;
-            token.safeTransfer(issuer, balance);
-            emit TokenEmergencyWithdraw(msg.sender, balance);
+                emit IssuerLiquidityWithdrawn(
+                    msg.sender,
+                    address(pair),
+                    balance
+                );
+            } else {
+                emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
+            }
+
+            pair.transfer(msg.sender, balance);
         }
     }
 
@@ -575,7 +595,8 @@ contract LaunchEvent {
         }
 
         if (_user == issuer) {
-            return tokenIncentiveIssuerRefund;
+            if (address(pair) == address(0)) return tokenIncentiveIssuerRefund;
+            return tokenIncentiveIssuerRefund + tokenReserve;
         } else {
             return (user.balance * tokenIncentivesForUsers) / avaxAllocated;
         }
