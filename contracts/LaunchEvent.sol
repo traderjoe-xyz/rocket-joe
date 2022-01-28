@@ -484,7 +484,12 @@ contract LaunchEvent {
         UserInfo storage user = getUserInfo[msg.sender];
         user.hasWithdrawnIncentives = true;
 
-        tokenIncentivesBalance -= amount;
+        if (msg.sender == issuer) {
+            tokenIncentivesBalance -= tokenIncentiveIssuerRefund;
+            tokenReserve = 0;
+        } else {
+            tokenIncentivesBalance -= amount;
+        }
 
         token.safeTransfer(msg.sender, amount);
         emit IncentiveTokenWithdraw(msg.sender, address(token), amount);
