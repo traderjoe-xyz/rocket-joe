@@ -98,7 +98,7 @@ describe("launch event contract initialisation", function () {
           this.validParams._auctionStart + 60 * 60 * 24 * 2,
           this.validParams._auctionStart + 60 * 60 * 24 * 3,
           this.rJOE.address,
-          100
+          ethers.utils.parseEther("100")
         )
         .to.emit(
           await ethers.getContractAt(

@@ -76,7 +76,7 @@ contract RocketJoeFactory is
         penaltyCollector = _penaltyCollector;
         router = _router;
         factory = _factory;
-        rJoePerAvax = 100;
+        rJoePerAvax = 100e18;
     }
 
     /// @notice Returns the number of launch events

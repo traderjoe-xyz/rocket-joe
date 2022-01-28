@@ -591,7 +591,7 @@ contract LaunchEvent {
     /// @param _avaxAmount The amount of AVAX to deposit
     /// @return The amount of rJOE needed
     function getRJoeAmount(uint256 _avaxAmount) public view returns (uint256) {
-        return _avaxAmount * rJoePerAvax;
+        return (_avaxAmount * rJoePerAvax) / 1e18;
     }
 
     /// @notice The total amount of liquidity pool tokens the user can withdraw
