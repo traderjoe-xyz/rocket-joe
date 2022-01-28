@@ -2,7 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
@@ -12,6 +11,10 @@ import "./interfaces/IJoeRouter02.sol";
 import "./interfaces/IRocketJoeFactory.sol";
 import "./interfaces/IRocketJoeToken.sol";
 import "./interfaces/IWAVAX.sol";
+
+interface Ownable {
+    function owner() external view virtual returns (address);
+}
 
 /// @title Rocket Joe Launch Event
 /// @author Trader Joe
@@ -545,7 +548,7 @@ contract LaunchEvent {
     /// @notice Stops the launch event and allows participants withdraw deposits
     function allowEmergencyWithdraw() external {
         require(
-            msg.sender == OwnableUpgradeable(address(rocketJoeFactory)).owner(),
+            msg.sender == Ownable(address(rocketJoeFactory)).owner(),
             "LaunchEvent: caller is not RocketJoeFactory owner"
         );
         stopped = true;
