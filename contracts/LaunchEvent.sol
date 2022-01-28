@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import "./interfaces/IJoeFactory.sol";
 import "./interfaces/IJoePair.sol";
@@ -17,7 +17,7 @@ import "./interfaces/IWAVAX.sol";
 /// @author Trader Joe
 /// @notice A liquidity launch contract enabling price discovery and token distribution at secondary market listing price
 contract LaunchEvent {
-    using SafeERC20 for IERC20Metadata;
+    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
 
     /// @notice The phases the launch event can be in
     /// @dev Should these have more semantic names: Bid, Cancel, Withdraw
@@ -78,7 +78,7 @@ contract LaunchEvent {
     IRocketJoeToken public rJoe;
     uint256 public rJoePerAvax;
     IWAVAX private WAVAX;
-    IERC20Metadata public token;
+    IERC20MetadataUpgradeable public token;
 
     IJoeRouter02 private router;
     IJoeFactory private factory;
@@ -275,7 +275,7 @@ contract LaunchEvent {
         PHASE_ONE_NO_FEE_DURATION = rocketJoeFactory.PHASE_ONE_NO_FEE_DURATION();
         PHASE_TWO_DURATION = rocketJoeFactory.PHASE_TWO_DURATION();
 
-        token = IERC20Metadata(_token);
+        token = IERC20MetadataUpgradeable(_token);
         uint256 balance = token.balanceOf(address(this));
 
         tokenIncentivesPercent = _tokenIncentivesPercent;
@@ -545,7 +545,7 @@ contract LaunchEvent {
     /// @notice Stops the launch event and allows participants to withdraw deposits
     function allowEmergencyWithdraw() external {
         require(
-            msg.sender == Ownable(address(rocketJoeFactory)).owner(),
+            msg.sender == OwnableUpgradeable(address(rocketJoeFactory)).owner(),
             "LaunchEvent: caller is not RocketJoeFactory owner"
         );
         stopped = true;
