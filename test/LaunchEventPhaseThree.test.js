@@ -301,7 +301,6 @@ describe("launch event contract phase three", function () {
       await advanceTimeAndBlock(duration.seconds(120));
 
       // Participant buys all the pool at floor price.
-
       await this.LaunchEvent.connect(this.participant).depositAVAX({
         value: ethers.utils.parseEther("100.0"),
       });
@@ -329,11 +328,11 @@ describe("launch event contract phase three", function () {
       await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
 
       expect(await pair.balanceOf(this.participant.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       expect(await pair.balanceOf(this.issuer.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawIncentives();
@@ -350,7 +349,6 @@ describe("launch event contract phase three", function () {
       await advanceTimeAndBlock(duration.seconds(120));
 
       // Participant buys all the pool at floor price.
-
       await this.LaunchEvent.connect(this.participant).depositAVAX({
         value: ethers.utils.parseEther("100.0"),
       });
@@ -378,21 +376,20 @@ describe("launch event contract phase three", function () {
       await this.LaunchEvent.connect(this.issuer).emergencyWithdraw();
 
       expect(await pair.balanceOf(this.participant.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       expect(await pair.balanceOf(this.issuer.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawIncentives();
-      await expect(
-        this.LaunchEvent.connect(this.issuer).withdrawIncentives()
-      ).to.be.revertedWith("LaunchEvent: caller has no incentive to claim");
-
       expect(await this.AUCTOK.balanceOf(this.participant.address)).to.equal(
         ethers.utils.parseEther("5")
       );
+      await expect(
+        this.LaunchEvent.connect(this.issuer).withdrawIncentives()
+      ).to.be.revertedWith("LaunchEvent: caller has no incentive to claim");
     });
 
     it("should refund tokens if floor not met and distribute incentives", async function () {
@@ -430,10 +427,10 @@ describe("launch event contract phase three", function () {
       await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
 
       expect(await pair.balanceOf(this.participant.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
       expect(await pair.balanceOf(this.issuer.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawIncentives();
@@ -496,7 +493,7 @@ describe("launch event contract phase three", function () {
         totalSupply.div(4).sub(MINIMUM_LIQUIDITY.div(4))
       );
       expect(await pair.balanceOf(this.issuer.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawIncentives();
@@ -554,7 +551,6 @@ describe("launch event contract phase three", function () {
       await advanceTimeAndBlock(duration.seconds(120));
 
       // Participant buys all the pool at floor price.
-
       await this.LaunchEvent.connect(this.participant).depositAVAX({
         value: ethers.utils.parseEther("100.0"),
       });
@@ -582,11 +578,11 @@ describe("launch event contract phase three", function () {
       await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
 
       expect(await pair.balanceOf(this.participant.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       expect(await pair.balanceOf(this.issuer.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawIncentives();
@@ -602,7 +598,6 @@ describe("launch event contract phase three", function () {
       await advanceTimeAndBlock(duration.seconds(120));
 
       // Participant buys all the pool at floor price.
-
       await this.LaunchEvent.connect(this.participant).depositAVAX({
         value: ethers.utils.parseEther("100.0"),
       });
@@ -630,21 +625,20 @@ describe("launch event contract phase three", function () {
       await this.LaunchEvent.connect(this.issuer).emergencyWithdraw();
 
       expect(await pair.balanceOf(this.participant.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       expect(await pair.balanceOf(this.issuer.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawIncentives();
+      expect(await this.AUCTOK.balanceOf(this.participant.address)).to.equal(
+        ethers.utils.parseEther("5")
+      );
       await expect(
         this.LaunchEvent.connect(this.issuer).withdrawIncentives()
       ).to.be.revertedWith("LaunchEvent: caller has no incentive to claim");
-
-      expect(await this.AUCTOK6D.balanceOf(this.participant.address)).to.equal(
-        ethers.utils.parseUnits("5", 6)
-      );
     });
 
     it("should refund tokens if floor not met and distribute incentives", async function () {
@@ -682,10 +676,10 @@ describe("launch event contract phase three", function () {
       await this.LaunchEvent.connect(this.issuer).withdrawLiquidity();
 
       expect(await pair.balanceOf(this.participant.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
       expect(await pair.balanceOf(this.issuer.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawIncentives();
@@ -748,7 +742,7 @@ describe("launch event contract phase three", function () {
         totalSupply.div(4).sub(MINIMUM_LIQUIDITY.div(4))
       );
       expect(await pair.balanceOf(this.issuer.address)).to.equal(
-        totalSupply.div(2).sub(MINIMUM_LIQUIDITY.div(2))
+        totalSupply.sub(MINIMUM_LIQUIDITY).div(2)
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawIncentives();
