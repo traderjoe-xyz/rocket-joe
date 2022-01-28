@@ -242,7 +242,7 @@ contract RocketJoeFactory is
     }
 
     /// @notice Set the proxy implementation address
-    /// @param _eventImplementation the address of the implementation contract
+    /// @param _eventImplementation The address of the implementation contract
     function setEventImplementation(address _eventImplementation)
         external
         override
