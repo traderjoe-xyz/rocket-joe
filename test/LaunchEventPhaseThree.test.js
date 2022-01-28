@@ -633,8 +633,8 @@ describe("launch event contract phase three", function () {
       );
 
       await this.LaunchEvent.connect(this.participant).withdrawIncentives();
-      expect(await this.AUCTOK.balanceOf(this.participant.address)).to.equal(
-        ethers.utils.parseEther("5")
+      expect(await this.AUCTOK6D.balanceOf(this.participant.address)).to.equal(
+        ethers.utils.parseUnits("5", 6)
       );
       await expect(
         this.LaunchEvent.connect(this.issuer).withdrawIncentives()
