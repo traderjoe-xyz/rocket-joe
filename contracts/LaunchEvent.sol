@@ -31,7 +31,7 @@ contract LaunchEvent {
     struct UserInfo {
         /// @notice How much AVAX user can deposit for this launch event
         /// @dev Can be increased by burning more rJOE, but will always be
-        /// smaller than `maxAllocation`
+        /// smaller than or equal to `maxAllocation`
         uint256 allocation;
         /// @notice How much AVAX user has deposited for this launch event
         uint256 balance;
@@ -214,7 +214,7 @@ contract LaunchEvent {
         _;
     }
 
-    /// @notice Initialise the launch event with needed paramaters
+    /// @notice Initialize the launch event with needed paramaters
     /// @param _issuer Address of the token issuer
     /// @param _auctionStart The start time of the auction
     /// @param _token The contract address of auctioned token
@@ -222,7 +222,7 @@ contract LaunchEvent {
     /// @param _floorPrice The minimum price the token is sold at
     /// @param _maxWithdrawPenalty The max withdraw penalty during phase 1, in parts per 1e18
     /// @param _fixedWithdrawPenalty The fixed withdraw penalty during phase 2, in parts per 1e18
-    /// @param _maxAllocation The maximum amount of AVAX depositable
+    /// @param _maxAllocation The maximum amount of AVAX depositable per user
     /// @param _userTimelock The time a user must wait after auction ends to withdraw liquidity
     /// @param _issuerTimelock The time the issuer must wait after auction ends to withdraw liquidity
     /// @dev This function is called by the factory immediately after it creates the contract instance
@@ -542,7 +542,7 @@ contract LaunchEvent {
         }
     }
 
-    /// @notice Stops the launch event and allows participants withdraw deposits
+    /// @notice Stops the launch event and allows participants to withdraw deposits
     function allowEmergencyWithdraw() external {
         require(
             msg.sender == Ownable(address(rocketJoeFactory)).owner(),
@@ -580,7 +580,7 @@ contract LaunchEvent {
             return
                 ((timeElapsed - PHASE_ONE_NO_FEE_DURATION) *
                     maxWithdrawPenalty) /
-                uint256(PHASE_ONE_DURATION - PHASE_ONE_NO_FEE_DURATION);
+                (PHASE_ONE_DURATION - PHASE_ONE_NO_FEE_DURATION);
         }
         return fixedWithdrawPenalty;
     }
