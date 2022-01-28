@@ -241,6 +241,18 @@ contract RocketJoeFactory is
         PHASE_ONE_NO_FEE_DURATION = _noFeeDuration;
     }
 
+    /// @notice Set the proxy implementation address
+    /// @param _eventImplementation the address of the implementation contract
+    function setEventImplementation(address _eventImplementation)
+        external
+        override
+        onlyOwner
+    {
+        require(_eventImplementation != address(0), "RJFactory: can't be null");
+        eventImplementation = _eventImplementation;
+        emit SetEventImplementation(_eventImplementation);
+    }
+
     /// @dev This function emits an event after a new launch event has been created
     /// It is only seperated out due to `createRJLaunchEvent` having too many local variables
     function _emitLaunchedEvent(

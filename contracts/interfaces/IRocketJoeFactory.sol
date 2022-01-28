@@ -18,6 +18,7 @@ interface IRocketJoeFactory {
     event SetRouter(address indexed router);
     event SetFactory(address indexed factory);
     event SetRJoePerAvax(uint256 rJoePerAvax);
+    event SetEventImplementation(address indexed implementation);
     event IssuingTokenDeposited(address indexed token, uint256 amount);
 
     function eventImplementation() external view returns (address);
@@ -78,4 +79,6 @@ interface IRocketJoeFactory {
     function setPhaseDuration(uint256, uint256) external;
 
     function setPhaseOneNoFeeDuration(uint256) external;
+
+    function setEventImplementation(address) external;
 }
