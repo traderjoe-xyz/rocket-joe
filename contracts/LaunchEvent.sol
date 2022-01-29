@@ -599,7 +599,6 @@ contract LaunchEvent {
             if (address(pair) == address(0)) return tokenIncentiveIssuerRefund;
             return tokenIncentiveIssuerRefund + tokenReserve;
         } else {
-            if (avaxAllocated == 0) return 0;
             return (user.balance * tokenIncentivesForUsers) / avaxAllocated;
         }
     }
