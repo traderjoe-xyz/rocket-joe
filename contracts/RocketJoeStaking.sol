@@ -76,7 +76,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         PRECISION = 1e18;
         MAX_EMISSION_RATE = 1e24;
         require(
-            _rJoePerSec < MAX_EMISSION_RATE,
+            _rJoePerSec <= MAX_EMISSION_RATE,
             "RocketJoeStaking: emission rate too high"
         );
         joe = _joe;
