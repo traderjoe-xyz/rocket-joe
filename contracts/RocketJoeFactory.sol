@@ -190,6 +190,10 @@ contract RocketJoeFactory is
         override
         onlyOwner
     {
+        require(
+            _penaltyCollector != address(0),
+            "RJFactory: penalty collector can't be address zero"
+        );
         penaltyCollector = _penaltyCollector;
         emit SetPenaltyCollector(_penaltyCollector);
     }
