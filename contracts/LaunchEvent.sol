@@ -257,7 +257,6 @@ contract LaunchEvent {
             _issuer != address(0),
             "LaunchEvent: issuer must be address zero"
         );
-        require(_floorPrice > 0, "LaunchEvent: floor price must not be zero");
         require(
             _maxAllocation > 0,
             "LaunchEvent: max allocation must not be zero"
