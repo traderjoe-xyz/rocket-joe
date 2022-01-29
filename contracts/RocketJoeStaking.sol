@@ -41,6 +41,9 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     RocketJoeToken public rJoe;
     uint256 public rJoePerSec;
 
+    /// @dev Balance of JOE held by contract
+    uint256 public totalJoeStaked;
+
     /// @dev Info of each user that stakes LP tokens
     mapping(address => UserInfo) public userInfo;
 
@@ -80,7 +83,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     /// @return The number of pending rJOE tokens for `_user`
     function pendingRJoe(address _user) external view returns (uint256) {
         UserInfo storage user = userInfo[_user];
-        uint256 joeSupply = joe.balanceOf(address(this));
+        uint256 joeSupply = totalJoeStaked;
         uint256 _accRJoePerShare = accRJoePerShare;
 
         if (block.timestamp > lastRewardTimestamp && joeSupply != 0) {
@@ -107,6 +110,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         user.amount += _amount;
         user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
 
+        totalJoeStaked += _amount;
         joe.safeTransferFrom(msg.sender, address(this), _amount);
         emit Deposit(msg.sender, _amount);
     }
@@ -130,6 +134,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
 
         if (pending > 0) _safeRJoeTransfer(msg.sender, pending);
+        totalJoeStaked -= _amount;
         joe.safeTransfer(msg.sender, _amount);
         emit Withdraw(msg.sender, _amount);
     }
@@ -142,6 +147,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         user.amount = 0;
         user.rewardDebt = 0;
 
+        totalJoeStaked -= _amount;
         joe.safeTransfer(msg.sender, _amount);
         emit EmergencyWithdraw(msg.sender, _amount);
     }
@@ -159,7 +165,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         if (block.timestamp <= lastRewardTimestamp) {
             return;
         }
-        uint256 joeSupply = joe.balanceOf(address(this));
+        uint256 joeSupply = totalJoeStaked;
         if (joeSupply == 0) {
             lastRewardTimestamp = block.timestamp;
             return;
