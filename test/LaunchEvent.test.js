@@ -61,7 +61,7 @@ describe("launch event contract initialisation", function () {
       _tokenAmount: ethers.utils.parseEther("105"),
       _tokenIncentivesPercent: ethers.utils.parseEther("0.05"),
       _floorPrice: 1,
-      _withdrawPenaltyGradient: 2893517,
+      _maxWithdrawPenalty: ethers.utils.parseEther("0.5"),
       _fixedWithdrawPenalty: ethers.utils.parseEther("0.4"),
       _maxAllocation: 100,
       _userTimelock: 60 * 60 * 24 * 7,
@@ -80,7 +80,7 @@ describe("launch event contract initialisation", function () {
           this.validParams._tokenAmount,
           this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
-          this.validParams._withdrawPenaltyGradient,
+          this.validParams._maxWithdrawPenalty,
           this.validParams._fixedWithdrawPenalty,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
@@ -110,7 +110,7 @@ describe("launch event contract initialisation", function () {
         .withArgs(
           this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
-          this.validParams._withdrawPenaltyGradient,
+          this.validParams._maxWithdrawPenalty,
           this.validParams._fixedWithdrawPenalty,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
@@ -129,7 +129,7 @@ describe("launch event contract initialisation", function () {
         this.validParams._tokenAmount,
         this.validParams._tokenIncentivesPercent,
         this.validParams._floorPrice,
-        this.validParams._withdrawPenaltyGradient,
+        this.validParams._maxWithdrawPenalty,
         this.validParams._fixedWithdrawPenalty,
         this.validParams._maxAllocation,
         this.validParams._userTimelock,
@@ -146,7 +146,7 @@ describe("launch event contract initialisation", function () {
           args._tokenAmount,
           args._tokenIncentivesPercent,
           args._floorPrice,
-          args._withdrawPenaltyGradient,
+          args._maxWithdrawPenalty,
           args._fixedWithdrawPenalty,
           args._maxAllocation,
           args._userTimelock,
@@ -218,7 +218,7 @@ describe("launch event contract initialisation", function () {
     it("should revert if max withdraw penalty is too high", async function () {
       const args = {
         ...this.validParams,
-        _withdrawPenaltyGradient: ethers.utils.parseEther("0.5").add("1"),
+        _maxWithdrawPenalty: ethers.utils.parseEther("0.5").add("1"),
       };
       await testReverts(
         this.RocketFactory,
@@ -265,15 +265,15 @@ describe("launch event contract initialisation", function () {
     });
 
     it("should deploy with correct paramaters", async function () {
-      await expect(
-        this.RocketFactory.createRJLaunchEvent(
+      expect(
+        await this.RocketFactory.createRJLaunchEvent(
           this.validParams._issuer,
           this.validParams._auctionStart,
           this.validParams._token,
           this.validParams._tokenAmount,
           this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
-          this.validParams._withdrawPenaltyGradient,
+          this.validParams._maxWithdrawPenalty,
           this.validParams._fixedWithdrawPenalty,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
@@ -283,15 +283,15 @@ describe("launch event contract initialisation", function () {
     });
 
     it("should revert if initialised twice", async function () {
-      await expect(
-        this.RocketFactory.createRJLaunchEvent(
+      expect(
+        await this.RocketFactory.createRJLaunchEvent(
           this.validParams._issuer,
           this.validParams._auctionStart,
           this.validParams._token,
           this.validParams._tokenAmount,
           this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
-          this.validParams._withdrawPenaltyGradient,
+          this.validParams._maxWithdrawPenalty,
           this.validParams._fixedWithdrawPenalty,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
@@ -310,7 +310,7 @@ describe("launch event contract initialisation", function () {
           this.validParams._token,
           this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
-          this.validParams._withdrawPenaltyGradient,
+          this.validParams._maxWithdrawPenalty,
           this.validParams._fixedWithdrawPenalty,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
@@ -327,7 +327,7 @@ describe("launch event contract initialisation", function () {
         this.validParams._tokenAmount,
         this.validParams._tokenIncentivesPercent,
         this.validParams._floorPrice,
-        this.validParams._withdrawPenaltyGradient,
+        this.validParams._maxWithdrawPenalty,
         this.validParams._fixedWithdrawPenalty,
         this.validParams._maxAllocation,
         this.validParams._userTimelock,
