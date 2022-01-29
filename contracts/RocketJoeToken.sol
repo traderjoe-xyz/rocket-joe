@@ -4,7 +4,10 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IRocketJoeFactory.sol";
+
+interface IRocketJoeFactory {
+    function isRJLaunchEvent(address) external view returns (bool);
+}
 
 /// @title Rocket Joe Token - rJOE
 /// @author Trader Joe
