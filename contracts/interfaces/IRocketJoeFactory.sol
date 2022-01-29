@@ -20,6 +20,8 @@ interface IRocketJoeFactory {
     event SetRJoePerAvax(uint256 rJoePerAvax);
     event SetEventImplementation(address indexed implementation);
     event IssuingTokenDeposited(address indexed token, uint256 amount);
+    event PhaseDurationChanged(uint256 phase, uint256 duration);
+    event NoFeeDurationChanged(uint256 duration);
 
     function eventImplementation() external view returns (address);
 
