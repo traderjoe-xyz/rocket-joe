@@ -63,7 +63,7 @@ describe("Rocket Joe Staking Contract", function () {
         ]
       );
       await expect(
-        rocketJoeStaking.updateEmissionRate(ethers.utils.parseEther("1000000"))
+        rocketJoeStaking.updateEmissionRate(ethers.utils.parseEther("1000001"))
       ).to.be.revertedWith("RocketJoeStaking: emission rate too high");
     });
     it("should allow deposits and withdraws of multiple users", async function () {
