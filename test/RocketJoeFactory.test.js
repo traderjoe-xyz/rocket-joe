@@ -200,12 +200,12 @@ describe("rocket factory test", function () {
     await expect(
       this.RocketFactory.connect(this.dev).setPhaseDuration(1, 86_400)
     ).to.be.revertedWith(
-      "RJFactory: phase one duration lower than no fee duration"
+      "RJFactory: phase one duration less than or equal to no fee duration"
     );
     await expect(
       this.RocketFactory.connect(this.dev).setPhaseOneNoFeeDuration(2 * 86_400)
     ).to.be.revertedWith(
-      "RJFactory: no fee duration bigger than phase one duration"
+      "RJFactory: no fee duration greater than or equal to phase one duration"
     );
   });
 

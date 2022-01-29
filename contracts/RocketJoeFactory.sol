@@ -65,7 +65,7 @@ contract RocketJoeFactory is
                 _penaltyCollector != address(0) &&
                 _router != address(0) &&
                 _factory != address(0),
-            "RJFactory: Addresses can't be null address"
+            "RJFactory: Addresses can't be zero address"
         );
         IRocketJoeToken(_rJoe).initialize();
 
@@ -153,7 +153,7 @@ contract RocketJoeFactory is
 
         emit IssuingTokenDeposited(_token, _tokenAmountIncludingIncentives);
 
-        ILaunchEvent(payable(launchEvent)).initialize(
+        ILaunchEvent(launchEvent).initialize(
             _issuer,
             _phaseOneStartTime,
             _token,
@@ -226,7 +226,7 @@ contract RocketJoeFactory is
         if (_phaseNumber == 1) {
             require(
                 _duration > PHASE_ONE_NO_FEE_DURATION,
-                "RJFactory: phase one duration lower than no fee duration"
+                "RJFactory: phase one duration less than or equal to no fee duration"
             );
             PHASE_ONE_DURATION = _duration;
         } else if (_phaseNumber == 2) {
@@ -243,7 +243,7 @@ contract RocketJoeFactory is
     {
         require(
             _noFeeDuration < PHASE_ONE_DURATION,
-            "RJFactory: no fee duration bigger than phase one duration"
+            "RJFactory: no fee duration greater than or equal to phase one duration"
         );
         PHASE_ONE_NO_FEE_DURATION = _noFeeDuration;
     }
