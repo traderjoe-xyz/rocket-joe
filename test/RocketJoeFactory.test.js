@@ -175,7 +175,11 @@ describe("rocket factory test", function () {
   });
 
   it("should change duration of phases", async function () {
-    await this.RocketFactory.connect(this.dev).setPhaseDuration(1, 3 * 86_400);
+    await expect(
+      this.RocketFactory.connect(this.dev).setPhaseDuration(1, 3 * 86_400)
+    )
+      .to.emit(this.RocketFactory, "PhaseDurationChanged")
+      .withArgs(1, 259200);
 
     expect(await this.RocketFactory.PHASE_ONE_DURATION()).to.be.equal(
       3 * 86_400
@@ -189,7 +193,11 @@ describe("rocket factory test", function () {
   });
 
   it("should change duration of the no phase duration", async function () {
-    await this.RocketFactory.connect(this.dev).setPhaseOneNoFeeDuration(3_600);
+    await expect(
+      this.RocketFactory.connect(this.dev).setPhaseOneNoFeeDuration(3_600)
+    )
+      .to.emit(this.RocketFactory, "NoFeeDurationChanged")
+      .withArgs(3600);
 
     expect(await this.RocketFactory.PHASE_ONE_NO_FEE_DURATION()).to.be.equal(
       3_600

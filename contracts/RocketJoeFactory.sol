@@ -236,6 +236,7 @@ contract RocketJoeFactory is
         } else if (_phaseNumber == 2) {
             PHASE_TWO_DURATION = _duration;
         }
+        emit PhaseDurationChanged(_phaseNumber, _duration);
     }
 
     /// @notice Set the no fee duration of phase 1
@@ -250,6 +251,7 @@ contract RocketJoeFactory is
             "RJFactory: no fee duration greater than or equal to phase one duration"
         );
         PHASE_ONE_NO_FEE_DURATION = _noFeeDuration;
+        emit NoFeeDurationChanged(_noFeeDuration);
     }
 
     /// @notice Set the proxy implementation address
