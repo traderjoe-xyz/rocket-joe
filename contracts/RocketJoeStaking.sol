@@ -38,6 +38,9 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     /// @notice Precision of accRJoePerShare
     uint256 private PRECISION;
 
+    /// @dev The maximum emission rate per second
+    uint256 public MAX_EMISSION_RATE;
+
     RocketJoeToken public rJoe;
     uint256 public rJoePerSec;
 
@@ -68,7 +71,11 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         );
 
         PRECISION = 1e18;
-
+        MAX_EMISSION_RATE = 1e23;
+        require(
+            _rJoePerSec < MAX_EMISSION_RATE,
+            "RocketJoeStaking: emission rate too high"
+        );
         joe = _joe;
         rJoe = _rJoe;
         rJoePerSec = _rJoePerSec;
@@ -149,6 +156,10 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     /// @notice Update emission rate
     /// @param _rJoePerSec The new value for rJoePerSec
     function updateEmissionRate(uint256 _rJoePerSec) external onlyOwner {
+        require(
+            _rJoePerSec <= MAX_EMISSION_RATE,
+            "RocketJoeStaking: emission rate too high"
+        );
         updatePool();
         rJoePerSec = _rJoePerSec;
         emit UpdateEmissionRate(msg.sender, _rJoePerSec);
