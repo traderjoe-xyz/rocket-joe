@@ -62,7 +62,7 @@ describe("launch event contract initialisation", function () {
       _tokenIncentivesPercent: ethers.utils.parseEther("0.05"),
       _floorPrice: 1,
       _withdrawPenaltyGradient: 2893517,
-      _fixedWithdrawPenalty: 4e17,
+      _fixedWithdrawPenalty: ethers.utils.parseEther("0.4"),
       _maxAllocation: 100,
       _userTimelock: 60 * 60 * 24 * 7,
       _issuerTimelock: 60 * 60 * 24 * 8,
