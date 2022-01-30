@@ -2,6 +2,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
 require("@openzeppelin/hardhat-upgrades");
+require("dotenv").config();
 require("hardhat-abi-exporter");
 require("hardhat-contract-sizer");
 require("hardhat-deploy");
