@@ -200,7 +200,7 @@ contract LaunchEvent {
         _;
     }
 
-    /// @notice Initialize the launch event with needed paramaters
+    /// @notice Initialize the launch event with needed parameters
     /// @param _issuer Address of the token issuer
     /// @param _auctionStart The start time of the auction
     /// @param _token The contract address of auctioned token
