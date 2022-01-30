@@ -27,7 +27,12 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
       execute: {
         init: {
           methodName: "initialize",
-          args: [joeAddress, rJoeAddress, rJoePerSec, Date.now() + 60 * 5],
+          args: [
+            joeAddress,
+            rJoeAddress,
+            rJoePerSec,
+            parseInt(Date.now() / 1000) + 60,
+          ],
         },
       },
     },
