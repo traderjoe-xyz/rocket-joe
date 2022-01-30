@@ -175,14 +175,6 @@ contract RocketJoeFactory is
         return launchEvent;
     }
 
-    /// @notice Set rJOE address
-    /// @param _rJoe New rJOE address
-    function setRJoe(address _rJoe) external override onlyOwner {
-        IRocketJoeToken(_rJoe).initialize();
-        rJoe = _rJoe;
-        emit SetRJoe(_rJoe);
-    }
-
     /// @notice Set address to collect withdrawal penalties
     /// @param _penaltyCollector New penalty collector address
     function setPenaltyCollector(address _penaltyCollector)
