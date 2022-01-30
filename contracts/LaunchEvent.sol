@@ -13,7 +13,7 @@ import "./interfaces/IRocketJoeToken.sol";
 import "./interfaces/IWAVAX.sol";
 
 interface Ownable {
-    function owner() external view virtual returns (address);
+    function owner() external view returns (address);
 }
 
 /// @title Rocket Joe Launch Event
