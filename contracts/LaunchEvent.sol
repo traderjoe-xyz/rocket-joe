@@ -513,12 +513,19 @@ contract LaunchEvent {
             UserInfo storage user = getUserInfo[msg.sender];
 
             uint256 balance = pairBalance(msg.sender);
-            require(balance > 0, "LaunchEvent: caller has no liquidity to claim");
+            require(
+                balance > 0,
+                "LaunchEvent: caller has no liquidity to claim"
+            );
 
             user.hasWithdrawnPair = true;
 
             if (msg.sender == issuer) {
-                emit IssuerLiquidityWithdrawn(msg.sender, address(pair), balance);
+                emit IssuerLiquidityWithdrawn(
+                    msg.sender,
+                    address(pair),
+                    balance
+                );
             } else {
                 emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
             }
