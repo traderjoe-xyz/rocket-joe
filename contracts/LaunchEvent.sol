@@ -549,6 +549,7 @@ contract LaunchEvent {
     /// @notice Force balances to match tokens that were deposited, but not sent directly to the contract.
     /// Any excess tokens are sent to the penaltyCollector
     function skim() external {
+        require(msg.sender == tx.origin, "LaunchEvent: EOA only");
         address penaltyCollector = rocketJoeFactory.penaltyCollector();
 
         uint256 excessToken = token.balanceOf(address(this)) -
@@ -690,6 +691,10 @@ contract LaunchEvent {
     /// @param _value The amount of AVAX to send
     /// @dev Will revert on failure
     function _safeTransferAVAX(address _to, uint256 _value) internal {
+        require(
+            avaxReserve >= address(this).balance,
+            "LaunchEvent: not enough avax"
+        );
         (bool success, ) = _to.call{value: _value}(new bytes(0));
         require(success, "LaunchEvent: avax transfer failed");
     }
