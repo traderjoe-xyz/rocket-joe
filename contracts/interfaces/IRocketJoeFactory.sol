@@ -74,8 +74,6 @@ interface IRocketJoeFactory {
 
     function setFactory(address) external;
 
-    function setRJoe(address) external;
-
     function setRJoePerAvax(uint256) external;
 
     function setPhaseDuration(uint256, uint256) external;

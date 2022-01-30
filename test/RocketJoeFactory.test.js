@@ -33,37 +33,6 @@ describe("rocket factory test", function () {
     );
   });
 
-  it("should set rJoe token address", async function () {
-    const rJOE2 = await this.RocketJoeTokenCF.deploy();
-    await expect(
-      this.RocketFactory.connect(this.issuer).setRJoe(rJOE2.address)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
-
-    // should revert if address is 0x0
-    await expect(
-      this.RocketFactory.connect(this.dev).setRJoe(ethers.constants.AddressZero)
-    ).to.be.revertedWith("function call to a non-contract account");
-
-    // should revert if address has no `initialize` function
-    await expect(
-      this.RocketFactory.connect(this.dev).setRJoe(this.AUCTOK.address)
-    ).to.be.revertedWith(
-      "function selector was not recognized and there's no fallback function"
-    );
-
-    await this.RocketFactory.connect(this.dev).setRJoe(rJOE2.address);
-    expect(await rJOE2.rocketJoeFactory()).to.be.equal(
-      this.RocketFactory.address
-    );
-
-    // should revert if called twice on the same address
-    await expect(
-      this.RocketFactory.connect(this.dev).setRJoe(rJOE2.address)
-    ).to.be.revertedWith("RocketJoeToken: already initialized");
-
-    expect(await this.RocketFactory.rJoe()).to.equal(rJOE2.address);
-  });
-
   it("should set penalty collector token address", async function () {
     await expect(
       this.RocketFactory.connect(this.issuer).setPenaltyCollector(
