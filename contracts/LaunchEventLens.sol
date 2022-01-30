@@ -42,18 +42,27 @@ contract LaunchEventLens {
     }
 
     /// @notice Get all launch event datas
+    /// @param _offset Index to start at when looking up launch events
+    /// @param _limit Maximum number of launch event datas to return
     /// @return Array of all launch event datas
-    function getAllLaunchEvents()
+    function getAllLaunchEvents(uint256 _offset, uint256 _limit)
         external
         view
         returns (LaunchEventData[] memory)
     {
+        LaunchEventData[] memory launchEventDatas;
         uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();
-        LaunchEventData[] memory launchEventDatas = new LaunchEventData[](
-            numLaunchEvents
-        );
 
-        for (uint256 i = 0; i < numLaunchEvents; i++) {
+        if (_offset >= numLaunchEvents || _limit == 0) {
+            return launchEventDatas;
+        }
+
+        uint256 end = _offset + _limit > numLaunchEvents
+            ? numLaunchEvents
+            : _offset + _limit;
+        launchEventDatas = new LaunchEventData[](end - _offset);
+
+        for (uint256 i = _offset; i < end; i++) {
             address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
             ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
             launchEventDatas[i] = getLaunchEventData(launchEvent);
@@ -63,19 +72,28 @@ contract LaunchEventLens {
     }
 
     /// @notice Get all launch event datas with a given `_user`
+    /// @param _offset Index to start at when looking up launch events
+    /// @param _limit Maximum number of launch event datas to return
     /// @param _user User to lookup
     /// @return Array of all launch event datas with user info
-    function getAllLaunchEventsWithUser(address _user)
-        external
-        view
-        returns (LaunchEventData[] memory)
-    {
+    function getAllLaunchEventsWithUser(
+        uint256 _offset,
+        uint256 _limit,
+        address _user
+    ) external view returns (LaunchEventData[] memory) {
+        LaunchEventData[] memory launchEventDatas;
         uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();
-        LaunchEventData[] memory launchEventDatas = new LaunchEventData[](
-            numLaunchEvents
-        );
 
-        for (uint256 i = 0; i < numLaunchEvents; i++) {
+        if (_offset >= numLaunchEvents || _limit == 0) {
+            return launchEventDatas;
+        }
+
+        uint256 end = _offset + _limit > numLaunchEvents
+            ? numLaunchEvents
+            : _offset + _limit;
+        launchEventDatas = new LaunchEventData[](end - _offset);
+
+        for (uint256 i = _offset; i < end; i++) {
             address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
             ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
             launchEventDatas[i] = getUserLaunchEventData(launchEvent, _user);
