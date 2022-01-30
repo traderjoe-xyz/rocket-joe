@@ -420,20 +420,20 @@ contract LaunchEvent {
                 tokenIncentivesForUsers;
         }
 
-        WAVAX.deposit{value: avaxReserve}();
+        avaxAllocated = avaxReserve;
+        avaxReserve = 0;
+
+        tokenReserve -= tokenAllocated;
+
+        WAVAX.deposit{value: avaxAllocated}();
         if (factory.getPair(wavaxAddress, tokenAddress) == address(0)) {
             pair = IJoePair(factory.createPair(wavaxAddress, tokenAddress));
         } else {
             pair = IJoePair(factory.getPair(wavaxAddress, tokenAddress));
         }
-        WAVAX.transfer(address(pair), avaxReserve);
+        WAVAX.transfer(address(pair), avaxAllocated);
         token.safeTransfer(address(pair), tokenAllocated);
         lpSupply = pair.mint(address(this));
-
-        avaxAllocated = avaxReserve;
-        avaxReserve = 0;
-
-        tokenReserve -= tokenAllocated;
 
         emit LiquidityPoolCreated(
             address(pair),
