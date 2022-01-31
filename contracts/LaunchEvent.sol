@@ -307,7 +307,7 @@ contract LaunchEvent {
 
     /// @notice The current phase the auction is in
     function currentPhase() public view returns (Phase) {
-        if (block.timestamp < auctionStart || auctionStart == 0) {
+        if (auctionStart == 0 || block.timestamp < auctionStart) {
             return Phase.NotStarted;
         } else if (block.timestamp < auctionStart + PHASE_ONE_DURATION) {
             return Phase.PhaseOne;
