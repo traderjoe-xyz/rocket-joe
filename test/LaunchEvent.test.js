@@ -179,6 +179,18 @@ describe("launch event contract initialisation", function () {
       );
     });
 
+    it("should revert if incentives percent too high", async function () {
+      const args = {
+        ...this.validParams,
+        _tokenIncentivesPercent: ethers.utils.parseEther("1"),
+      };
+      await testReverts(
+        this.RocketFactory,
+        args,
+        "LaunchEvent: token incentives too high"
+      );
+    });
+
     it("should revert if startime has elapsed", async function () {
       const args = {
         ...this.validParams,

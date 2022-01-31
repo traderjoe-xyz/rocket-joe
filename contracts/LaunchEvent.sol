@@ -261,6 +261,10 @@ contract LaunchEvent {
             _maxAllocation > 0,
             "LaunchEvent: max allocation must not be zero"
         );
+        require(
+            _tokenIncentivesPercent < 1 ether,
+            "LaunchEvent: token incentives too high"
+        );
 
         issuer = _issuer;
 
