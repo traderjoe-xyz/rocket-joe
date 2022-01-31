@@ -29,11 +29,11 @@ interface ILaunchEvent {
 
     function auctionStart() external view returns (uint256);
 
-    function PHASE_ONE_DURATION() external view returns (uint256);
+    function phaseOneDuration() external view returns (uint256);
 
-    function PHASE_ONE_NO_FEE_DURATION() external view returns (uint256);
+    function phaseOneNoFeeDuration() external view returns (uint256);
 
-    function PHASE_TWO_DURATION() external view returns (uint256);
+    function phaseTwoDuration() external view returns (uint256);
 
     function tokenIncentivesPercent() external view returns (uint256);
 

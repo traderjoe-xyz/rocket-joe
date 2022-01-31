@@ -33,9 +33,9 @@ contract RocketJoeFactory is
     address public override router;
     address public override factory;
 
-    uint256 public override PHASE_ONE_DURATION;
-    uint256 public override PHASE_ONE_NO_FEE_DURATION;
-    uint256 public override PHASE_TWO_DURATION;
+    uint256 public override phaseOneDuration;
+    uint256 public override phaseOneNoFeeDuration;
+    uint256 public override phaseTwoDuration;
 
     mapping(address => address) public override getRJLaunchEvent;
     mapping(address => bool) public override isRJLaunchEvent;
@@ -78,9 +78,9 @@ contract RocketJoeFactory is
         factory = _factory;
         rJoePerAvax = 100e18;
 
-        PHASE_ONE_DURATION = 2 days;
-        PHASE_ONE_NO_FEE_DURATION = 1 days;
-        PHASE_TWO_DURATION = 1 days;
+        phaseOneDuration = 2 days;
+        phaseOneNoFeeDuration = 1 days;
+        phaseTwoDuration = 1 days;
     }
 
     /// @notice Returns the number of launch events
@@ -221,12 +221,12 @@ contract RocketJoeFactory is
     {
         if (_phaseNumber == 1) {
             require(
-                _duration > PHASE_ONE_NO_FEE_DURATION,
+                _duration > phaseOneNoFeeDuration,
                 "RJFactory: phase one duration less than or equal to no fee duration"
             );
-            PHASE_ONE_DURATION = _duration;
+            phaseOneDuration = _duration;
         } else if (_phaseNumber == 2) {
-            PHASE_TWO_DURATION = _duration;
+            phaseTwoDuration = _duration;
         }
         emit PhaseDurationChanged(_phaseNumber, _duration);
     }
@@ -239,10 +239,10 @@ contract RocketJoeFactory is
         onlyOwner
     {
         require(
-            _noFeeDuration < PHASE_ONE_DURATION,
+            _noFeeDuration < phaseOneDuration,
             "RJFactory: no fee duration greater than or equal to phase one duration"
         );
-        PHASE_ONE_NO_FEE_DURATION = _noFeeDuration;
+        phaseOneNoFeeDuration = _noFeeDuration;
         emit NoFeeDurationChanged(_noFeeDuration);
     }
 
@@ -266,8 +266,8 @@ contract RocketJoeFactory is
         address _token,
         uint256 _phaseOneStartTime
     ) internal {
-        uint256 _phaseTwoStartTime = _phaseOneStartTime + PHASE_ONE_DURATION;
-        uint256 _phaseThreeStartTime = _phaseTwoStartTime + PHASE_TWO_DURATION;
+        uint256 _phaseTwoStartTime = _phaseOneStartTime + phaseOneDuration;
+        uint256 _phaseThreeStartTime = _phaseTwoStartTime + phaseTwoDuration;
 
         emit RJLaunchEventCreated(
             _launchEventAddress,
