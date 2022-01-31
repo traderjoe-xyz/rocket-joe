@@ -27,7 +27,7 @@ methods {
     userJoe(address) returns (uint256) envfree
     userRewardDebt(address) returns (uint256) envfree
     getOwner() returns(address) envfree
-    stakingJoeBalance() returns (uint256)
+    stakingJoeBalance() returns (uint256) envfree 
 }
 
 rule sanity(method f) {
@@ -40,7 +40,7 @@ ghost sum_user_balance() returns uint256 {
     init_state axiom sum_user_balance() == 0;
 }
 
-ghost user_rewards(address user) returns uint256 {
+ghost user_rewards(address) returns uint256 {
     init_state axiom forall address user. user_rewards(user) == 0;
 }
 
@@ -83,11 +83,21 @@ invariant staking_joe_bal_sums_user_balance()
 
 //userInfo[user].amount only changed by user in deposit/withdraw/emergencyWithdraw
 rule userInfo_amount_safe_mutate(method f) {
-    assert false, "not yet implemented";
+    env e; calldataarg args;
+    address user;
+    uint256 userBalance_pre = userJoe(user);
+    f(e, args);
+    uint256 userBalance_post = userJoe(user);
+    assert userBalance_pre != userBalance_post => f.selector == deposit(uint256).selector ||
+                                            f.selector == withdraw(uint256).selector ||
+                                            f.selector == emergencyWithdraw().selector, "improper function mutated user balance";
+    assert userBalance_pre != userBalance_post => e.msg.sender == user, "non-user mutated balance";
+
 }
 
 // rJoePerSec only changed by owner in updateEmissionRate
-rule RJPS_only_owner_and_function(method f) {
+rule RJPS_only_owner_and_function(method f) filtered { f -> f.selector != 0xf196e50011} 
+{
     env e; calldataarg args;
     uint256 RJPS_pre = rJoePerSec();
     f(e, args);
@@ -98,13 +108,13 @@ rule RJPS_only_owner_and_function(method f) {
 }
 
 // pendingReward[user] only decreased by user
-rule pending_reward_decreased_only_user() {
-    assert false, "not yet implemented";
-    // deposit joe 
-    // storage state
-    // pendingRJoe for delta_t1
-    // pendingRJoe for delta_t2 at storage state
-    // t2 > t1 =? pendringRJoe2 > pendingRjoe1
+rule pending_reward_decreased_only_user(method f) {
+    env e; calldataarg args;
+    address user;
+    uint256 rjoe_pre = pendingRJoe(e, user);
+    f(e, args);
+    uint256 rjoe_post = pendingRJoe(e, user);
+    assert rjoe_pre > rjoe_post => e.msg.sender == user; 
 }
 
 //  - If I am staked, I get some RJoe
@@ -125,7 +135,7 @@ rule staking_non_trivial_rJoe() {
 //  - If I stake longer, I get more reward
 rule stake_duration_correlates_return() {
 
-    storage init; 
+    storage init = lastStorage; 
     uint256 joe;
     require joe > 0;
     env e0;
@@ -152,10 +162,9 @@ rule stake_duration_correlates_return() {
 rule deposit_no_frontrunning(method f) filtered { f-> (f.selector != withdraw(uint256).selector &&
                                                        f.selector != deposit(uint256).selector)
 }{
+    storage init = lastStorage;
     env e; calldataarg args;
     uint256 x;
-    storage init;
-
     f(e, args);
     deposit(e, x);
     uint256 bal_f = userJoe(e.msg.sender);
@@ -168,10 +177,9 @@ rule deposit_no_frontrunning(method f) filtered { f-> (f.selector != withdraw(ui
 rule withdraw_no_frontrunning(method f) filtered { f-> (f.selector != withdraw(uint256).selector &&
                                                        f.selector != deposit(uint256).selector)
 }{
+    storage init = lastStorage;
     env e; calldataarg args;
     uint256 x;
-    storage init;
-
     f(e, args);
     withdraw(e, x);
     uint256 bal_f = userJoe(e.msg.sender);
@@ -183,14 +191,12 @@ rule withdraw_no_frontrunning(method f) filtered { f-> (f.selector != withdraw(u
 
 // additivty with frontrunning for greater coverage?
 rule additivity_withdraw() {
+    storage init = lastStorage;
+    env e; 
     uint256 x;
     uint256 y;
-    env e; 
     require x > 0 && y > 0;
     // require userJoe(e.msg.sender) > x + y;
-
-    storage init;
-
     withdraw(e, x);
     withdraw(e, y);
 
@@ -208,7 +214,7 @@ rule additivity_deposit() {
     env e; 
     require x > 0 && y > 0;
 
-    storage init;
+    storage init = lastStorage;
 
     deposit(e, x);
     deposit(e, y);
