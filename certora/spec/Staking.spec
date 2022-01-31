@@ -6,7 +6,6 @@ methods {
     // generated getters 
     lastRewardTimestamp() returns(uint256) envfree
     accRJoePerShare() returns(uint256) envfree
-    PRECISION() returns(uint256) envfree
     rJoePerSec() returns(uint256) envfree
     // mapping(address => UserInfo) public userInfo;
     // Initialize(IERC20Upgradeable _joe, RocketJoeToken _rJoe, uint256 _rJoePerSec)
@@ -17,11 +16,12 @@ methods {
     withdraw(uint256)
     emergencyWithdraw()
     updateEmissionRate(uint256)
-    _safeRJoeTransfer(address, uint256)
+    // _safeRJoeTransfer(address, uint256) // internal
 
     // harness functions
     userJoe(address) returns(uint256) envfree
     userRewardDebt(address) returns(uint256) envfree
+    getOwner() returns(address) envfree
 }
 
 rule sanity(method f) {
@@ -29,6 +29,21 @@ rule sanity(method f) {
     f(e, args);
     assert false;
 }
+
+ghost sum_user_balance() returns uint256;
+
+ghost sum_user_rewards() returns uint256;
+
+// user sum balance hook
+hook Sstore userInfo[KEY address user].amount uint256 userBalance (uint256 oldUserBalance) STORAGE {
+    havoc sum_user_balance assuming forall address u. u == user
+    ?   sum_user_balance@new() == sum_user_balance@old() + userBalance - oldUserBalance
+    :   sum_user_balance@new() == sum_user_balance@old();
+}
+
+// // user sum rewards hook
+// hook Sstore userInfo[KEY address user].
+// this will be more challenging to write, putting it off for after the first run 
 
 ////////////////////////////////////////////////////////////////////////////
 //                       Invariants                                       //
@@ -45,7 +60,9 @@ invariant staking_RJ_balance_eq_pending_rewards()
 //joe.balanceOf(RJStaking)  ≥ Σ userInfo[user].amount
 invariant staking_joe_bal_sums_user_balance()
     false
- 
+
+// non-zero e.msg.sender implies a non-zero reward debt?
+
 ////////////////////////////////////////////////////////////////////////////
 //                       Rules                                            //
 ////////////////////////////////////////////////////////////////////////////
@@ -57,12 +74,13 @@ rule userInfo_amount_safe_mutate(method f) {
 
 // rJoePerSec only changed by owner in updateEmissionRate
 rule RJPS_only_owner_and_function(method f) {
-    assert false, "not yet implemented";
-    // RJPS_pre
+    env e; calldataarg args;
+    uint256 RJPS_pre = rJoePerSec();
     f(e, args);
-    // RJPS_post
+    uint256 RJPS_post = rJoePerSec();
 
-    // RJPS_post != RJPS_pre => f is updateEmissionRate
+    assert RJPS_post != RJPS_pre => f.selector == updateEmissionRate(uint256).selector, "changed by wrong function";
+    assert RJPS_post != RJPS_pre => e.msg.sender == getOwner(), "changed by non-owner";
 }
 
 // pendingReward[user] only decreased by user
@@ -76,14 +94,15 @@ rule pending_reward_decreased_only_user() {
 }
 
 //  - If I am staked, I get some RJoe
-rule staking_non-trivial_rJoe() {
+rule staking_non_trivial_rJoe() {
     uint256 joe;
     require joe > 0;
     env e0;
     deposit(e0, joe);
 
     env e1; 
-    int delta_t = e1.msg.sender - e0.msg.sender; // store this as a variable for more readable cex
+    require e1.block.timestamp > e0.block.timestamp;
+    uint delta_t = e1.block.timestamp - e0.block.timestamp; // store this as a variable for more readable cex
     require delta_t > 0;
     uint256 rJoe = pendingRJoe(e1, e0.msg.sender);
     assert rJoe != 0;
@@ -99,14 +118,16 @@ rule stake_duration_correlates_return() {
     deposit(e0, joe);
 
     env e1; 
-    int delta_t1 = e1.msg.sender - e0.msg.sender; // store this as a variable for more readable cex
+    require e1.block.timestamp > e0.block.timestamp;
+    uint delta_t1 = e1.block.timestamp - e0.block.timestamp; // store this as a variable for more readable cex
     require delta_t1 > 0;
     uint256 rJoe1 = pendingRJoe(e1, e0.msg.sender);
 
     deposit(e0, joe) at init;
 
-    env e3; 
-    int delta_t2 = e2.msg.sender - e0.msg.sender; // store this as a variable for more readable cex
+    env e2; 
+    require e2.block.timestamp > e0.block.timestamp;
+    uint delta_t2 = e2.block.timestamp - e0.block.timestamp; // store this as a variable for more readable cex
     require delta_t2 > delta_t1;
     uint256 rJoe2 = pendingRJoe(e2, e0.msg.sender);
 
@@ -114,10 +135,10 @@ rule stake_duration_correlates_return() {
 }
 
 //  - No front-running for deposit:   `f(); deposit(...)` has same result as `deposit()`)
-rule deposit_no_frontrunning() filtered { f-> (f.selector != withdraw(uint256).selector &&
+rule deposit_no_frontrunning(method f) filtered { f-> (f.selector != withdraw(uint256).selector &&
                                                        f.selector != deposit(uint256).selector)
 }{
-    env e;
+    env e; calldataarg args;
     uint256 x;
     storage init;
 
@@ -133,7 +154,7 @@ rule deposit_no_frontrunning() filtered { f-> (f.selector != withdraw(uint256).s
 rule withdraw_no_frontrunning(method f) filtered { f-> (f.selector != withdraw(uint256).selector &&
                                                        f.selector != deposit(uint256).selector)
 }{
-    env e;
+    env e; calldataarg args;
     uint256 x;
     storage init;
 
@@ -152,7 +173,7 @@ rule additivity_withdraw() {
     uint256 y;
     env e; 
     require x > 0 && y > 0;
-    require userJoe > x + y;
+    // require userJoe(e.msg.sender) > x + y;
 
     storage init;
 

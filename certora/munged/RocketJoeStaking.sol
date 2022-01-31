@@ -17,11 +17,15 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     // harness functions
 
     function userJoe(address user) public view returns (uint256) {
-        return userInfo(user).amount;
+        return userInfo[user].amount;
     }
 
     function userRewardDebt(address user) public view returns (uint256) {
-        return userInfo(user).rewardDebt;
+        return userInfo[user].rewardDebt;
+    }
+
+    function getOwner() public view returns (address) {
+        return owner();
     }
 
     struct UserInfo {
