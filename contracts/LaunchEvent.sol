@@ -258,7 +258,7 @@ contract LaunchEvent {
             "LaunchEvent: issuer must be address zero"
         );
         require(
-            _maxAllocation != 0,
+            _maxAllocation > 0,
             "LaunchEvent: max allocation must not be zero"
         );
 
@@ -329,7 +329,7 @@ contract LaunchEvent {
     {
         require(msg.sender != issuer, "LaunchEvent: issuer cannot participate");
         require(
-            msg.value != 0,
+            msg.value > 0,
             "LaunchEvent: expected non-zero AVAX to deposit"
         );
 
@@ -353,7 +353,7 @@ contract LaunchEvent {
         user.balance = newAllocation;
         avaxReserve += msg.value;
 
-        if (rJoeNeeded != 0) {
+        if (rJoeNeeded > 0) {
             rJoe.burnFrom(msg.sender, rJoeNeeded);
         }
 
@@ -368,7 +368,7 @@ contract LaunchEvent {
             _currentPhase == Phase.PhaseOne || _currentPhase == Phase.PhaseTwo,
             "LaunchEvent: unable to withdraw"
         );
-        require(_amount != 0, "LaunchEvent: invalid withdraw amount");
+        require(_amount > 0, "LaunchEvent: invalid withdraw amount");
         UserInfo storage user = getUserInfo[msg.sender];
         require(
             user.balance >= _amount,
@@ -381,7 +381,7 @@ contract LaunchEvent {
 
         avaxReserve -= _amount;
 
-        if (feeAmount != 0) {
+        if (feeAmount > 0) {
             _safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
         }
         _safeTransferAVAX(msg.sender, amountMinusFee);
@@ -403,7 +403,7 @@ contract LaunchEvent {
                 0,
             "LaunchEvent: liquid pair already exists"
         );
-        require(avaxReserve != 0, "LaunchEvent: no avax balance");
+        require(avaxReserve > 0, "LaunchEvent: no avax balance");
 
         uint256 tokenAllocated = tokenReserve;
 
@@ -451,7 +451,7 @@ contract LaunchEvent {
         UserInfo storage user = getUserInfo[msg.sender];
 
         uint256 balance = pairBalance(msg.sender);
-        require(balance != 0, "LaunchEvent: caller has no liquidity to claim");
+        require(balance > 0, "LaunchEvent: caller has no liquidity to claim");
 
         user.hasWithdrawnPair = true;
 
@@ -469,7 +469,7 @@ contract LaunchEvent {
         require(address(pair) != address(0), "LaunchEvent: pair not created");
 
         uint256 amount = getIncentives(msg.sender);
-        require(amount != 0, "LaunchEvent: caller has no incentive to claim");
+        require(amount > 0, "LaunchEvent: caller has no incentive to claim");
 
         UserInfo storage user = getUserInfo[msg.sender];
         user.hasWithdrawnIncentives = true;
@@ -491,7 +491,7 @@ contract LaunchEvent {
             if (msg.sender != issuer) {
                 UserInfo storage user = getUserInfo[msg.sender];
                 require(
-                    user.balance != 0,
+                    user.balance > 0,
                     "LaunchEvent: expected user to have non-zero balance to perform emergency withdraw"
                 );
 
@@ -514,7 +514,7 @@ contract LaunchEvent {
 
             uint256 balance = pairBalance(msg.sender);
             require(
-                balance != 0,
+                balance > 0,
                 "LaunchEvent: caller has no liquidity to claim"
             );
 
@@ -553,12 +553,12 @@ contract LaunchEvent {
         uint256 excessToken = token.balanceOf(address(this)) -
             tokenReserve -
             tokenIncentivesBalance;
-        if (excessToken != 0) {
+        if (excessToken > 0) {
             token.safeTransfer(penaltyCollector, excessToken);
         }
 
         uint256 excessAvax = address(this).balance - avaxReserve;
-        if (excessAvax != 0) {
+        if (excessAvax > 0) {
             _safeTransferAVAX(penaltyCollector, excessAvax);
         }
     }
