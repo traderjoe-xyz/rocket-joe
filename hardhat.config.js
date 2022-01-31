@@ -21,13 +21,21 @@ module.exports = {
       url: `https://eth-rinkeby.alchemyapi.io/v2/${
         process.env.ALCHEMY_PROJECT_ID || ""
       }`,
-      accounts: process.env.RINKEBY_PRIVATE_KEY
-        ? [process.env.RINKEBY_PRIVATE_KEY]
+      accounts: process.env.DEPLOY_PRIVATE_KEY
+        ? [process.env.DEPLOY_PRIVATE_KEY]
         : [],
       gas: 2100000,
       gasPrice: 8000000000,
       saveDeployments: true,
     },
+    avalanche: {
+	  url: 'https://api.avax.network/ext/bc/C/rpc',
+      gasPrice: 225000000000,
+      chainId: 43114,
+	  accounts: process.env.DEPLOY_PRIVATE_KEY
+        ? [process.env.DEPLOY_PRIVATE_KEY]
+        : []
+    }
   },
   settings: {
     optimizer: {
