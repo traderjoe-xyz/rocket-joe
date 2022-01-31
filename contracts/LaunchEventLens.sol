@@ -11,6 +11,7 @@ import "./interfaces/IRocketJoeFactory.sol";
 contract LaunchEventLens {
     struct LaunchEventData {
         uint256 auctionStart;
+        uint256 avaxAllocated;
         uint256 avaxReserve;
         uint256 floorPrice;
         uint256 incentives;
@@ -23,6 +24,7 @@ contract LaunchEventLens {
         uint256 phaseOneNoFeeDuration;
         uint256 phaseTwoDuration;
         uint256 rJoePerAvax;
+        uint256 tokenAllocated;
         uint256 tokenDecimals;
         uint256 tokenIncentivesPercent;
         uint256 tokenReserve;
@@ -135,6 +137,7 @@ contract LaunchEventLens {
         return
             LaunchEventData({
                 auctionStart: _launchEvent.auctionStart(),
+                avaxAllocated: _launchEvent.avaxAllocated(),
                 avaxReserve: avaxReserve,
                 floorPrice: _launchEvent.floorPrice(),
                 incentives: 0,
@@ -147,6 +150,7 @@ contract LaunchEventLens {
                 phaseOneNoFeeDuration: _launchEvent.PHASE_ONE_NO_FEE_DURATION(),
                 phaseTwoDuration: _launchEvent.PHASE_TWO_DURATION(),
                 rJoePerAvax: _launchEvent.rJoePerAvax(),
+                tokenAllocated: _launchEvent.tokenAllocated(),
                 tokenDecimals: token.decimals(),
                 tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),
                 tokenReserve: tokenReserve,
