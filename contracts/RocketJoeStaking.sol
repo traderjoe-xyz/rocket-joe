@@ -65,7 +65,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         RocketJoeToken _rJoe,
         uint256 _rJoePerSec,
         uint256 _startTime
-    ) public initializer {
+    ) external initializer {
         __Ownable_init();
 
         require(
