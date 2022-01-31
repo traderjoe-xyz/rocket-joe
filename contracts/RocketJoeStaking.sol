@@ -186,10 +186,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         }
         uint256 multiplier = block.timestamp - lastRewardTimestamp;
         uint256 rJoeReward = multiplier * rJoePerSec;
-        accRJoePerShare =
-            accRJoePerShare +
-            (rJoeReward * PRECISION) /
-            joeSupply;
+        accRJoePerShare += (rJoeReward * PRECISION) / joeSupply;
         lastRewardTimestamp = block.timestamp;
 
         rJoe.mint(address(this), rJoeReward);
