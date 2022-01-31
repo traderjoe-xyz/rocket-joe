@@ -193,6 +193,10 @@ contract RocketJoeFactory is
     /// @notice Set JoeRouter address
     /// @param _router New router address
     function setRouter(address _router) external override onlyOwner {
+        require(
+            _router != address(0),
+            "RJFactory: router can't be address zero"
+        );
         router = _router;
         emit SetRouter(_router);
     }
@@ -200,6 +204,10 @@ contract RocketJoeFactory is
     /// @notice Set JoeFactory address
     /// @param _factory New factory address
     function setFactory(address _factory) external override onlyOwner {
+        require(
+            _factory != address(0),
+            "RJFactory: factory can't be address zero"
+        );
         factory = _factory;
         emit SetFactory(_factory);
     }
