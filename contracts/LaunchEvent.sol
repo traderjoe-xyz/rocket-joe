@@ -405,22 +405,19 @@ contract LaunchEvent {
             address(WAVAX),
             address(token)
         );
+        address _pair = factory.getPair(wavaxAddress, tokenAddress);
         require(
-            factory.getPair(wavaxAddress, tokenAddress) == address(0) ||
-                IJoePair(factory.getPair(wavaxAddress, tokenAddress))
-                    .totalSupply() ==
-                0,
+            _pair == address(0) || IJoePair(_pair).totalSupply() == 0,
             "LaunchEvent: liquid pair already exists"
         );
         require(avaxReserve > 0, "LaunchEvent: no avax balance");
 
+        uint256 tokenDecimals = token.decimals();
         tokenAllocated = tokenReserve;
 
         // Adjust the amount of tokens sent to the pool if floor price not met
-        if (
-            floorPrice > (avaxReserve * 10**token.decimals()) / tokenAllocated
-        ) {
-            tokenAllocated = (avaxReserve * 10**token.decimals()) / floorPrice;
+        if (floorPrice > (avaxReserve * 10**tokenDecimals) / tokenAllocated) {
+            tokenAllocated = (avaxReserve * 10**tokenDecimals) / floorPrice;
             tokenIncentivesForUsers =
                 (tokenIncentivesForUsers * tokenAllocated) /
                 tokenReserve;
@@ -435,10 +432,10 @@ contract LaunchEvent {
         tokenReserve -= tokenAllocated;
 
         WAVAX.deposit{value: avaxAllocated}();
-        if (factory.getPair(wavaxAddress, tokenAddress) == address(0)) {
+        if (_pair == address(0)) {
             pair = IJoePair(factory.createPair(wavaxAddress, tokenAddress));
         } else {
-            pair = IJoePair(factory.getPair(wavaxAddress, tokenAddress));
+            pair = IJoePair(_pair);
         }
         WAVAX.transfer(address(pair), avaxAllocated);
         token.safeTransfer(address(pair), tokenAllocated);

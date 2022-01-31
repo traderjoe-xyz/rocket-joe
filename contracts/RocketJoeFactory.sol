@@ -132,6 +132,10 @@ contract RocketJoeFactory is
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external override returns (address) {
+        require(
+            getRJLaunchEvent[_token] == address(0),
+            "RJFactory: token has already been issued"
+        );
         require(_issuer != address(0), "RJFactory: issuer can't be 0 address");
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
@@ -139,17 +143,15 @@ contract RocketJoeFactory is
             _tokenAmountIncludingIncentives > 0,
             "RJFactory: token amount including incentives needs to be greater than 0"
         );
-        require(
-            getRJLaunchEvent[_token] == address(0),
-            "RJFactory: token has already been issued"
-        );
-        require(
-            IJoeFactory(factory).getPair(_token, wavax) == address(0) ||
-                IJoePair(IJoeFactory(factory).getPair(_token, wavax))
-                    .totalSupply() ==
-                0,
-            "RJFactory: liquid pair already exists"
-        );
+
+        // avoids stack too deep error
+        {
+            address pair = IJoeFactory(factory).getPair(_token, wavax);
+            require(
+                pair == address(0) || IJoePair(pair).totalSupply() == 0,
+                "RJFactory: liquid pair already exists"
+            );
+        }
 
         address launchEvent = Clones.clone(eventImplementation);
 
