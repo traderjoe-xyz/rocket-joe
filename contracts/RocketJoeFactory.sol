@@ -131,7 +131,7 @@ contract RocketJoeFactory is
         require(_token != address(0), "RJFactory: token can't be 0 address");
         require(_token != wavax, "RJFactory: token can't be wavax");
         require(
-            _tokenAmountIncludingIncentives > 0,
+            _tokenAmountIncludingIncentives != 0,
             "RJFactory: token amount including incentives needs to be greater than 0"
         );
         require(
