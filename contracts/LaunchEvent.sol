@@ -400,9 +400,8 @@ contract LaunchEvent {
         );
         require(
             factory.getPair(wavaxAddress, tokenAddress) == address(0) ||
-                IJoePair(
-                    IJoeFactory(factory).getPair(wavaxAddress, tokenAddress)
-                ).totalSupply() ==
+                IJoePair(factory.getPair(wavaxAddress, tokenAddress))
+                    .totalSupply() ==
                 0,
             "LaunchEvent: liquid pair already exists"
         );
