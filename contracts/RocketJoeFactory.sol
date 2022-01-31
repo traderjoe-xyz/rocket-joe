@@ -59,13 +59,22 @@ contract RocketJoeFactory is
     ) public initializer {
         __Ownable_init();
         require(
-            _eventImplementation != address(0) &&
-                _rJoe != address(0) &&
-                _wavax != address(0) &&
-                _penaltyCollector != address(0) &&
-                _router != address(0) &&
-                _factory != address(0),
-            "RJFactory: Addresses can't be zero address"
+            _eventImplementation != address(0),
+            "RJFactory: event implentation can't be zero address"
+        );
+        require(_rJoe != address(0), "RJFactory: rJOE can't be zero address");
+        require(_wavax != address(0), "RJFactory: wavax can't be zero address");
+        require(
+            _penaltyCollector != address(0),
+            "RJFactory: penalty collector can't be zero address"
+        );
+        require(
+            _router != address(0),
+            "RJFactory: router can't be zero address"
+        );
+        require(
+            _factory != address(0),
+            "RJFactory: factory can't be zero address"
         );
         IRocketJoeToken(_rJoe).initialize();
 
