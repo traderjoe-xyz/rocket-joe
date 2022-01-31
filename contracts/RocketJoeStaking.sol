@@ -21,7 +21,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         // We do some fancy math here. Basically, any point in time, the amount of JOEs
         // entitled to a user but is pending to be distributed is:
         //
-        //   pending reward = (user.amount * accRJoePerShare) - user.rewardDebt
+        //   pending reward = (user.amount * accRJoePerShare) / PRECISION - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
         //   1. `accRJoePerShare` (and `lastRewardTimestamp`) gets updated
