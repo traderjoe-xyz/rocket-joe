@@ -99,7 +99,10 @@ contract LaunchEvent {
 
     /// @dev The total amount of avax that was sent to the router to create the initial liquidity pair.
     /// Used to calculate the amount of LP to send based on the user's participation in the launch event
-    uint256 private avaxAllocated;
+    uint256 public avaxAllocated;
+
+    /// @dev The total amount of tokens that was sent to the router to create the initial liquidity pair.
+    uint256 public tokenAllocated;
 
     /// @dev The exact supply of LP minted when creating the initial liquidity pair.
     uint256 private lpSupply;
@@ -405,7 +408,7 @@ contract LaunchEvent {
         );
         require(avaxReserve > 0, "LaunchEvent: no avax balance");
 
-        uint256 tokenAllocated = tokenReserve;
+        tokenAllocated = tokenReserve;
 
         // Adjust the amount of tokens sent to the pool if floor price not met
         if (

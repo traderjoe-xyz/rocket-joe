@@ -57,6 +57,10 @@ interface ILaunchEvent {
 
     function pair() external view returns (IJoePair);
 
+    function avaxAllocated() external view returns (uint256);
+
+    function tokenAllocated() external view returns (uint256);
+
     function pairBalance(address) external view returns (uint256);
 
     function getUserInfo(address) external view returns (UserInfo memory);
