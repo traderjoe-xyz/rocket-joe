@@ -50,9 +50,9 @@ contract LaunchEvent {
     /// @notice The start time of phase 1
     uint256 public auctionStart;
 
-    uint256 public phaseOneDuration;
-    uint256 public phaseOneNoFeeDuration;
-    uint256 public phaseTwoDuration;
+    uint256 public PHASE_ONE_DURATION;
+    uint256 public PHASE_ONE_NO_FEE_DURATION;
+    uint256 public PHASE_TWO_DURATION;
 
     /// @dev Amount of tokens used as incentives for locking up LPs during phase 3,
     /// in parts per 1e18 and expressed as an additional percentage to the tokens for auction.
@@ -265,9 +265,9 @@ contract LaunchEvent {
         issuer = _issuer;
 
         auctionStart = _auctionStart;
-        phaseOneDuration = rocketJoeFactory.phaseOneDuration();
-        phaseOneNoFeeDuration = rocketJoeFactory.phaseOneNoFeeDuration();
-        phaseTwoDuration = rocketJoeFactory.phaseTwoDuration();
+        PHASE_ONE_DURATION = rocketJoeFactory.phaseOneDuration();
+        PHASE_ONE_NO_FEE_DURATION = rocketJoeFactory.phaseOneNoFeeDuration();
+        PHASE_TWO_DURATION = rocketJoeFactory.phaseTwoDuration();
 
         token = IERC20MetadataUpgradeable(_token);
         uint256 balance = token.balanceOf(address(this));
@@ -309,10 +309,11 @@ contract LaunchEvent {
     function currentPhase() public view returns (Phase) {
         if (block.timestamp < auctionStart || auctionStart == 0) {
             return Phase.NotStarted;
-        } else if (block.timestamp < auctionStart + phaseOneDuration) {
+        } else if (block.timestamp < auctionStart + PHASE_ONE_DURATION) {
             return Phase.PhaseOne;
         } else if (
-            block.timestamp < auctionStart + phaseOneDuration + phaseTwoDuration
+            block.timestamp <
+            auctionStart + PHASE_ONE_DURATION + PHASE_TWO_DURATION
         ) {
             return Phase.PhaseTwo;
         }
@@ -569,12 +570,13 @@ contract LaunchEvent {
             return 0;
         }
         uint256 timeElapsed = block.timestamp - auctionStart;
-        if (timeElapsed < phaseOneNoFeeDuration) {
+        if (timeElapsed < PHASE_ONE_NO_FEE_DURATION) {
             return 0;
-        } else if (timeElapsed < phaseOneDuration) {
+        } else if (timeElapsed < PHASE_ONE_DURATION) {
             return
-                ((timeElapsed - phaseOneNoFeeDuration) * maxWithdrawPenalty) /
-                (phaseOneDuration - phaseOneNoFeeDuration);
+                ((timeElapsed - PHASE_ONE_NO_FEE_DURATION) *
+                    maxWithdrawPenalty) /
+                (PHASE_ONE_DURATION - PHASE_ONE_NO_FEE_DURATION);
         }
         return fixedWithdrawPenalty;
     }
@@ -657,8 +659,8 @@ contract LaunchEvent {
     /// This works becuase internal functions are not in-lined in modifiers
     function _timelockElapsed() internal view {
         uint256 phase3Start = auctionStart +
-            phaseOneDuration +
-            phaseTwoDuration;
+            PHASE_ONE_DURATION +
+            PHASE_TWO_DURATION;
         if (msg.sender == issuer) {
             require(
                 block.timestamp > phase3Start + issuerTimelock,
