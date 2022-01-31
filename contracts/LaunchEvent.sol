@@ -281,6 +281,7 @@ contract LaunchEvent {
         /// and `tokenIncentivesForUsers = tokenReserve * 0.05` (i.e. incentives are 5% of reserves for issuing).
         /// E.g. if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
         tokenReserve = (balance * 1e18) / (1e18 + _tokenIncentivesPercent);
+        require(tokenReserve > 0, "LaunchEvent: no token balance");
         tokenIncentivesForUsers = balance - tokenReserve;
         tokenIncentivesBalance = tokenIncentivesForUsers;
 
