@@ -87,7 +87,6 @@ contract LaunchEvent {
     IJoeFactory private factory;
     IRocketJoeFactory public rocketJoeFactory;
 
-    bool private initialized;
     bool public stopped;
 
     uint256 public maxAllocation;
@@ -227,7 +226,7 @@ contract LaunchEvent {
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external atPhase(Phase.NotStarted) {
-        require(!initialized, "LaunchEvent: already initialized");
+        require(auctionStart == 0, "LaunchEvent: already initialized");
         require(
             _token != rocketJoeFactory.wavax(),
             "LaunchEvent: token is wavax"
@@ -298,7 +297,6 @@ contract LaunchEvent {
 
         userTimelock = _userTimelock;
         issuerTimelock = _issuerTimelock;
-        initialized = true;
 
         emit LaunchEventInitialized(
             tokenIncentivesPercent,
