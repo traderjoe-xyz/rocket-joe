@@ -89,7 +89,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     /// @param _user The user to lookup
     /// @return The number of pending rJOE tokens for `_user`
     function pendingRJoe(address _user) external view returns (uint256) {
-        UserInfo storage user = userInfo[_user];
+        UserInfo memory user = userInfo[_user];
         uint256 joeSupply = totalJoeStaked;
         uint256 _accRJoePerShare = accRJoePerShare;
 
