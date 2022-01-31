@@ -194,7 +194,7 @@ describe("launch event contract initialisation", function () {
     it("should revert if token is wavax", async function () {
       const args = {
         ...this.validParams,
-        _token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+        _token: this.wavax.address,
       };
       await testReverts(
         this.RocketFactory,
