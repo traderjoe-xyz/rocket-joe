@@ -153,6 +153,10 @@ contract RocketJoeFactory is
 
         address launchEvent = Clones.clone(eventImplementation);
 
+        getRJLaunchEvent[_token] = launchEvent;
+        isRJLaunchEvent[launchEvent] = true;
+        allRJLaunchEvents.push(launchEvent);
+
         // msg.sender needs to approve RocketJoeFactory
         IERC20(_token).safeTransferFrom(
             msg.sender,
@@ -174,10 +178,6 @@ contract RocketJoeFactory is
             _userTimelock,
             _issuerTimelock
         );
-
-        getRJLaunchEvent[_token] = launchEvent;
-        isRJLaunchEvent[launchEvent] = true;
-        allRJLaunchEvents.push(launchEvent);
 
         _emitLaunchedEvent(launchEvent, _issuer, _token, _phaseOneStartTime);
 
