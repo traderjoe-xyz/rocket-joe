@@ -228,6 +228,10 @@ contract LaunchEvent {
         uint256 _issuerTimelock
     ) external atPhase(Phase.NotStarted) {
         require(!initialized, "LaunchEvent: already initialized");
+        require(
+            _token != rocketJoeFactory.wavax(),
+            "LaunchEvent: token is wavax"
+        );
 
         rocketJoeFactory = IRocketJoeFactory(msg.sender);
         WAVAX = IWAVAX(rocketJoeFactory.wavax());
