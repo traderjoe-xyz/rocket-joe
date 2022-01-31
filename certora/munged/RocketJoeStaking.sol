@@ -28,6 +28,10 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         return owner();
     }
 
+    function stakingJoeBalance() public view returns (uint256) {
+        return joe.balanceOf(address(this));
+    }
+
     struct UserInfo {
         uint256 amount; // How many JOE tokens the user has provided
         uint256 rewardDebt; // Reward debt. See explanation below

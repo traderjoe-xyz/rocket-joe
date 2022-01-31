@@ -1,12 +1,17 @@
+import "../helpers/erc20.spec"
+
 ////////////////////////////////////////////////////////////////////////////
 //                      Methods                                           //
 ////////////////////////////////////////////////////////////////////////////
 
 methods {
+    // external functions
+    mint(address) returns (uint256) => DISPATCHER(true) // does not seem to be functioning
+
     // generated getters 
-    lastRewardTimestamp() returns(uint256) envfree
-    accRJoePerShare() returns(uint256) envfree
-    rJoePerSec() returns(uint256) envfree
+    lastRewardTimestamp() returns (uint256) envfree
+    accRJoePerShare() returns (uint256) envfree
+    rJoePerSec() returns (uint256) envfree
     // mapping(address => UserInfo) public userInfo;
     // Initialize(IERC20Upgradeable _joe, RocketJoeToken _rJoe, uint256 _rJoePerSec)
     
@@ -19,9 +24,10 @@ methods {
     // _safeRJoeTransfer(address, uint256) // internal
 
     // harness functions
-    userJoe(address) returns(uint256) envfree
-    userRewardDebt(address) returns(uint256) envfree
+    userJoe(address) returns (uint256) envfree
+    userRewardDebt(address) returns (uint256) envfree
     getOwner() returns(address) envfree
+    stakingJoeBalance() returns (uint256)
 }
 
 rule sanity(method f) {
@@ -30,9 +36,17 @@ rule sanity(method f) {
     assert false;
 }
 
-ghost sum_user_balance() returns uint256;
+ghost sum_user_balance() returns uint256 {
+    init_state axiom sum_user_balance() == 0;
+}
 
-ghost sum_user_rewards() returns uint256;
+ghost user_rewards(address user) returns uint256 {
+    init_state axiom forall address user. user_rewards(user) == 0;
+}
+
+ghost sum_user_rewards() returns uint256 {
+    init_state axiom sum_user_rewards() == 0;
+}
 
 // user sum balance hook
 hook Sstore userInfo[KEY address user].amount uint256 userBalance (uint256 oldUserBalance) STORAGE {
@@ -59,7 +73,7 @@ invariant staking_RJ_balance_eq_pending_rewards()
 
 //joe.balanceOf(RJStaking)  ≥ Σ userInfo[user].amount
 invariant staking_joe_bal_sums_user_balance()
-    false
+    stakingJoeBalance() >= sum_user_balance()
 
 // non-zero e.msg.sender implies a non-zero reward debt?
 
