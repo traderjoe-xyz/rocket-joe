@@ -131,7 +131,7 @@ contract RocketJoeFactory is
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock
-    ) external override returns (address) {
+    ) external override onlyOwner returns (address) {
         require(
             getRJLaunchEvent[_token] == address(0),
             "RJFactory: token has already been issued"
