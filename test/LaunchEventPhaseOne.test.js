@@ -76,7 +76,7 @@ describe("launch event contract phase one", function () {
           this.LaunchEvent.connect(this.participant).depositAVAX({
             value: ethers.utils.parseEther("1.0"),
           })
-        ).to.be.revertedWith("LaunchEvent: not in phase one");
+        ).to.be.revertedWith("LaunchEvent: wrong phase");
       });
 
       it("should allow burning of rJOE even if it's not approved", async function () {
@@ -275,7 +275,7 @@ describe("launch event contract phase one", function () {
       await advanceTimeAndBlock(duration.seconds(120));
       expect(
         this.LaunchEvent.connect(this.dev).createPair()
-      ).to.be.revertedWith("LaunchEvent: not in phase three");
+      ).to.be.revertedWith("LaunchEvent: wrong phase");
     });
 
     it("should revert trying to send AVAX to the contract", async function () {
