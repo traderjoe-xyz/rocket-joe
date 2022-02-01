@@ -29,13 +29,13 @@ module.exports = {
       saveDeployments: true,
     },
     avalanche: {
-	  url: 'https://api.avax.network/ext/bc/C/rpc',
+      url: "https://api.avax.network/ext/bc/C/rpc",
       gasPrice: 225000000000,
       chainId: 43114,
-	  accounts: process.env.DEPLOY_PRIVATE_KEY
+      accounts: process.env.DEPLOY_PRIVATE_KEY
         ? [process.env.DEPLOY_PRIVATE_KEY]
-        : []
-    }
+        : [],
+    },
   },
   settings: {
     optimizer: {
