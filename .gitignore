@@ -15,3 +15,5 @@ coverage.json
 env
 *.py
 *.sh
+logs
+tmp
