@@ -17,3 +17,4 @@ env
 *.sh
 logs
 tmp
+deployments/localhost
