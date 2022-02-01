@@ -30,7 +30,7 @@ module.exports = {
     },
     avalanche: {
       url: "https://api.avax.network/ext/bc/C/rpc",
-      gasPrice: 225000000000,
+      gasPrice: 26000000000,
       chainId: 43114,
       accounts: process.env.DEPLOY_PRIVATE_KEY
         ? [process.env.DEPLOY_PRIVATE_KEY]
