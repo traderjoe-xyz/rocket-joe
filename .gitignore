@@ -12,3 +12,6 @@ coverage.json
 
 .openzeppelin
 .env
+env
+*.py
+*.sh

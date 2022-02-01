@@ -31,7 +31,6 @@ describe("launch event contract initialisation", function () {
   beforeEach(async function () {
     // Deploy the tokens used for tests.
     this.rJOE = await this.RocketJoeTokenCF.deploy();
-    // XXX: Should we replace this with a standard ERC20?
     this.AUCTOK = await this.ERC20TokenCF.deploy();
 
     this.RocketFactory = await deployRocketFactory(
@@ -59,11 +58,11 @@ describe("launch event contract initialisation", function () {
       _issuer: this.issuer.address,
       _auctionStart: this.block.timestamp + 60,
       _token: this.AUCTOK.address,
-      _tokenAmount: 100,
+      _tokenAmount: ethers.utils.parseEther("105"),
       _tokenIncentivesPercent: ethers.utils.parseEther("0.05"),
       _floorPrice: 1,
-      _withdrawPenaltyGradient: 2893517,
-      _fixedWithdrawPenalty: 4e11,
+      _maxWithdrawPenalty: ethers.utils.parseEther("0.5"),
+      _fixedWithdrawPenalty: ethers.utils.parseEther("0.4"),
       _maxAllocation: 100,
       _userTimelock: 60 * 60 * 24 * 7,
       _issuerTimelock: 60 * 60 * 24 * 8,
@@ -71,6 +70,56 @@ describe("launch event contract initialisation", function () {
   });
 
   describe("initialising the contract", function () {
+    it("should emit event when token added", async function () {
+      await this.factory.createPair(this.AUCTOK.address, this.wavax.address);
+      await expect(
+        this.RocketFactory.createRJLaunchEvent(
+          this.validParams._issuer,
+          this.validParams._auctionStart,
+          this.validParams._token,
+          this.validParams._tokenAmount,
+          this.validParams._tokenIncentivesPercent,
+          this.validParams._floorPrice,
+          this.validParams._maxWithdrawPenalty,
+          this.validParams._fixedWithdrawPenalty,
+          this.validParams._maxAllocation,
+          this.validParams._userTimelock,
+          this.validParams._issuerTimelock
+        )
+      )
+        .to.emit(this.RocketFactory, "IssuingTokenDeposited")
+        .withArgs(this.AUCTOK.address, this.validParams._tokenAmount)
+        .to.emit(this.RocketFactory, "RJLaunchEventCreated")
+        .withArgs(
+          await this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address),
+          this.issuer.address,
+          this.AUCTOK.address,
+          this.validParams._auctionStart,
+          this.validParams._auctionStart + 60 * 60 * 24 * 2,
+          this.validParams._auctionStart + 60 * 60 * 24 * 3,
+          this.rJOE.address,
+          ethers.utils.parseEther("100")
+        )
+        .to.emit(
+          await ethers.getContractAt(
+            "LaunchEvent",
+            await this.RocketFactory.getRJLaunchEvent(this.AUCTOK.address)
+          ),
+          "LaunchEventInitialized"
+        )
+        .withArgs(
+          this.validParams._tokenIncentivesPercent,
+          this.validParams._floorPrice,
+          this.validParams._maxWithdrawPenalty,
+          this.validParams._fixedWithdrawPenalty,
+          this.validParams._maxAllocation,
+          this.validParams._userTimelock,
+          this.validParams._issuerTimelock,
+          ethers.utils.parseEther("100"),
+          ethers.utils.parseEther("5")
+        );
+    });
+
     it("should create a launch event if pair created with no liquidity", async function () {
       await this.factory.createPair(this.AUCTOK.address, this.wavax.address);
       await this.RocketFactory.createRJLaunchEvent(
@@ -80,7 +129,7 @@ describe("launch event contract initialisation", function () {
         this.validParams._tokenAmount,
         this.validParams._tokenIncentivesPercent,
         this.validParams._floorPrice,
-        this.validParams._withdrawPenaltyGradient,
+        this.validParams._maxWithdrawPenalty,
         this.validParams._fixedWithdrawPenalty,
         this.validParams._maxAllocation,
         this.validParams._userTimelock,
@@ -97,7 +146,7 @@ describe("launch event contract initialisation", function () {
           args._tokenAmount,
           args._tokenIncentivesPercent,
           args._floorPrice,
-          args._withdrawPenaltyGradient,
+          args._maxWithdrawPenalty,
           args._fixedWithdrawPenalty,
           args._maxAllocation,
           args._userTimelock,
@@ -130,6 +179,18 @@ describe("launch event contract initialisation", function () {
       );
     });
 
+    it("should revert if incentives percent too high", async function () {
+      const args = {
+        ...this.validParams,
+        _tokenIncentivesPercent: ethers.utils.parseEther("1"),
+      };
+      await testReverts(
+        this.RocketFactory,
+        args,
+        "LaunchEvent: token incentives too high"
+      );
+    });
+
     it("should revert if startime has elapsed", async function () {
       const args = {
         ...this.validParams,
@@ -145,7 +206,7 @@ describe("launch event contract initialisation", function () {
     it("should revert if token is wavax", async function () {
       const args = {
         ...this.validParams,
-        _token: "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7",
+        _token: this.wavax.address,
       };
       await testReverts(
         this.RocketFactory,
@@ -169,7 +230,7 @@ describe("launch event contract initialisation", function () {
     it("should revert if max withdraw penalty is too high", async function () {
       const args = {
         ...this.validParams,
-        _withdrawPenaltyGradient: ethers.utils.parseEther("0.5").add("1"),
+        _maxWithdrawPenalty: ethers.utils.parseEther("0.5").add("1"),
       };
       await testReverts(
         this.RocketFactory,
@@ -216,15 +277,15 @@ describe("launch event contract initialisation", function () {
     });
 
     it("should deploy with correct paramaters", async function () {
-      await expect(
-        this.RocketFactory.createRJLaunchEvent(
+      expect(
+        await this.RocketFactory.createRJLaunchEvent(
           this.validParams._issuer,
           this.validParams._auctionStart,
           this.validParams._token,
           this.validParams._tokenAmount,
           this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
-          this.validParams._withdrawPenaltyGradient,
+          this.validParams._maxWithdrawPenalty,
           this.validParams._fixedWithdrawPenalty,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
@@ -234,15 +295,15 @@ describe("launch event contract initialisation", function () {
     });
 
     it("should revert if initialised twice", async function () {
-      await expect(
-        this.RocketFactory.createRJLaunchEvent(
+      expect(
+        await this.RocketFactory.createRJLaunchEvent(
           this.validParams._issuer,
           this.validParams._auctionStart,
           this.validParams._token,
           this.validParams._tokenAmount,
           this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
-          this.validParams._withdrawPenaltyGradient,
+          this.validParams._maxWithdrawPenalty,
           this.validParams._fixedWithdrawPenalty,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
@@ -261,7 +322,7 @@ describe("launch event contract initialisation", function () {
           this.validParams._token,
           this.validParams._tokenIncentivesPercent,
           this.validParams._floorPrice,
-          this.validParams._withdrawPenaltyGradient,
+          this.validParams._maxWithdrawPenalty,
           this.validParams._fixedWithdrawPenalty,
           this.validParams._maxAllocation,
           this.validParams._userTimelock,
@@ -278,7 +339,7 @@ describe("launch event contract initialisation", function () {
         this.validParams._tokenAmount,
         this.validParams._tokenIncentivesPercent,
         this.validParams._floorPrice,
-        this.validParams._withdrawPenaltyGradient,
+        this.validParams._maxWithdrawPenalty,
         this.validParams._fixedWithdrawPenalty,
         this.validParams._maxAllocation,
         this.validParams._userTimelock,

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity >=0.8.0;
+pragma solidity 0.8.6;
 
 interface IWAVAX {
     function deposit() external payable;
@@ -9,7 +9,7 @@ interface IWAVAX {
 
     function withdraw(uint256) external;
 
-    function balanceOf(address account) external returns (uint256);
+    function balanceOf(address account) external view returns (uint256);
 
     function approve(address spender, uint256 amount) external returns (bool);
 }

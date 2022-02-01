@@ -33,37 +33,6 @@ describe("rocket factory test", function () {
     );
   });
 
-  it("should set rJoe token address", async function () {
-    const rJOE2 = await this.RocketJoeTokenCF.deploy();
-    await expect(
-      this.RocketFactory.connect(this.issuer).setRJoe(rJOE2.address)
-    ).to.be.revertedWith("Ownable: caller is not the owner");
-
-    // should revert if address is 0x0
-    await expect(
-      this.RocketFactory.connect(this.dev).setRJoe(ethers.constants.AddressZero)
-    ).to.be.revertedWith("function call to a non-contract account");
-
-    // should revert if address has no `initialize` function
-    await expect(
-      this.RocketFactory.connect(this.dev).setRJoe(this.AUCTOK.address)
-    ).to.be.revertedWith(
-      "function selector was not recognized and there's no fallback function"
-    );
-
-    await this.RocketFactory.connect(this.dev).setRJoe(rJOE2.address);
-    expect(await rJOE2.rocketJoeFactory()).to.be.equal(
-      this.RocketFactory.address
-    );
-
-    // should revert if called twice on the same address
-    await expect(
-      this.RocketFactory.connect(this.dev).setRJoe(rJOE2.address)
-    ).to.be.revertedWith("RocketJoeToken: already initialized");
-
-    expect(await this.RocketFactory.rJoe()).to.equal(rJOE2.address);
-  });
-
   it("should set penalty collector token address", async function () {
     await expect(
       this.RocketFactory.connect(this.issuer).setPenaltyCollector(
@@ -116,6 +85,30 @@ describe("rocket factory test", function () {
     );
   });
 
+  it("should set event implementation address", async function () {
+    await expect(
+      this.RocketFactory.connect(this.dev).setEventImplementation(
+        ethers.constants.AddressZero
+      )
+    ).to.be.revertedWith("RJFactory: can't be null");
+
+    await expect(
+      this.RocketFactory.connect(this.issuer).setEventImplementation(
+        this.signers[9].address
+      )
+    ).to.be.revertedWith("Ownable: caller is not the owner");
+    await expect(
+      this.RocketFactory.connect(this.dev).setEventImplementation(
+        this.signers[8].address
+      )
+    )
+      .to.emit(this.RocketFactory, "SetEventImplementation")
+      .withArgs(this.signers[8].address);
+    expect(await this.RocketFactory.eventImplementation()).to.equal(
+      this.signers[8].address
+    );
+  });
+
   it("should increment the number of launch events", async function () {
     expect(await this.RocketFactory.numLaunchEvents()).to.equal(0);
     const token1 = await this.RocketJoeTokenCF.deploy();
@@ -151,37 +144,39 @@ describe("rocket factory test", function () {
   });
 
   it("should change duration of phases", async function () {
-    await this.RocketFactory.connect(this.dev).setPhaseDuration(1, 3 * 86_400);
+    await expect(
+      this.RocketFactory.connect(this.dev).setPhaseDuration(1, 3 * 86_400)
+    )
+      .to.emit(this.RocketFactory, "PhaseDurationChanged")
+      .withArgs(1, 259200);
 
-    expect(await this.RocketFactory.PHASE_ONE_DURATION()).to.be.equal(
-      3 * 86_400
-    );
+    expect(await this.RocketFactory.phaseOneDuration()).to.be.equal(3 * 86_400);
 
     await this.RocketFactory.connect(this.dev).setPhaseDuration(2, 5 * 86_400);
 
-    expect(await this.RocketFactory.PHASE_TWO_DURATION()).to.be.equal(
-      5 * 86_400
-    );
+    expect(await this.RocketFactory.phaseTwoDuration()).to.be.equal(5 * 86_400);
   });
 
   it("should change duration of the no phase duration", async function () {
-    await this.RocketFactory.connect(this.dev).setPhaseOneNoFeeDuration(3_600);
+    await expect(
+      this.RocketFactory.connect(this.dev).setPhaseOneNoFeeDuration(3_600)
+    )
+      .to.emit(this.RocketFactory, "NoFeeDurationChanged")
+      .withArgs(3600);
 
-    expect(await this.RocketFactory.PHASE_ONE_NO_FEE_DURATION()).to.be.equal(
-      3_600
-    );
+    expect(await this.RocketFactory.phaseOneNoFeeDuration()).to.be.equal(3_600);
   });
 
   it("should revert if duration are not set accordingly", async function () {
     await expect(
       this.RocketFactory.connect(this.dev).setPhaseDuration(1, 86_400)
     ).to.be.revertedWith(
-      "RJFactory: phase one duration lower than no fee duration"
+      "RJFactory: phase one duration less than or equal to no fee duration"
     );
     await expect(
       this.RocketFactory.connect(this.dev).setPhaseOneNoFeeDuration(2 * 86_400)
     ).to.be.revertedWith(
-      "RJFactory: no fee duration bigger than phase one duration"
+      "RJFactory: no fee duration greater than or equal to phase one duration"
     );
   });
 

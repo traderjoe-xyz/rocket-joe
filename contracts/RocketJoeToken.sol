@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IRocketJoeFactory.sol";
+
+interface IRocketJoeFactory {
+    function isRJLaunchEvent(address) external view returns (bool);
+}
 
 /// @title Rocket Joe Token - rJOE
 /// @author Trader Joe
@@ -63,5 +66,6 @@ contract RocketJoeToken is ERC20("RocketJoeToken", "rJOE"), Ownable {
             _from == address(0) || _to == address(0) || _from == owner(),
             "RocketJoeToken: can't send token"
         );
+        super._beforeTokenTransfer(_from, _to, _amount);
     }
 }

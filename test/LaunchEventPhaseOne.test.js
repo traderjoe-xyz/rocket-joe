@@ -76,7 +76,7 @@ describe("launch event contract phase one", function () {
           this.LaunchEvent.connect(this.participant).depositAVAX({
             value: ethers.utils.parseEther("1.0"),
           })
-        ).to.be.revertedWith("LaunchEvent: not in phase one");
+        ).to.be.revertedWith("LaunchEvent: wrong phase");
       });
 
       it("should allow burning of rJOE even if it's not approved", async function () {
@@ -101,6 +101,42 @@ describe("launch event contract phase one", function () {
         expect(
           this.LaunchEvent.getUserInfo(this.participant.address).amount
         ).to.equal(ethers.utils.parseEther("1.0").number);
+      });
+
+      it("should emit event on deposit", async function () {
+        await advanceTimeAndBlock(duration.seconds(120));
+        await expect(
+          this.LaunchEvent.connect(this.participant).depositAVAX({
+            value: ethers.utils.parseEther("1.0"),
+          })
+        )
+          .to.emit(this.LaunchEvent, "UserParticipated")
+          .withArgs(
+            this.participant.address,
+            ethers.utils.parseEther("1.0"),
+            ethers.utils.parseEther("100")
+          );
+        await this.LaunchEvent.connect(this.participant).withdrawAVAX(
+          ethers.utils.parseEther("1.0")
+        );
+        // User already has allocation rJOE in event should be 0
+        await expect(
+          this.LaunchEvent.connect(this.participant).depositAVAX({
+            value: ethers.utils.parseEther("1.0"),
+          })
+        )
+          .to.emit(this.LaunchEvent, "UserParticipated")
+          .withArgs(
+            this.participant.address,
+            ethers.utils.parseEther("1.0"),
+            0
+          );
+      });
+
+      it("should emit event when stopped", async function () {
+        await expect(
+          this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw()
+        ).to.emit(this.LaunchEvent, "Stopped");
       });
 
       it("should revert on deposit if stopped", async function () {
@@ -156,6 +192,24 @@ describe("launch event contract phase one", function () {
         expect(await this.penaltyCollector.getBalance()).to.equal(
           ethers.utils.parseEther("10000")
         );
+      });
+
+      it("should emit an event when user withdraws", async function () {
+        const eventImplementation = await ethers.getContractAt(
+          "LaunchEvent",
+          await this.RocketFactory.eventImplementation()
+        );
+        await expect(
+          this.LaunchEvent.connect(this.participant).withdrawAVAX(
+            ethers.utils.parseEther("1.0")
+          )
+        )
+          .to.emit(await this.LaunchEvent, "UserWithdrawn")
+          .withArgs(
+            this.participant.address,
+            ethers.utils.parseEther("1.0"),
+            0
+          );
       });
 
       it("should apply gradient fee if withdraw in second day", async function () {
@@ -221,7 +275,7 @@ describe("launch event contract phase one", function () {
       await advanceTimeAndBlock(duration.seconds(120));
       expect(
         this.LaunchEvent.connect(this.dev).createPair()
-      ).to.be.revertedWith("LaunchEvent: not in phase three");
+      ).to.be.revertedWith("LaunchEvent: wrong phase");
     });
 
     it("should revert trying to send AVAX to the contract", async function () {
@@ -231,7 +285,7 @@ describe("launch event contract phase one", function () {
           value: ethers.utils.parseEther("1.0"),
         })
       ).to.be.revertedWith(
-        "LaunchEvent: you can't send AVAX directly to this contract"
+        "Transaction reverted: function selector was not recognized and there's no fallback nor receive function"
       );
     });
 

@@ -44,6 +44,28 @@ describe("Rocket Joe Staking Contract", function () {
   });
 
   describe("Should allow deposits and withdraws", function () {
+    it("should revert if emmision rate too high", async function () {
+      await expect(
+        upgrades.deployProxy(this.RocketJoeStakingCF, [
+          this.joe.address,
+          this.rJOE.address,
+          ethers.utils.parseEther("10000000"),
+          this.block.timestamp + 60,
+        ])
+      ).to.be.revertedWith("RocketJoeStaking: emission rate too high");
+      const rocketJoeStaking = await upgrades.deployProxy(
+        this.RocketJoeStakingCF,
+        [
+          this.joe.address,
+          this.rJOE.address,
+          ethers.utils.parseEther("100"),
+          this.block.timestamp + 60,
+        ]
+      );
+      await expect(
+        rocketJoeStaking.updateEmissionRate(ethers.utils.parseEther("1000001"))
+      ).to.be.revertedWith("RocketJoeStaking: emission rate too high");
+    });
     it("should allow deposits and withdraws of multiple users", async function () {
       await this.joe
         .connect(this.alice)

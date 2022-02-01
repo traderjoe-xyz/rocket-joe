@@ -89,13 +89,13 @@ describe("launch event contract phase two", function () {
         this.LaunchEvent.connect(this.participant).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("LaunchEvent: not in phase one");
+      ).to.be.revertedWith("LaunchEvent: wrong phase");
     });
 
     it("should revert try to create pool", async function () {
       expect(
         this.LaunchEvent.connect(this.participant).createPair()
-      ).to.be.revertedWith("LaunchEvent: not in phase three");
+      ).to.be.revertedWith("LaunchEvent: wrong phase");
     });
 
     it("should charge a fixed withdraw penalty", async function () {
@@ -127,6 +127,22 @@ describe("launch event contract phase two", function () {
       await expect(await this.AUCTOK.balanceOf(this.issuer.address)).to.equal(
         ethers.utils.parseEther("105.0")
       );
+    });
+
+    it("should emit event when issuer emergency withdraws", async function () {
+      await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
+      await expect(this.LaunchEvent.connect(this.issuer).emergencyWithdraw())
+        .to.emit(this.LaunchEvent, "TokenEmergencyWithdraw")
+        .withArgs(this.issuer.address, ethers.utils.parseEther("105"));
+    });
+
+    it("should emit event when user emergency withdraws", async function () {
+      await this.LaunchEvent.connect(this.dev).allowEmergencyWithdraw();
+      await expect(
+        this.LaunchEvent.connect(this.participant).emergencyWithdraw()
+      )
+        .to.emit(this.LaunchEvent, "AvaxEmergencyWithdraw")
+        .withArgs(this.participant.address, ethers.utils.parseEther("1"));
     });
 
     it("should allow emergency withdraw to user when stopped", async function () {

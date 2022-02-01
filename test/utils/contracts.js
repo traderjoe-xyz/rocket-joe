@@ -31,16 +31,14 @@ async function deployRocketFactory(dev, rJoe, penaltyCollector) {
   // Deploy the rocket joe contracts.
   const LaunchEventPrototype = await LaunchEventCF.deploy();
 
-  const RocketFactory = await RocketJoeFactoryCF.deploy(
+  const RocketFactory = await RocketJoeFactoryCF.deploy();
+  await RocketFactory.initialize(
     LaunchEventPrototype.address,
     rJoe.address,
     wavax.address,
     penaltyCollector.address,
     router.address,
     factory.address
-  );
-  await LaunchEventPrototype.connect(dev).transferOwnership(
-    RocketFactory.address
   );
   return RocketFactory;
 }
@@ -73,7 +71,7 @@ async function createLaunchEvent(
   // Get a reference to the acutal launch event contract.
   LaunchEvent = await ethers.getContractAt(
     "LaunchEvent",
-    RocketFactory.getRJLaunchEvent(token.address)
+    await RocketFactory.getRJLaunchEvent(token.address)
   );
   return LaunchEvent;
 }
