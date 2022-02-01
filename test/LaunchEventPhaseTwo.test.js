@@ -89,13 +89,13 @@ describe("launch event contract phase two", function () {
         this.LaunchEvent.connect(this.participant).depositAVAX({
           value: ethers.utils.parseEther("1.0"),
         })
-      ).to.be.revertedWith("LaunchEvent: not in phase one");
+      ).to.be.revertedWith("LaunchEvent: wrong phase");
     });
 
     it("should revert try to create pool", async function () {
       expect(
         this.LaunchEvent.connect(this.participant).createPair()
-      ).to.be.revertedWith("LaunchEvent: not in phase three");
+      ).to.be.revertedWith("LaunchEvent: wrong phase");
     });
 
     it("should charge a fixed withdraw penalty", async function () {

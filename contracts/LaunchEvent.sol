@@ -227,12 +227,12 @@ contract LaunchEvent {
         uint256 _issuerTimelock
     ) external atPhase(Phase.NotStarted) {
         require(auctionStart == 0, "LaunchEvent: already initialized");
+        rocketJoeFactory = IRocketJoeFactory(msg.sender);
         require(
             _token != rocketJoeFactory.wavax(),
             "LaunchEvent: token is wavax"
         );
 
-        rocketJoeFactory = IRocketJoeFactory(msg.sender);
         WAVAX = IWAVAX(rocketJoeFactory.wavax());
         router = IJoeRouter02(rocketJoeFactory.router());
         factory = IJoeFactory(rocketJoeFactory.factory());
@@ -639,29 +639,7 @@ contract LaunchEvent {
     /// @dev Bytecode size optimization for the `atPhase` modifier
     /// This works becuase internal functions are not in-lined in modifiers
     function _atPhase(Phase _phase) internal view {
-        if (_phase == Phase.NotStarted) {
-            require(
-                currentPhase() == Phase.NotStarted,
-                "LaunchEvent: not in not started"
-            );
-        } else if (_phase == Phase.PhaseOne) {
-            require(
-                currentPhase() == Phase.PhaseOne,
-                "LaunchEvent: not in phase one"
-            );
-        } else if (_phase == Phase.PhaseTwo) {
-            require(
-                currentPhase() == Phase.PhaseTwo,
-                "LaunchEvent: not in phase two"
-            );
-        } else if (_phase == Phase.PhaseThree) {
-            require(
-                currentPhase() == Phase.PhaseThree,
-                "LaunchEvent: not in phase three"
-            );
-        } else {
-            revert("LaunchEvent: unknown state");
-        }
+        require(currentPhase() == _phase, "LaunchEvent: wrong phase");
     }
 
     /// @dev Bytecode size optimization for the `timelockElapsed` modifier

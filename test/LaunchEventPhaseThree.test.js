@@ -103,7 +103,7 @@ describe("launch event contract phase three", function () {
         this.LaunchEvent.connect(this.participant).depositAVAX({
           value: ethers.utils.parseEther("1"),
         })
-      ).to.be.revertedWith("LaunchEvent: not in phase one");
+      ).to.be.revertedWith("LaunchEvent: wrong phase");
     });
 
     it("should revert when withdraw liquidity if pair not created", async function () {
