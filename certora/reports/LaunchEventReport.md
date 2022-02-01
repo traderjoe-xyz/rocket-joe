@@ -47,64 +47,107 @@ TODO
 This contract manages the following variable state:
 
  - LaunchEvent balances: The WAVAX, launch token, and LP token balances of the LaunchEvent contract
- - Investor balances:    The WAVAX and LP token balances of the investors
+ - Investor balances:    The WAVAX, LP and Launch(Incentives) token balances of the investors
  - Issuer balances:      The launch token and LP token balances of the issuer
 
  - `pair`:                     The address of the LP token
  - `isStopped`:                Whether the launch has been stopped
- - `getUI[user].allocation`:   The amount of AVAX an investor deposited
- - `getUI[user].hasWithdrawn`: Whether the invester has withdrawn their LP tokens
+ - `getUI[user].allocation`:   The amount of AVAX an investor can deposit without burning rJoe
+ - `getUI[user].balance`:   The amount of AVAX an investor deposited
+ - `getUI[user].hasWithdrawnPair`: Whether the invester has withdrawn their LP tokens
+ - `getUI[user].hasWithdrawnIncentives`: Whether the invester has withdrawn their incentives
 
- - `wavaxAllocated`: The total amount of WAVAX and launch tokens in the pool immediately after creation
+ - `tokenIncentivesBalance`: The total amount of unwithdrawn incentives
+ - `tokenIncentivesForUsers`: The total amount of incentives of users (excluding issuer) 
+ - `tokenIncentiveIssuerRefund`: Issuer incentives 
+
+ - `wavaxReserve`: The total amount of deposited WAVAX (before createPair())
+ - `wavaxAllocated`: The total amount of WAVAX in the pool immediately after pair creation 
+ - `tokenReserve + tokenAllocated(local var of createPair())`: The total amount of launch tokens in the pool immediately after creation
  - `lpSupply`:       The total number of LP tokens minted during launch
- - `totalReserve`:   The total number of launch tokens held in reserve immediately after launch
+ - `tokenReserve`:   The total number of launch tokens that will be used to create LP tokens
 
 ### States and Invariants
 
 always:
  - getUI[issuer].allocation == 0
+ - getUI[user].balance <= getUI[user].allocation
+ - getUI[user].allocation <= maxAllocation      
+ - `address(token)` != `address(wavax)`
+
 
 initialized (initialized is true):
- - appropriate constants nonzero
+ - `initialized` == true
+ - `Phase.NotStarted`
+ - `stopped` == false
+ - appropriate constants nonzero:
+        - `issuerTimelock` >= 1
+        - `userTimelock` <= 7 days
+        - `auctionStart` > block.timestamp
+        - `PHASE_ONE_DURATION` == 2 days
+        - `PHASE_ONE_NO_FEE_DURATION` == 1 day
+        - `PHASE_TWO_DURATION` == 1 day
+        - addresses: `issuer`, `token`, `rocketJoeFactory`, `WAVAX`, `router`, `factory`, `rJoe` (should be non-zero but there is no check for it, makes sense to write it?)
+ - `issuerTimelock` > `userTimelock`
+ - `tokenIncentivesForUsers` == `tokenIncentivesBalance`
+ - `tokenReserve` + `tokenIncentivesForUsers` == `token.balanceOf(address(this))`
+ - the rest is 0 or false (depends on a type)
+
 
 open (pair is 0):
- - WAVAX balance of LaunchEvent >= Σ getUI[user].allocation
- - token balance of LaunchEvent >= tokenReserve
- - getUI[user].allocation is 0 or `minAllocation <= getUI[user].allocation <= maxAllocation`
+ - `pair` == 0
+ - `pair` == `factory.getPair(wavaxAddress, tokenAddress)`
+ - `Phase.PhaseOne` || `Phase.PhaseTwo`
+ - `stopped` == false
+ - `WAVAX.balanceOf(LaunchEvent)` == Σ getUI[user].balance == `wavaxReserve`
+ - `token.balanceOf(LaunchEvent)` >= `tokenReserve` + `tokenIncentivesForUsers`
  - `getUI[user].hasWithdrawnPair` is false
- - `pair`, `avaxAllocated`, `tokenAllocated`, `lpSupply` are all 0
+ - `getUI[user].hasWithdrawnIncentives` is false
+ - `pair`, `wavaxAllocated`, `lpSupply` are all 0
+
 
 closed (pair is nonzero):
- - isStopped is false
- - avaxAllocated is Σ getUI[user].allocation
-
- - WAVAX balance of this is 0
- - LP token balance of LaunchEvent >= sum of unwithdrawn lp tokens over all users (half to issuers, remainder to users)
+ - `pair` != 0
+ - `pair` == `factory.getPair(wavaxAddress, tokenAddress)`
+ - `Phase.PhaseThree`
+ - `stopped` == false
+ - `wavaxAllocated` == Σ getUI[user].balance
+ - `wavaxReserve` == `WAVAX.balanceOf(LaunchEvent)` == 0
+ - `pair.balanceOf(LaunchEvent)` >= sum of unwithdrawn lp tokens over all users (half to issuers, remainder to users)
      up to roundoff
- - token balance of LaunchEvent >= sum of unwithdrawn reserve tokens (as above)
+ - `token.balanceOf(LaunchEvent)` >= sum of `tokenReserve` and unwithdrawn incentives     // @AK - "unwithdrawn reserve tokens" - waht do you mean?
+ - `tokenIncentivesBalance` == `tokenIncentiveIssuerRefund` + `tokenIncentivesForUsers`
+ - `tokenIncentivesBalance` <= `tokenIncentivesForUsers`
+
 
 ### Variable changes
 
 open:
- - (balance changes governed by the invariants)
+ - (balance changes governed by the invariants) 
  - (pair, avaxAllocated, tokenAllocated, lpSupply, tokenReserve are governed by invariants)
- - getUI[user].allocation only changed by user in deposit and withdraw (see method specs)
- - getUI[user].allocation only increases in PhaseOne
- - isStopped only changed by owner
- - tokenReserve is unchanging
- - changes only happen in Phase1 or Phase2
+ - getUI[user].balance only changed by user in deposit and withdraw (see method specs)  
+ - getUI[user].allocation only changed by user in deposit (see method specs)    
+ - getUI[user].allocation only increases    
+ - isStopped only changed by owner      
+ - `tokenReserve`, `tokenIncentivesBalance`, `tokenIncentivesForUsers`, `tokenIncentiveIssuerRefund` are unchanging
+
 
 transitions:
  - `pair` only changes in `createPair` (see method spec)
  - `initialized` only changes in `initialize` (see method spec)
+ - `tokenIncentivesForUsers` can only be change in `createPair()`
+ - `tokenIncentiveIssuerRefund` cab only be change in `createPair()`
+
 
 closed:
- - pair, avaxAllocated, tokenAllocated, lpSupply, tokenReserve are unchanging
+ - pair, wavaxAllocated, tokenAllocated, lpSupply, tokenReserve are unchanging
  - getUA[user].allocation is unchanging
  - hasWithdrawnPair and LP token balance of user are related; change only in withdrawLiquidity
+ - hasWithdrawnIncentives and Launch token balance of user are related; change only in withdrawIncentives
  - isStopped changes only by owner
- - LP and launch token balance of LaunchEvent are decreasing, and at a proportional rate[^specify]
- - user.hasWithdrawn changes only in `withdrawLiquidity` (see method spec)
+ - LP and launch token balance of LaunchEvent are decreasing, and at a proportional rate[^specify]          // @AK - but they can be changed by two different functions.
+ - tokenIncentivesBalance can be 0 only if emergencyWithdraw() was called or all users withdrawn their incentives
+ - `tokenIncentivesBalance` is non-increasing
 
 The following variables are set to nonzero values during initialization and
 remain fixed thereafter:
@@ -122,19 +165,20 @@ remain fixed thereafter:
   `auctionStart`
   `PHASE_ONE_DURATION`
   `PHASE_TWO_DURATION`
+  `PHASE_ONE_NO_FEE_DURATION`
   `userTimelock`
   `issuerTimelock`
 
 - Prices:
   `floorPrice`
-  `withdrawPenaltyGradient`
   `fixedWithdrawPenalty`
   `rJoePerAvax`
 
 - State
   `initialized`
-  `minAllocation`
   `maxAllocation`
+
+// @AK - `floorPrice`, `userTimelock`, `fixedWithdrawPenalty`, `rJoePerAvax`, `maxAllocation` - can be 0. there are no checks for it.
 
 ### Method specifications
 
@@ -200,9 +244,8 @@ function allowEmergencyWithdraw()
 
 ### High level rules
 
-- pair balance of this  + pair balance of issuer  + Σ pair balance of user  == lpSupply == pair.totalSupply * exchange[^specify]
-- token balance of this + token balance of issuer + Σ token balance of user == tokenReserve * exchange[^specify]
-
+- pair balance of this == pair balance of issuer + Σ pair balance of user  == lpSupply == pair.totalSupply        // @AK - changed, need double check
+- token balance of this == tokenReserve + tokenIncentivesBalance // @AK - I don't agree: == token balance of issuer + Σ token balance of user. Users have nothing. changed, need double check
 - additivity of deposit:   deposit(a);  deposit(b)  has same effect as deposit(a+b)
 - additivity of withdraw:  withdraw(a); withdraw(b) has same effect as withdraw(a+b)
 - if I deposit more AVAX, I receive more LP and launch tokens
@@ -212,8 +255,11 @@ function allowEmergencyWithdraw()
 - no front-running for deposit: effect of deposit unchanged by an intervening operation by another user
 - no front-running for withdraw
 - no front-running for withdrawLiquidity
+- createPair can be called at least once (DoS check)
 
-- createPair can be called at least once
+- if someone withdrawn during day 2 or 3, then `WAVAX.balanceOf(penaltyCollector)` > 0
+ - user doesn't burn more rJoes than needed (with ghost probably)   @AK - is it possible?
+ - `lpSupply` > 0 if `wavaxReserve` > 0 and `tokenReserve` > 0
 
 ### Template stuff
 
