@@ -1,6 +1,6 @@
 {
   "name": "@traderjoe-xyz/rocket-joe",
-  "version": "0.0.10",
+  "version": "1.0.0",
   "description": "A launch platform for bootstrapping protocol-owned liquidity",
   "license": "MIT",
   "directories": {
