@@ -26,7 +26,7 @@ The launch proceeds in several phases:
  * Phase 1: investors can deposit or withdraw AVAX, although withdrawals
    are penalized at a rate that increases over time.
 
- * Phase 2: no further deposits are allowed, but investers can withdraw their
+ * Phase 2: no further deposits are allowed, but investors can withdraw their
    AVAX at a penalty
 
  * Phase 3: All invested AVAX and some of the launch token are used to create a
@@ -54,15 +54,15 @@ This contract manages the following variable state:
  - `isStopped`:                Whether the launch has been stopped
  - `getUI[user].allocation`:   The amount of AVAX an investor can deposit without burning rJoe
  - `getUI[user].balance`:   The amount of AVAX an investor deposited
- - `getUI[user].hasWithdrawnPair`: Whether the invester has withdrawn their LP tokens
- - `getUI[user].hasWithdrawnIncentives`: Whether the invester has withdrawn their incentives
+ - `getUI[user].hasWithdrawnPair`: Whether the investor has withdrawn their LP tokens
+ - `getUI[user].hasWithdrawnIncentives`: Whether the investor has withdrawn their incentives
 
  - `tokenIncentivesBalance`: The total amount of unwithdrawn incentives
- - `tokenIncentivesForUsers`: The total amount of incentives of users (excluding issuer) 
- - `tokenIncentiveIssuerRefund`: Issuer incentives 
+ - `tokenIncentivesForUsers`: The total amount of incentives of users (excluding issuer)
+ - `tokenIncentiveIssuerRefund`: Issuer incentives
 
  - `wavaxReserve`: The total amount of deposited WAVAX (before createPair())
- - `wavaxAllocated`: The total amount of WAVAX in the pool immediately after pair creation 
+ - `wavaxAllocated`: The total amount of WAVAX in the pool immediately after pair creation
  - `tokenReserve + tokenAllocated(local var of createPair())`: The total amount of launch tokens in the pool immediately after creation
  - `lpSupply`:       The total number of LP tokens minted during launch
  - `tokenReserve`:   The total number of launch tokens that will be used to create LP tokens
@@ -72,7 +72,7 @@ This contract manages the following variable state:
 always:
  - getUI[issuer].allocation == 0
  - getUI[user].balance <= getUI[user].allocation
- - getUI[user].allocation <= maxAllocation      
+ - getUI[user].allocation <= maxAllocation
  - `address(token)` != `address(wavax)`
 
 
@@ -123,12 +123,12 @@ closed (pair is nonzero):
 ### Variable changes
 
 open:
- - (balance changes governed by the invariants) 
+ - (balance changes governed by the invariants)
  - (pair, avaxAllocated, tokenAllocated, lpSupply, tokenReserve are governed by invariants)
- - getUI[user].balance only changed by user in deposit and withdraw (see method specs)  
- - getUI[user].allocation only changed by user in deposit (see method specs)    
- - getUI[user].allocation only increases    
- - isStopped only changed by owner      
+ - getUI[user].balance only changed by user in deposit and withdraw (see method specs)
+ - getUI[user].allocation only changed by user in deposit (see method specs)
+ - getUI[user].allocation only increases
+ - isStopped only changed by owner
  - `tokenReserve`, `tokenIncentivesBalance`, `tokenIncentivesForUsers`, `tokenIncentiveIssuerRefund` are unchanging
 
 
