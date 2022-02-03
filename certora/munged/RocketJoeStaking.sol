@@ -32,6 +32,19 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         return joe.balanceOf(address(this));
     }
 
+    // this is added so the system will always be in the initialized state for invariants
+    constructor(IERC20Upgradeable _joe, RocketJoeToken _rJoe, uint256 _rJoePerSec, uint256 _startTime) public {
+        initialize(_joe, _rJoe, _rJoePerSec, _startTime);
+    }
+
+    //     constructor() public {
+    //     IERC20Upgradeable _joe = new DummyERC20();
+    //     RocketJoeToken _rJoe = new RocketJoeToken();
+    //     uint256 _rJoePerSec;
+    //     uint256 _startTime;
+    //     initialize(_joe, _rJoe, _rJoePerSec, _startTime);
+    // }
+
     struct UserInfo {
         uint256 amount; // How many JOE tokens the user has provided
         uint256 rewardDebt; // Reward debt. See explanation below

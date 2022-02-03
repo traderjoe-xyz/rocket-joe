@@ -19,6 +19,7 @@ certoraRun certora/munged/RocketJoeStaking.sol \
     --solc solc8.6  \
     --solc_args '["--optimize"]' \
     --settings -t=600,-postProcessCounterExamples=true \
+    --link RocketJoeStaking:joe=DummyERC20Impl \
     --cache RocketJoeStaking \
-  --msg "${msg}" \
+    --msg "${msg}" \
     --staging \
