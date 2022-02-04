@@ -672,7 +672,7 @@ contract LaunchEvent {
     /// @dev Will revert on failure
     function _safeTransferAVAX(address _to, uint256 _value) internal {
         require(
-            address(this).balance >= avaxReserve,
+            address(this).balance - _value >= avaxReserve,
             "LaunchEvent: not enough avax"
         );
         (bool success, ) = _to.call{value: _value}(new bytes(0));
