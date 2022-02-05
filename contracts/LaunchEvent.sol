@@ -596,7 +596,7 @@ contract LaunchEvent {
         }
 
         if (_user == issuer) {
-            if (address(pair) == address(0)) return tokenIncentiveIssuerRefund;
+            if (address(pair) == address(0)) return 0;
             return tokenIncentiveIssuerRefund + tokenReserve;
         } else {
             if (avaxAllocated == 0) return 0;
