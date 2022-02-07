@@ -16,7 +16,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
 
     // harness functions
 
-    function userJoe(address user) public view returns (uint256) {
+    function userJoeStaked(address user) public view returns (uint256) {
         return userInfo[user].amount;
     }
 
@@ -28,16 +28,14 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         return owner();
     }
 
-    function stakingJoeBalance() public view returns (uint256) {
-        return joe.balanceOf(address(this));
-    }
+
 
     // this is added so the system will always be in the initialized state for invariants
     constructor(IERC20Upgradeable _joe, RocketJoeToken _rJoe, uint256 _rJoePerSec, uint256 _startTime) public {
         initialize(_joe, _rJoe, _rJoePerSec, _startTime);
     }
 
-    //     constructor() public {
+    //constructor() public {
     //     IERC20Upgradeable _joe = new DummyERC20();
     //     RocketJoeToken _rJoe = new RocketJoeToken();
     //     uint256 _rJoePerSec;
@@ -67,7 +65,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     /// @dev Accumulated rJOE per share, times PRECISION. See above
     uint256 public accRJoePerShare;
     /// @notice Precision of accRJoePerShare
-    uint256 private PRECISION;
+    uint256 public PRECISION;
 
     RocketJoeToken public rJoe;
     uint256 public rJoePerSec;
