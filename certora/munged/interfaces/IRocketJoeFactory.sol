@@ -1,9 +1,10 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.0;
+pragma solidity 0.8.6;
 
 interface IRocketJoeFactory {
     event RJLaunchEventCreated(
+        address indexed launchEvent,
         address indexed issuer,
         address indexed token,
         uint256 phaseOneStartTime,
@@ -17,6 +18,10 @@ interface IRocketJoeFactory {
     event SetRouter(address indexed router);
     event SetFactory(address indexed factory);
     event SetRJoePerAvax(uint256 rJoePerAvax);
+    event SetEventImplementation(address indexed implementation);
+    event IssuingTokenDeposited(address indexed token, uint256 amount);
+    event PhaseDurationChanged(uint256 phase, uint256 duration);
+    event NoFeeDurationChanged(uint256 duration);
 
     function eventImplementation() external view returns (address);
 
@@ -32,11 +37,11 @@ interface IRocketJoeFactory {
 
     function rJoe() external view returns (address);
 
-    function PHASE_ONE_DURATION() external view returns (uint256);
+    function phaseOneDuration() external view returns (uint256);
 
-    function PHASE_ONE_NO_FEE_DURATION() external view returns (uint256);
+    function phaseOneNoFeeDuration() external view returns (uint256);
 
-    function PHASE_TWO_DURATION() external view returns (uint256);
+    function phaseTwoDuration() external view returns (uint256);
 
     function getRJLaunchEvent(address token)
         external
@@ -69,11 +74,11 @@ interface IRocketJoeFactory {
 
     function setFactory(address) external;
 
-    function setRJoe(address) external;
-
     function setRJoePerAvax(uint256) external;
 
     function setPhaseDuration(uint256, uint256) external;
 
     function setPhaseOneNoFeeDuration(uint256) external;
+
+    function setEventImplementation(address) external;
 }

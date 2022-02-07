@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: None
+// SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.6;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import "./interfaces/IJoeFactory.sol";
 import "./interfaces/IJoePair.sol";
@@ -12,10 +12,16 @@ import "./interfaces/IRocketJoeFactory.sol";
 import "./interfaces/IRocketJoeToken.sol";
 import "./interfaces/IWAVAX.sol";
 
+interface Ownable {
+    function owner() external view returns (address);
+}
+
 /// @title Rocket Joe Launch Event
 /// @author Trader Joe
 /// @notice A liquidity launch contract enabling price discovery and token distribution at secondary market listing price
-contract LaunchEvent is Ownable {
+contract LaunchEvent {
+    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
+
     /// @notice The phases the launch event can be in
     /// @dev Should these have more semantic names: Bid, Cancel, Withdraw
     enum Phase {
@@ -28,7 +34,7 @@ contract LaunchEvent is Ownable {
     struct UserInfo {
         /// @notice How much AVAX user can deposit for this launch event
         /// @dev Can be increased by burning more rJOE, but will always be
-        /// smaller than `maxAllocation`
+        /// smaller than or equal to `maxAllocation`
         uint256 allocation;
         /// @notice How much AVAX user has deposited for this launch event
         uint256 balance;
@@ -44,14 +50,14 @@ contract LaunchEvent is Ownable {
     /// @notice The start time of phase 1
     uint256 public auctionStart;
 
-    uint256 public PHASE_ONE_DURATION;
-    uint256 public PHASE_ONE_NO_FEE_DURATION;
-    uint256 public PHASE_TWO_DURATION;
+    uint256 public phaseOneDuration;
+    uint256 public phaseOneNoFeeDuration;
+    uint256 public phaseTwoDuration;
 
     /// @dev Amount of tokens used as incentives for locking up LPs during phase 3,
     /// in parts per 1e18 and expressed as an additional percentage to the tokens for auction.
     /// E.g. if tokenIncentivesPercent = 5e16 (5%), and issuer sends 105 000 tokens,
-    /// then 105 000 * 1e18 / (1e18 + 5e16) = 5 000 tokens are used for incentives
+    /// then 105 000 * 5e16 / (1e18 + 5e16) = 5 000 tokens are used for incentives
     uint256 public tokenIncentivesPercent;
 
     /// @notice Floor price in AVAX per token (can be 0)
@@ -75,13 +81,12 @@ contract LaunchEvent is Ownable {
     IRocketJoeToken public rJoe;
     uint256 public rJoePerAvax;
     IWAVAX private WAVAX;
-    IERC20Metadata public token;
+    IERC20MetadataUpgradeable public token;
 
     IJoeRouter02 private router;
     IJoeFactory private factory;
     IRocketJoeFactory public rocketJoeFactory;
 
-    bool private initialized;
     bool public stopped;
 
     uint256 public maxAllocation;
@@ -91,9 +96,12 @@ contract LaunchEvent is Ownable {
     /// @dev The address of the JoePair, set after createLiquidityPool is called
     IJoePair public pair;
 
-    /// @dev The total amount of wavax that was sent to the router to create the initial liquidity pair.
+    /// @dev The total amount of avax that was sent to the router to create the initial liquidity pair.
     /// Used to calculate the amount of LP to send based on the user's participation in the launch event
-    uint256 private wavaxAllocated;
+    uint256 public avaxAllocated;
+
+    /// @dev The total amount of tokens that was sent to the router to create the initial liquidity pair.
+    uint256 public tokenAllocated;
 
     /// @dev The exact supply of LP minted when creating the initial liquidity pair.
     uint256 private lpSupply;
@@ -115,12 +123,22 @@ contract LaunchEvent is Ownable {
     /// will be an excess of tokens returned to the issuer if he calls `withdrawIncentives()`
     uint256 private tokenIncentiveIssuerRefund;
 
-    /// @dev wavaxReserve is the exact amount of WAVAX that needs to be kept inside the contract in order to send everyone's
-    /// WAVAX. If there is some excess (because someone sent token directly to the contract), the
+    /// @dev avaxReserve is the exact amount of AVAX that needs to be kept inside the contract in order to send everyone's
+    /// AVAX. If there is some excess (because someone sent token directly to the contract), the
     /// penaltyCollector can collect the excess using `skim()`
-    uint256 private wavaxReserve;
+    uint256 private avaxReserve;
 
-    event IssuingTokenDeposited(address indexed token, uint256 amount);
+    event LaunchEventInitialized(
+        uint256 tokenIncentivesPercent,
+        uint256 floorPrice,
+        uint256 maxWithdrawPenalty,
+        uint256 fixedWithdrawPenalty,
+        uint256 maxAllocation,
+        uint256 userTimelock,
+        uint256 issuerTimelock,
+        uint256 tokenReserve,
+        uint256 tokenIncentives
+    );
 
     event UserParticipated(
         address indexed user,
@@ -128,7 +146,17 @@ contract LaunchEvent is Ownable {
         uint256 rJoeAmount
     );
 
-    event UserWithdrawn(address indexed user, uint256 avaxAmount);
+    event UserWithdrawn(
+        address indexed user,
+        uint256 avaxAmount,
+        uint256 penaltyAmount
+    );
+
+    event IncentiveTokenWithdraw(
+        address indexed user,
+        address indexed token,
+        uint256 amount
+    );
 
     event LiquidityPoolCreated(
         address indexed pair,
@@ -156,15 +184,6 @@ contract LaunchEvent is Ownable {
 
     event TokenEmergencyWithdraw(address indexed user, uint256 amount);
 
-    /// @notice Receive AVAX from the WAVAX contract
-    /// @dev Needed for withdrawing from WAVAX contract
-    receive() external payable {
-        require(
-            msg.sender == address(WAVAX),
-            "LaunchEvent: you can't send AVAX directly to this contract"
-        );
-    }
-
     /// @notice Modifier which ensures contract is in a defined phase
     modifier atPhase(Phase _phase) {
         _atPhase(_phase);
@@ -173,34 +192,17 @@ contract LaunchEvent is Ownable {
 
     /// @notice Modifier which ensures the caller's timelock to withdraw has elapsed
     modifier timelockElapsed() {
-        uint256 phase3Start = auctionStart +
-            PHASE_ONE_DURATION +
-            PHASE_TWO_DURATION;
-        if (msg.sender == issuer) {
-            require(
-                block.timestamp > phase3Start + issuerTimelock,
-                "LaunchEvent: can't withdraw before issuer's timelock"
-            );
-        } else {
-            require(
-                block.timestamp > phase3Start + userTimelock,
-                "LaunchEvent: can't withdraw before user's timelock"
-            );
-        }
+        _timelockElapsed();
         _;
     }
 
     /// @notice Ensures launch event is stopped/running
     modifier isStopped(bool _stopped) {
-        if (_stopped) {
-            require(stopped, "LaunchEvent: is still running");
-        } else {
-            require(!stopped, "LaunchEvent: stopped");
-        }
+        _isStopped(_stopped);
         _;
     }
 
-    /// @notice Initialise the launch event with needed paramaters
+    /// @notice Initialize the launch event with needed parameters
     /// @param _issuer Address of the token issuer
     /// @param _auctionStart The start time of the auction
     /// @param _token The contract address of auctioned token
@@ -208,7 +210,7 @@ contract LaunchEvent is Ownable {
     /// @param _floorPrice The minimum price the token is sold at
     /// @param _maxWithdrawPenalty The max withdraw penalty during phase 1, in parts per 1e18
     /// @param _fixedWithdrawPenalty The fixed withdraw penalty during phase 2, in parts per 1e18
-    /// @param _maxAllocation The maximum amount of AVAX depositable
+    /// @param _maxAllocation The maximum amount of AVAX depositable per user
     /// @param _userTimelock The time a user must wait after auction ends to withdraw liquidity
     /// @param _issuerTimelock The time the issuer must wait after auction ends to withdraw liquidity
     /// @dev This function is called by the factory immediately after it creates the contract instance
@@ -224,9 +226,13 @@ contract LaunchEvent is Ownable {
         uint256 _userTimelock,
         uint256 _issuerTimelock
     ) external atPhase(Phase.NotStarted) {
-        require(!initialized, "LaunchEvent: already initialized");
-
+        require(auctionStart == 0, "LaunchEvent: already initialized");
         rocketJoeFactory = IRocketJoeFactory(msg.sender);
+        require(
+            _token != rocketJoeFactory.wavax(),
+            "LaunchEvent: token is wavax"
+        );
+
         WAVAX = IWAVAX(rocketJoeFactory.wavax());
         router = IJoeRouter02(rocketJoeFactory.router());
         factory = IJoeFactory(rocketJoeFactory.factory());
@@ -253,15 +259,27 @@ contract LaunchEvent is Ownable {
             _auctionStart > block.timestamp,
             "LaunchEvent: start of phase 1 cannot be in the past"
         );
+        require(
+            _issuer != address(0),
+            "LaunchEvent: issuer must be address zero"
+        );
+        require(
+            _maxAllocation > 0,
+            "LaunchEvent: max allocation must not be zero"
+        );
+        require(
+            _tokenIncentivesPercent < 1 ether,
+            "LaunchEvent: token incentives too high"
+        );
 
         issuer = _issuer;
 
         auctionStart = _auctionStart;
-        PHASE_ONE_DURATION = rocketJoeFactory.PHASE_ONE_DURATION();
-        PHASE_ONE_NO_FEE_DURATION = rocketJoeFactory.PHASE_ONE_NO_FEE_DURATION();
-        PHASE_TWO_DURATION = rocketJoeFactory.PHASE_TWO_DURATION();
+        phaseOneDuration = rocketJoeFactory.phaseOneDuration();
+        phaseOneNoFeeDuration = rocketJoeFactory.phaseOneNoFeeDuration();
+        phaseTwoDuration = rocketJoeFactory.phaseTwoDuration();
 
-        token = IERC20Metadata(_token);
+        token = IERC20MetadataUpgradeable(_token);
         uint256 balance = token.balanceOf(address(this));
 
         tokenIncentivesPercent = _tokenIncentivesPercent;
@@ -270,6 +288,7 @@ contract LaunchEvent is Ownable {
         /// and `tokenIncentivesForUsers = tokenReserve * 0.05` (i.e. incentives are 5% of reserves for issuing).
         /// E.g. if issuer sends 105e18 tokens, `tokenReserve = 100e18` and `tokenIncentives = 5e18`
         tokenReserve = (balance * 1e18) / (1e18 + _tokenIncentivesPercent);
+        require(tokenReserve > 0, "LaunchEvent: no token balance");
         tokenIncentivesForUsers = balance - tokenReserve;
         tokenIncentivesBalance = tokenIncentivesForUsers;
 
@@ -282,18 +301,28 @@ contract LaunchEvent is Ownable {
 
         userTimelock = _userTimelock;
         issuerTimelock = _issuerTimelock;
-        initialized = true;
+
+        emit LaunchEventInitialized(
+            tokenIncentivesPercent,
+            floorPrice,
+            maxWithdrawPenalty,
+            fixedWithdrawPenalty,
+            maxAllocation,
+            userTimelock,
+            issuerTimelock,
+            tokenReserve,
+            tokenIncentivesBalance
+        );
     }
 
     /// @notice The current phase the auction is in
     function currentPhase() public view returns (Phase) {
-        if (block.timestamp < auctionStart || auctionStart == 0) {
+        if (auctionStart == 0 || block.timestamp < auctionStart) {
             return Phase.NotStarted;
-        } else if (block.timestamp < auctionStart + PHASE_ONE_DURATION) {
+        } else if (block.timestamp < auctionStart + phaseOneDuration) {
             return Phase.PhaseOne;
         } else if (
-            block.timestamp <
-            auctionStart + PHASE_ONE_DURATION + PHASE_TWO_DURATION
+            block.timestamp < auctionStart + phaseOneDuration + phaseTwoDuration
         ) {
             return Phase.PhaseTwo;
         }
@@ -301,7 +330,6 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Deposits AVAX and burns rJoe
-    /// @dev Checks are done in the `_depositWAVAX` function
     function depositAVAX()
         external
         payable
@@ -324,7 +352,7 @@ contract LaunchEvent is Ownable {
         uint256 rJoeNeeded;
         // check if additional allocation is required.
         if (newAllocation > user.allocation) {
-            // Burn tokens and update allocation.
+            // Get amount of rJOE tokens needed to burn and update allocation
             rJoeNeeded = getRJoeAmount(newAllocation - user.allocation);
             // Set allocation to the current balance as it's impossible
             // to buy more allocation without sending AVAX too
@@ -332,20 +360,18 @@ contract LaunchEvent is Ownable {
         }
 
         user.balance = newAllocation;
-        wavaxReserve += msg.value;
+        avaxReserve += msg.value;
 
         if (rJoeNeeded > 0) {
             rJoe.burnFrom(msg.sender, rJoeNeeded);
         }
-
-        WAVAX.deposit{value: msg.value}();
 
         emit UserParticipated(msg.sender, msg.value, rJoeNeeded);
     }
 
     /// @notice Withdraw AVAX, only permitted during phase 1 and 2
     /// @param _amount The amount of AVAX to withdraw
-    function withdrawAVAX(uint256 _amount) public isStopped(false) {
+    function withdrawAVAX(uint256 _amount) external isStopped(false) {
         Phase _currentPhase = currentPhase();
         require(
             _currentPhase == Phase.PhaseOne || _currentPhase == Phase.PhaseTwo,
@@ -362,13 +388,13 @@ contract LaunchEvent is Ownable {
         uint256 feeAmount = (_amount * getPenalty()) / 1e18;
         uint256 amountMinusFee = _amount - feeAmount;
 
-        wavaxReserve -= _amount;
+        avaxReserve -= _amount;
 
-        WAVAX.withdraw(_amount);
-        _safeTransferAVAX(msg.sender, amountMinusFee);
         if (feeAmount > 0) {
             _safeTransferAVAX(rocketJoeFactory.penaltyCollector(), feeAmount);
         }
+        _safeTransferAVAX(msg.sender, amountMinusFee);
+        emit UserWithdrawn(msg.sender, _amount, feeAmount);
     }
 
     /// @notice Create the JoePair
@@ -378,23 +404,19 @@ contract LaunchEvent is Ownable {
             address(WAVAX),
             address(token)
         );
+        address _pair = factory.getPair(wavaxAddress, tokenAddress);
         require(
-            factory.getPair(wavaxAddress, tokenAddress) == address(0) ||
-                IJoePair(
-                    IJoeFactory(factory).getPair(wavaxAddress, tokenAddress)
-                ).totalSupply() ==
-                0,
+            _pair == address(0) || IJoePair(_pair).totalSupply() == 0,
             "LaunchEvent: liquid pair already exists"
         );
-        require(wavaxReserve > 0, "LaunchEvent: no wavax balance");
+        require(avaxReserve > 0, "LaunchEvent: no avax balance");
 
-        uint256 tokenAllocated = tokenReserve;
+        uint256 tokenDecimals = token.decimals();
+        tokenAllocated = tokenReserve;
 
         // Adjust the amount of tokens sent to the pool if floor price not met
-        if (
-            floorPrice > (wavaxReserve * 10**token.decimals()) / tokenAllocated
-        ) {
-            tokenAllocated = (wavaxReserve * 10**token.decimals()) / floorPrice;
+        if (floorPrice > (avaxReserve * 10**tokenDecimals) / tokenAllocated) {
+            tokenAllocated = (avaxReserve * 10**tokenDecimals) / floorPrice;
             tokenIncentivesForUsers =
                 (tokenIncentivesForUsers * tokenAllocated) /
                 tokenReserve;
@@ -403,33 +425,27 @@ contract LaunchEvent is Ownable {
                 tokenIncentivesForUsers;
         }
 
-        WAVAX.approve(address(router), wavaxReserve);
-        token.approve(address(router), tokenAllocated);
-
-        /// We can't trust the output cause of reflect tokens
-        (, , lpSupply) = router.addLiquidity(
-            wavaxAddress, // tokenA
-            tokenAddress, // tokenB
-            wavaxReserve, // amountADesired
-            tokenAllocated, // amountBDesired
-            wavaxReserve, // amountAMin
-            tokenAllocated, // amountBMin
-            address(this), // to
-            block.timestamp // deadline
-        );
-
-        pair = IJoePair(factory.getPair(tokenAddress, wavaxAddress));
-        wavaxAllocated = wavaxReserve;
-        wavaxReserve = 0;
+        avaxAllocated = avaxReserve;
+        avaxReserve = 0;
 
         tokenReserve -= tokenAllocated;
+
+        WAVAX.deposit{value: avaxAllocated}();
+        if (_pair == address(0)) {
+            pair = IJoePair(factory.createPair(wavaxAddress, tokenAddress));
+        } else {
+            pair = IJoePair(_pair);
+        }
+        WAVAX.transfer(address(pair), avaxAllocated);
+        token.safeTransfer(address(pair), tokenAllocated);
+        lpSupply = pair.mint(address(this));
 
         emit LiquidityPoolCreated(
             address(pair),
             tokenAddress,
             wavaxAddress,
             tokenAllocated,
-            wavaxAllocated
+            avaxAllocated
         );
     }
 
@@ -438,24 +454,14 @@ contract LaunchEvent is Ownable {
         require(address(pair) != address(0), "LaunchEvent: pair not created");
 
         UserInfo storage user = getUserInfo[msg.sender];
-        require(
-            !user.hasWithdrawnPair,
-            "LaunchEvent: liquidity already withdrawn"
-        );
 
         uint256 balance = pairBalance(msg.sender);
+        require(balance > 0, "LaunchEvent: caller has no liquidity to claim");
+
         user.hasWithdrawnPair = true;
 
         if (msg.sender == issuer) {
-            balance = lpSupply / 2;
-
             emit IssuerLiquidityWithdrawn(msg.sender, address(pair), balance);
-
-            if (tokenReserve > 0) {
-                uint256 amount = tokenReserve;
-                tokenReserve = 0;
-                token.transfer(msg.sender, amount);
-            }
         } else {
             emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
         }
@@ -464,58 +470,76 @@ contract LaunchEvent is Ownable {
     }
 
     /// @notice Withdraw incentives tokens
-    function withdrawIncentives() external isStopped(false) {
+    function withdrawIncentives() external {
         require(address(pair) != address(0), "LaunchEvent: pair not created");
 
-        UserInfo storage user = getUserInfo[msg.sender];
-        require(
-            !user.hasWithdrawnIncentives,
-            "LaunchEvent: incentives already withdrawn"
-        );
-
-        user.hasWithdrawnIncentives = true;
-        uint256 amount;
-
-        if (msg.sender == issuer) {
-            amount = tokenIncentiveIssuerRefund;
-        } else {
-            amount = (user.balance * tokenIncentivesForUsers) / wavaxAllocated;
-        }
-
+        uint256 amount = getIncentives(msg.sender);
         require(amount > 0, "LaunchEvent: caller has no incentive to claim");
 
-        tokenIncentivesBalance -= amount;
+        UserInfo storage user = getUserInfo[msg.sender];
+        user.hasWithdrawnIncentives = true;
 
-        token.transfer(msg.sender, amount);
+        if (msg.sender == issuer) {
+            tokenIncentivesBalance -= tokenIncentiveIssuerRefund;
+            tokenReserve = 0;
+        } else {
+            tokenIncentivesBalance -= amount;
+        }
+
+        token.safeTransfer(msg.sender, amount);
+        emit IncentiveTokenWithdraw(msg.sender, address(token), amount);
     }
 
     /// @notice Withdraw AVAX if launch has been cancelled
     function emergencyWithdraw() external isStopped(true) {
-        if (msg.sender != issuer) {
+        if (address(pair) == address(0)) {
+            if (msg.sender != issuer) {
+                UserInfo storage user = getUserInfo[msg.sender];
+                require(
+                    user.balance > 0,
+                    "LaunchEvent: expected user to have non-zero balance to perform emergency withdraw"
+                );
+
+                uint256 balance = user.balance;
+                user.balance = 0;
+                avaxReserve -= balance;
+
+                _safeTransferAVAX(msg.sender, balance);
+
+                emit AvaxEmergencyWithdraw(msg.sender, balance);
+            } else {
+                uint256 balance = tokenReserve + tokenIncentivesBalance;
+                tokenReserve = 0;
+                tokenIncentivesBalance = 0;
+                token.safeTransfer(issuer, balance);
+                emit TokenEmergencyWithdraw(msg.sender, balance);
+            }
+        } else {
             UserInfo storage user = getUserInfo[msg.sender];
+
+            uint256 balance = pairBalance(msg.sender);
             require(
-                user.balance > 0,
-                "LaunchEvent: expected user to have non-zero balance to perform emergency withdraw"
+                balance > 0,
+                "LaunchEvent: caller has no liquidity to claim"
             );
 
-            uint256 balance = user.balance;
-            user.balance = 0;
-            wavaxReserve -= balance;
-            WAVAX.withdraw(balance);
+            user.hasWithdrawnPair = true;
 
-            _safeTransferAVAX(msg.sender, balance);
+            if (msg.sender == issuer) {
+                emit IssuerLiquidityWithdrawn(
+                    msg.sender,
+                    address(pair),
+                    balance
+                );
+            } else {
+                emit UserLiquidityWithdrawn(msg.sender, address(pair), balance);
+            }
 
-            emit AvaxEmergencyWithdraw(msg.sender, balance);
-        } else {
-            uint256 balance = tokenReserve + tokenIncentivesBalance;
-            tokenReserve = 0;
-            tokenIncentivesBalance = 0;
-            token.transfer(issuer, balance);
-            emit TokenEmergencyWithdraw(msg.sender, balance);
+            pair.transfer(msg.sender, balance);
         }
     }
 
-    /// @notice Stops the launch event and allows participants withdraw deposits
+    /// @notice Stops the launch event and allows participants to withdraw deposits
     function allowEmergencyWithdraw() external {
         require(
             msg.sender == Ownable(address(rocketJoeFactory)).owner(),
@@ -528,87 +552,117 @@ contract LaunchEvent is Ownable {
     /// @notice Force balances to match tokens that were deposited, but not sent directly to the contract.
     /// Any excess tokens are sent to the penaltyCollector
     function skim() external {
+        require(msg.sender == tx.origin, "LaunchEvent: EOA only");
         address penaltyCollector = rocketJoeFactory.penaltyCollector();
 
         uint256 excessToken = token.balanceOf(address(this)) -
             tokenReserve -
             tokenIncentivesBalance;
         if (excessToken > 0) {
-            token.transfer(penaltyCollector, excessToken);
+            token.safeTransfer(penaltyCollector, excessToken);
         }
 
-        uint256 excessWavax = WAVAX.balanceOf(address(this)) - wavaxReserve;
-        if (excessWavax > 0) {
-            WAVAX.transfer(penaltyCollector, excessWavax);
+        uint256 excessAvax = address(this).balance - avaxReserve;
+        if (excessAvax > 0) {
+            _safeTransferAVAX(penaltyCollector, excessAvax);
         }
-
-        uint256 excessAvax = address(this).balance;
-        if (excessAvax > 0) _safeTransferAVAX(penaltyCollector, excessAvax);
     }
 
     /// @notice Returns the current penalty for early withdrawal
     /// @return The penalty to apply to a withdrawal amount
     function getPenalty() public view returns (uint256) {
-        uint256 timeElapsed = block.timestamp - auctionStart;
-        if (timeElapsed < PHASE_ONE_NO_FEE_DURATION) {
+        if (block.timestamp < auctionStart) {
             return 0;
-        } else if (timeElapsed < PHASE_ONE_DURATION) {
+        }
+        uint256 timeElapsed = block.timestamp - auctionStart;
+        if (timeElapsed < phaseOneNoFeeDuration) {
+            return 0;
+        } else if (timeElapsed < phaseOneDuration) {
             return
-                ((timeElapsed - PHASE_ONE_NO_FEE_DURATION) *
-                    maxWithdrawPenalty) /
-                uint256(PHASE_ONE_DURATION - PHASE_ONE_NO_FEE_DURATION);
+                ((timeElapsed - phaseOneNoFeeDuration) * maxWithdrawPenalty) /
+                (phaseOneDuration - phaseOneNoFeeDuration);
         }
         return fixedWithdrawPenalty;
     }
 
-    /// @notice Returns the current balance of the pool
-    /// @return The balances of WAVAX and issued token held by the launch contract
+    /// @notice Returns the incentives for a given user
+    /// @param _user The user to look up
+    /// @return The amount of incentives `_user` can withdraw
+    function getIncentives(address _user) public view returns (uint256) {
+        UserInfo memory user = getUserInfo[_user];
+
+        if (user.hasWithdrawnIncentives) {
+            return 0;
+        }
+
+        if (_user == issuer) {
+            if (address(pair) == address(0)) return tokenIncentiveIssuerRefund;
+            return tokenIncentiveIssuerRefund + tokenReserve;
+        } else {
+            if (avaxAllocated == 0) return 0;
+            return (user.balance * tokenIncentivesForUsers) / avaxAllocated;
+        }
+    }
+
+    /// @notice Returns the outstanding balance of the launch event contract
+    /// @return The balances of AVAX and issued token held by the launch contract
     function getReserves() external view returns (uint256, uint256) {
-        return (wavaxReserve, tokenReserve + tokenIncentivesBalance);
+        return (avaxReserve, tokenReserve + tokenIncentivesBalance);
     }
 
     /// @notice Get the rJOE amount needed to deposit AVAX
     /// @param _avaxAmount The amount of AVAX to deposit
     /// @return The amount of rJOE needed
     function getRJoeAmount(uint256 _avaxAmount) public view returns (uint256) {
-        return _avaxAmount * rJoePerAvax;
+        return (_avaxAmount * rJoePerAvax) / 1e18;
     }
 
     /// @notice The total amount of liquidity pool tokens the user can withdraw
     /// @param _user The address of the user to check
+    /// @return The user's balance of liquidity pool token
     function pairBalance(address _user) public view returns (uint256) {
         UserInfo memory user = getUserInfo[_user];
-        if (wavaxAllocated == 0 || user.hasWithdrawnPair) {
+        if (avaxAllocated == 0 || user.hasWithdrawnPair) {
             return 0;
         }
-        return (user.balance * lpSupply) / wavaxAllocated / 2;
+        if (msg.sender == issuer) {
+            return lpSupply / 2;
+        }
+        return (user.balance * lpSupply) / avaxAllocated / 2;
     }
 
-    /// @dev Bytecode size optimization for the `atPhase` modifier.
+    /// @dev Bytecode size optimization for the `atPhase` modifier
     /// This works becuase internal functions are not in-lined in modifiers
     function _atPhase(Phase _phase) internal view {
-        if (_phase == Phase.NotStarted) {
+        require(currentPhase() == _phase, "LaunchEvent: wrong phase");
+    }
+
+    /// @dev Bytecode size optimization for the `timelockElapsed` modifier
+    /// This works becuase internal functions are not in-lined in modifiers
+    function _timelockElapsed() internal view {
+        uint256 phase3Start = auctionStart +
+            phaseOneDuration +
+            phaseTwoDuration;
+        if (msg.sender == issuer) {
             require(
-                currentPhase() == Phase.NotStarted,
-                "LaunchEvent: not in not started"
-            );
-        } else if (_phase == Phase.PhaseOne) {
-            require(
-                currentPhase() == Phase.PhaseOne,
-                "LaunchEvent: not in phase one"
-            );
-        } else if (_phase == Phase.PhaseTwo) {
-            require(
-                currentPhase() == Phase.PhaseTwo,
-                "LaunchEvent: not in phase two"
-            );
-        } else if (_phase == Phase.PhaseThree) {
-            require(
-                currentPhase() == Phase.PhaseThree,
-                "LaunchEvent: not in phase three"
+                block.timestamp > phase3Start + issuerTimelock,
+                "LaunchEvent: can't withdraw before issuer's timelock"
             );
         } else {
-            revert("LaunchEvent: unknown state");
+            require(
+                block.timestamp > phase3Start + userTimelock,
+                "LaunchEvent: can't withdraw before user's timelock"
+            );
+        }
+    }
+
+    /// @dev Bytecode size optimization for the `isStopped` modifier
+    /// This works becuase internal functions are not in-lined in modifiers
+    function _isStopped(bool _stopped) internal view {
+        if (_stopped) {
+            require(stopped, "LaunchEvent: is still running");
+        } else {
+            require(!stopped, "LaunchEvent: stopped");
         }
     }
 
@@ -617,6 +671,10 @@ contract LaunchEvent is Ownable {
     /// @param _value The amount of AVAX to send
     /// @dev Will revert on failure
     function _safeTransferAVAX(address _to, uint256 _value) internal {
+        require(
+            address(this).balance >= avaxReserve,
+            "LaunchEvent: not enough avax"
+        );
         (bool success, ) = _to.call{value: _value}(new bytes(0));
         require(success, "LaunchEvent: avax transfer failed");
     }

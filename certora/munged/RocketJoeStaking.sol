@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: None
+// SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -50,7 +50,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         // We do some fancy math here. Basically, any point in time, the amount of JOEs
         // entitled to a user but is pending to be distributed is:
         //
-        //   pending reward = (user.amount * accRJoePerShare) - user.rewardDebt
+        //   pending reward = (user.amount * accRJoePerShare) / PRECISION - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
         //   1. `accRJoePerShare` (and `lastRewardTimestamp`) gets updated
@@ -67,8 +67,14 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     /// @notice Precision of accRJoePerShare
     uint256 public PRECISION;
 
+    /// @dev The maximum emission rate per second
+    uint256 public MAX_EMISSION_RATE;
+
     RocketJoeToken public rJoe;
     uint256 public rJoePerSec;
+
+    /// @dev Balance of JOE held by contract
+    uint256 public totalJoeStaked;
 
     /// @dev Info of each user that stakes LP tokens
     mapping(address => UserInfo) public userInfo;
@@ -88,7 +94,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         RocketJoeToken _rJoe,
         uint256 _rJoePerSec,
         uint256 _startTime
-    ) public initializer {
+    ) external initializer {
         __Ownable_init();
 
         require(
@@ -97,7 +103,11 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         );
 
         PRECISION = 1e18;
-
+        MAX_EMISSION_RATE = 1e24;
+        require(
+            _rJoePerSec <= MAX_EMISSION_RATE,
+            "RocketJoeStaking: emission rate too high"
+        );
         joe = _joe;
         rJoe = _rJoe;
         rJoePerSec = _rJoePerSec;
@@ -108,8 +118,8 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     /// @param _user The user to lookup
     /// @return The number of pending rJOE tokens for `_user`
     function pendingRJoe(address _user) external view returns (uint256) {
-        UserInfo storage user = userInfo[_user];
-        uint256 joeSupply = joe.balanceOf(address(this));
+        UserInfo memory user = userInfo[_user];
+        uint256 joeSupply = totalJoeStaked;
         uint256 _accRJoePerShare = accRJoePerShare;
 
         if (block.timestamp > lastRewardTimestamp && joeSupply != 0) {
@@ -127,16 +137,20 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
 
         updatePool();
 
+        uint256 pending;
         if (user.amount > 0) {
-            uint256 pending = (user.amount * accRJoePerShare) /
+            pending =
+                (user.amount * accRJoePerShare) /
                 PRECISION -
                 user.rewardDebt;
-            _safeRJoeTransfer(msg.sender, pending);
         }
-        user.amount = user.amount + _amount;
+        user.amount += _amount;
         user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
+        totalJoeStaked += _amount;
 
-        joe.safeTransferFrom(address(msg.sender), address(this), _amount);
+        if (_amount != 0)
+            joe.safeTransferFrom(msg.sender, address(this), _amount);
+        if (pending != 0) _safeRJoeTransfer(msg.sender, pending);
         emit Deposit(msg.sender, _amount);
     }
 
@@ -155,11 +169,12 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
             PRECISION -
             user.rewardDebt;
 
-        user.amount = user.amount - _amount;
+        user.amount -= _amount;
         user.rewardDebt = (user.amount * accRJoePerShare) / PRECISION;
 
-        _safeRJoeTransfer(msg.sender, pending);
-        joe.safeTransfer(address(msg.sender), _amount);
+        if (pending > 0) _safeRJoeTransfer(msg.sender, pending);
+        totalJoeStaked -= _amount;
+        joe.safeTransfer(msg.sender, _amount);
         emit Withdraw(msg.sender, _amount);
     }
 
@@ -171,13 +186,18 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         user.amount = 0;
         user.rewardDebt = 0;
 
-        joe.safeTransfer(address(msg.sender), _amount);
+        totalJoeStaked -= _amount;
+        joe.safeTransfer(msg.sender, _amount);
         emit EmergencyWithdraw(msg.sender, _amount);
     }
 
     /// @notice Update emission rate
     /// @param _rJoePerSec The new value for rJoePerSec
     function updateEmissionRate(uint256 _rJoePerSec) external onlyOwner {
+        require(
+            _rJoePerSec <= MAX_EMISSION_RATE,
+            "RocketJoeStaking: emission rate too high"
+        );
         updatePool();
         rJoePerSec = _rJoePerSec;
         emit UpdateEmissionRate(msg.sender, _rJoePerSec);
@@ -188,17 +208,14 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         if (block.timestamp <= lastRewardTimestamp) {
             return;
         }
-        uint256 joeSupply = joe.balanceOf(address(this));
+        uint256 joeSupply = totalJoeStaked;
         if (joeSupply == 0) {
             lastRewardTimestamp = block.timestamp;
             return;
         }
         uint256 multiplier = block.timestamp - lastRewardTimestamp;
         uint256 rJoeReward = multiplier * rJoePerSec;
-        accRJoePerShare =
-            accRJoePerShare +
-            (rJoeReward * PRECISION) /
-            joeSupply;
+        accRJoePerShare += (rJoeReward * PRECISION) / joeSupply;
         lastRewardTimestamp = block.timestamp;
 
         rJoe.mint(address(this), rJoeReward);
@@ -210,9 +227,9 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
     function _safeRJoeTransfer(address _to, uint256 _amount) internal {
         uint256 rJoeBal = rJoe.balanceOf(address(this));
         if (_amount > rJoeBal) {
-            rJoe.transfer(_to, rJoeBal);
+            IERC20Upgradeable(address(rJoe)).safeTransfer(_to, rJoeBal);
         } else {
-            rJoe.transfer(_to, _amount);
+            IERC20Upgradeable(address(rJoe)).safeTransfer(_to, _amount);
         }
     }
 }
