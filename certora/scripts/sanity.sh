@@ -20,23 +20,25 @@ certoraRun \
            RocketJoeFactory:eventImplementation=LaunchEventHarness  RocketJoeFactory:rJoe=RocketJoeToken \
     --verify LaunchEventHarness:certora/spec/sanity.spec \
     --solc_map JoeLibrary=solc6.12,LaunchEventHarness=solc8.6,DummyERC20A=solc8.6,DummyERC20B=solc8.6,RocketJoeFactory=solc8.6,RocketJoeToken=solc8.6,DummyWeth=solc8.6,JoeRouter02=solc6.12,JoePair=solc6.12,JoeFactory=solc6.12 \
+    --optimistic_loop \
     --staging \
-    --msg "sanity launch" \
+    --method "depositAVAX()" \
+    --msg "$1"
     # --staging \=
-    $*
-
-certoraRun \
-    certora/harness/RocketJoeStakingHarness.sol \
-    certora/helpers/DummyERC20A.sol    \
-    certora/helpers/DummyERC20B.sol    \
-    certora/munged/RocketJoeToken.sol  \
-    --link RocketJoeStakingHarness:rJoe=RocketJoeToken \
-    --verify RocketJoeStakingHarness:certora/spec/sanity.spec \
-    --solc solc8.6                      \
-    --staging \
-    --msg "sanity staking" \
-    # --staging \=
-    $*
+#    $*
+#
+#certoraRun \
+#    certora/munged/RocketJoeStaking.sol \
+#    certora/helpers/DummyERC20A.sol    \
+#    certora/helpers/DummyERC20B.sol    \
+#    certora/munged/RocketJoeToken.sol  \
+#    --link RocketJoeStaking:rJoe=RocketJoeToken \
+#    --verify RocketJoeStaking:certora/spec/sanity.spec \
+#    --solc solc8.6                      \
+#    --staging \
+#    --msg "sanity staking" \
+#    # --staging \=
+#    $*
 
 
 

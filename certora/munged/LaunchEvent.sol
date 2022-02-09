@@ -48,7 +48,7 @@ contract LaunchEvent {
     address public issuer;
 
     /// @notice The start time of phase 1
-    uint256 public auctionStart;
+    uint256 public auctionStart;                
 
     uint256 public phaseOneDuration;
     uint256 public phaseOneNoFeeDuration;
@@ -80,11 +80,11 @@ contract LaunchEvent {
 
     IRocketJoeToken public rJoe;
     uint256 public rJoePerAvax;
-    IWAVAX private WAVAX;
+    IWAVAX public WAVAX;                       // HARNESS: private -> public
     IERC20MetadataUpgradeable public token;
 
     IJoeRouter02 private router;
-    IJoeFactory private factory;
+    IJoeFactory public factory;                // HARNESS: private -> public
     IRocketJoeFactory public rocketJoeFactory;
 
     bool public stopped;
@@ -104,29 +104,29 @@ contract LaunchEvent {
     uint256 public tokenAllocated;
 
     /// @dev The exact supply of LP minted when creating the initial liquidity pair.
-    uint256 private lpSupply;
+    uint256 public lpSupply;                    // HARNESS: private -> public
 
     /// @dev Used to know how many issuing tokens will be sent to JoeRouter to create the initial
     /// liquidity pair. If floor price is not met, we will send fewer issuing tokens and `tokenReserve`
     /// will keep track of the leftover amount. It's then used to calculate the number of tokens needed
     /// to be sent to both issuer and users (if there are leftovers and every token is sent to the pair,
     /// tokenReserve will be equal to 0)
-    uint256 private tokenReserve;
+    uint256 public tokenReserve;                // HARNESS: private -> public
 
     /// @dev Keeps track of amount of token incentives that needs to be kept by contract in order to send the right
     /// amounts to issuer and users
-    uint256 private tokenIncentivesBalance;
+    uint256 public tokenIncentivesBalance;      // HARNESS: private -> public
     /// @dev Total incentives for users for locking their LPs for an additional period of time after the pair is created
-    uint256 private tokenIncentivesForUsers;
+    uint256 public tokenIncentivesForUsers;     // HARNESS: private -> public
     /// @dev The share refunded to the issuer. Users receive 5% of the token that were sent to the Router.
     /// If the floor price is not met, the incentives still needs to be 5% of the value sent to the Router, so there
     /// will be an excess of tokens returned to the issuer if he calls `withdrawIncentives()`
-    uint256 private tokenIncentiveIssuerRefund;
+    uint256 public tokenIncentiveIssuerRefund;  // HARNESS: private -> public
 
     /// @dev avaxReserve is the exact amount of AVAX that needs to be kept inside the contract in order to send everyone's
     /// AVAX. If there is some excess (because someone sent token directly to the contract), the
     /// penaltyCollector can collect the excess using `skim()`
-    uint256 private avaxReserve;
+    uint256 public avaxReserve;                 // HARNESS: private -> public
 
     event LaunchEventInitialized(
         uint256 tokenIncentivesPercent,
@@ -225,7 +225,7 @@ contract LaunchEvent {
         uint256 _maxAllocation,
         uint256 _userTimelock,
         uint256 _issuerTimelock
-    ) external atPhase(Phase.NotStarted) {
+    ) public atPhase(Phase.NotStarted) {      // HARNESS: external -> public
         require(auctionStart == 0, "LaunchEvent: already initialized");
         rocketJoeFactory = IRocketJoeFactory(msg.sender);
         require(
@@ -620,7 +620,7 @@ contract LaunchEvent {
     /// @notice The total amount of liquidity pool tokens the user can withdraw
     /// @param _user The address of the user to check
     /// @return The user's balance of liquidity pool token
-    function pairBalance(address _user) public view returns (uint256) {
+    function pairBalance(address _user) public virtual returns (uint256) {     // HARNESS: made it virtual and non-view to override
         UserInfo memory user = getUserInfo[_user];
         if (avaxAllocated == 0 || user.hasWithdrawnPair) {
             return 0;
@@ -633,7 +633,7 @@ contract LaunchEvent {
 
     /// @dev Bytecode size optimization for the `atPhase` modifier
     /// This works becuase internal functions are not in-lined in modifiers
-    function _atPhase(Phase _phase) internal view {
+    function _atPhase(Phase _phase) public view {
         require(currentPhase() == _phase, "LaunchEvent: wrong phase");
     }
 
@@ -670,7 +670,7 @@ contract LaunchEvent {
     /// @param _to The receiving address
     /// @param _value The amount of AVAX to send
     /// @dev Will revert on failure
-    function _safeTransferAVAX(address _to, uint256 _value) internal {
+    function _safeTransferAVAX(address _to, uint256 _value) virtual internal {
         require(
             address(this).balance >= avaxReserve,
             "LaunchEvent: not enough avax"

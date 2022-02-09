@@ -64,10 +64,12 @@ contract DummyWeth {
     
     // WETH
     function deposit() external payable {
-        // assume succeeds
+        b[msg.sender] += msg.value;
+        t += msg.value;
     }
 
-    function withdraw(uint256) external {
-        // assume succeeds
+    function withdraw(uint256 amount) external {
+        b[msg.sender] -= amount;
+        t -= amount;
     }
 }

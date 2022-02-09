@@ -78,7 +78,6 @@ always:
 
 initialized (initialized is true):
  - `initialized` == true
- - `Phase.NotStarted`
  - `stopped` == false
  - appropriate constants nonzero:
         - `issuerTimelock` >= 1
@@ -97,7 +96,6 @@ initialized (initialized is true):
 open (pair is 0):
  - `pair` == 0
  - `pair` == `factory.getPair(wavaxAddress, tokenAddress)`
- - `Phase.PhaseOne` || `Phase.PhaseTwo`
  - `stopped` == false
  - `WAVAX.balanceOf(LaunchEvent)` == Σ getUI[user].balance == `wavaxReserve`
  - `token.balanceOf(LaunchEvent)` >= `tokenReserve` + `tokenIncentivesForUsers`
@@ -109,26 +107,27 @@ open (pair is 0):
 closed (pair is nonzero):
  - `pair` != 0
  - `pair` == `factory.getPair(wavaxAddress, tokenAddress)`
- - `Phase.PhaseThree`
- - `stopped` == false
+ - `stopped` == false                                               
  - `wavaxAllocated` == Σ getUI[user].balance
  - `wavaxReserve` == `WAVAX.balanceOf(LaunchEvent)` == 0
  - `pair.balanceOf(LaunchEvent)` >= sum of unwithdrawn lp tokens over all users (half to issuers, remainder to users)
      up to roundoff
- - `token.balanceOf(LaunchEvent)` >= sum of `tokenReserve` and unwithdrawn incentives     // @AK - "unwithdrawn reserve tokens" - waht do you mean?
- - `tokenIncentivesBalance` == `tokenIncentiveIssuerRefund` + `tokenIncentivesForUsers`
+ - `token.balanceOf(LaunchEvent)` >= sum of `tokenReserve` and unwithdrawn incentives
  - `tokenIncentivesBalance` <= `tokenIncentivesForUsers`
+ - user hasWithdrawnPair <=> pair balance of user is nonzero [can be more specific]
 
 
 ### Variable changes
 
+always:
+- user allocation cannot be decreased
+- isStopped changes only by owner
+
 open:
- - (balance changes governed by the invariants)
+ - (balance changes governed by the invariants) // what does it mean?
  - (pair, avaxAllocated, tokenAllocated, lpSupply, tokenReserve are governed by invariants)
- - getUI[user].balance only changed by user in deposit and withdraw (see method specs)
- - getUI[user].allocation only changed by user in deposit (see method specs)
- - getUI[user].allocation only increases
- - isStopped only changed by owner
+ - getUI[user].balance only changed by user in deposit and withdraw (see method specs)  
+ - getUI[user].allocation only changed by user in deposit (see method specs)    
  - `tokenReserve`, `tokenIncentivesBalance`, `tokenIncentivesForUsers`, `tokenIncentiveIssuerRefund` are unchanging
 
 
@@ -144,8 +143,7 @@ closed:
  - getUA[user].allocation is unchanging
  - hasWithdrawnPair and LP token balance of user are related; change only in withdrawLiquidity
  - hasWithdrawnIncentives and Launch token balance of user are related; change only in withdrawIncentives
- - isStopped changes only by owner
- - LP and launch token balance of LaunchEvent are decreasing, and at a proportional rate[^specify]          // @AK - but they can be changed by two different functions.
+ - LP and launch token balance of LaunchEvent are decreasing        
  - tokenIncentivesBalance can be 0 only if emergencyWithdraw() was called or all users withdrawn their incentives
  - `tokenIncentivesBalance` is non-increasing
 
@@ -244,7 +242,7 @@ function allowEmergencyWithdraw()
 
 ### High level rules
 
-- pair balance of this == pair balance of issuer + Σ pair balance of user  == lpSupply == pair.totalSupply        // @AK - changed, need double check
+- pair balance of this == pair balance of issuer + Σ possible(unwithdrawn) pair balance of user     // @AK - changed, need double check
 - token balance of this == tokenReserve + tokenIncentivesBalance // @AK - I don't agree: == token balance of issuer + Σ token balance of user. Users have nothing. changed, need double check
 - additivity of deposit:   deposit(a);  deposit(b)  has same effect as deposit(a+b)
 - additivity of withdraw:  withdraw(a); withdraw(b) has same effect as withdraw(a+b)
@@ -258,8 +256,7 @@ function allowEmergencyWithdraw()
 - createPair can be called at least once (DoS check)
 
 - if someone withdrawn during day 2 or 3, then `WAVAX.balanceOf(penaltyCollector)` > 0
- - user doesn't burn more rJoes than needed (with ghost probably)   @AK - is it possible?
- - `lpSupply` > 0 if `wavaxReserve` > 0 and `tokenReserve` > 0
+- `lpSupply` > 0 if `wavaxReserve` > 0 and `tokenReserve` > 0
 
 ### Template stuff
 
