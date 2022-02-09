@@ -1,5 +1,7 @@
 import "./LEPreset.spec"
 
+use invariant statesComplete
+
 // This function is here because:
 // 1. I requireInvariants from this file
 // 2. Preset spec will need import this spec
