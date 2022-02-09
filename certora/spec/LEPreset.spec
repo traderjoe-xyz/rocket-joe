@@ -115,16 +115,20 @@ function helperFunctionsForWithdrawLiquidity(method f, env e) {
 ////////////////////////////////////////////////////////////////////////////
 
 
-definition nonInitialized() returns bool = auctionStart() == 0 && !stopped();
+definition open(env e) returns bool =
+    pair() == 0 && !stopped();
 
-definition initialized() returns bool = auctionStart() != 0 && !stopped();
+definition closed(env e) returns bool
+    auctionStart() <= e.block.timestamp && pair() != 0 && !stopped();
 
-definition open() returns bool = pair() == 0 && initialized();
+definition isStopped() returns bool =
+    stopped();
 
-definition closed() returns bool = pair() != 0 && initialized();
 
-definition isStopped() returns bool = stopped();
+invariant statesComplete(env e)
+    open(e) || closed(e) || isStopped(e)
 
+// TODO (maybe): only in one state
 
 ////////////////////////////////////////////////////////////////////////////
 //                           Ghosts                                       //

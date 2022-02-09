@@ -22,10 +22,57 @@ function addressDiversity(env e) {
     require rJoe() != currentContract;
 }
 
+function safeAssumptions(env e) {
+    addressDiversity(e);
+    e.msg.sender != 0;
+
+    // We assume that there are no launch tokens in circulation before the
+    // launch, and therefore there can be no supply of LP tokens.
+    //
+    // This assumption can be violated by the issuer.
+    require open() => getPairTotalSupply() == 0;
+
+    // requireInvariant alwaysInitialized();
+    // requireInvariant statesComplete(e);
+
+    // requireInvariant alwaysInitialized()
+    // requireInvariant factoryGetPairCorrelationCurrentVals(e)
+    // requireInvariant al_issuer_allocation_zero()
+    // requireInvariant al_balance_less_than_allocation(address user)
+    // requireInvariant al_userAllocation_less_than_maxAllocation(address user)
+    // requireInvariant initIssuerTimelockNonZero()
+    // requireInvariant initUserTimelockSeven()
+    // requireInvariant initAuctionStart(e)
+    // requireInvariant initTimelocksCorrelation()
+    // requireInvariant init_IncentivesCorrelation()
+    // requireInvariant init_TokenBalanceCheck(e)
+    // requireInvariant op_user_not_withdrawn_pair(address user)
+    // requireInvariant op_user_not_withdrawn_incentives(address user)
+    // requireInvariant opWavaxBalanceAndSumBalances()
+    // requireInvariant opTokenBalanceCheck()
+    // requireInvariant op_IncentivesCorrelation()
+    // requireInvariant op_avax_alloc_zero()
+    // requireInvariant op_lp_supply_zero()
+    // requireInvariant opPairBalanceIsZero()
+    // requireInvariant opPairAndTotalSupplyCorrelation()
+    // requireInvariant cl_avax_alloc_sum_user_balances()
+    // requireInvariant cl_avaxReservCheck()
+    // requireInvariant cl_PhaseCheck(env e)
+    // requireInvariant cl_AvaxCorrelation(env e)
+    // requireInvariant cl_pair_bal_eq_lp_sum()
+    // requireInvariant cl_token_bal_eq_res_token()
+    // requireInvariant cl_incentivesCorrelation()
+    // requireInvariant cl_nonzero_user_pair_bal(address user, env e)
+    // requireInvariant cl_bal_this_zero()
+    // requireInvariant pairAndGetPairCorrelation(env e)
+}
 
 ////////////////////////////////////////////
 // HELPERS
 ////////////////////////////////////////////
+
+invariant alwaysInitialized()
+    auctionStart() != 0
 
 
 // STATUS - verified (with harness)
@@ -33,48 +80,14 @@ function addressDiversity(env e) {
 // getPair() should return the same results for both permutations (for current values in the contract)
 invariant factoryGetPairCorrelationCurrentVals(env e)
     Factory.getPair(e, token(), WAVAX()) == Factory.getPair(e, WAVAX(), token())
-    {
-        preserved initialize(address _issuer, uint256 _auctionStart, address _token, uint256 _tokenIncentivesPercent, uint256 _floorPrice, uint256 _maxWithdrawPenalty,
-                uint256 _fixedWithdrawPenalty, uint256 _maxAllocation, uint256 _userTimelock, uint256 _issuerTimelock) with (env e2){
-            requireInvariant factoryGetPairCorrelationNewVals(e, _token);
-        }
-    }
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified (with harness)
 // getPair() should return the same results for both permutations (for new values that can be assigned in initialize())
 invariant factoryGetPairCorrelationNewVals(env e, address token)
     Factory.getPair(e, token, getNewWAVAX()) == Factory.getPair(e, getNewWAVAX(), token)
-    {
-        preserved initialize(address _issuer, uint256 _auctionStart, address _token, uint256 _tokenIncentivesPercent, uint256 _floorPrice, uint256 _maxWithdrawPenalty,
-                uint256 _fixedWithdrawPenalty, uint256 _maxAllocation, uint256 _userTimelock, uint256 _issuerTimelock) with (env e2){
-            require token == _token;
-        }
-    }
-
-
-
-////////////////////////////////////////////
-// NON INITIALIZED
-////////////////////////////////////////////
-
-
-
-// STATUS - verified
-invariant non_IssuerForNonInitialized()
-    nonInitialized() => issuer() == 0
-
-// STATUS - verified
-invariant non_AllocationIfNonInitialized(address user)
-    nonInitialized() => getUserAllocation(user) == 0
-
-// STATUS - verified
-invariant non_BalanceIfNonInitialized(address user)
-    nonInitialized() => getUserBalance(user) == 0
-
-// STATUS - verified
-invariant non_tokenIncentiveIssuerRefundZero()
-    nonInitialized() => tokenIncentiveIssuerRefund() == 0
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 ////////////////////////////////////////////
@@ -82,74 +95,57 @@ invariant non_tokenIncentiveIssuerRefundZero()
 ////////////////////////////////////////////
 
 
-
 // STATUS - verified
 // - getUI[issuer].allocation == 0
 invariant al_issuer_allocation_zero()
     getUserAllocation(issuer()) == 0
-    {
-        preserved{
-            require initialized();
-        }
-    }
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 // - getUI[user].balance <= getUI[user].allocation
 invariant al_balance_less_than_allocation(address user)
     getUserBalance(user) <= getUserAllocation(user) 
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 // - getUI[user].allocation <= maxAllocation
 invariant al_userAllocation_less_than_maxAllocation(address user)
     getUserAllocation(user) <= maxAllocation()
-    {
-        preserved{
-            require initialized();
-        }
-    }
+    { preserved with (env e2) { safeAssumptions(e2); } }
     
-
-function alwaysInvs(env e, address user) {
-    requireInvariant al_issuer_allocation_zero();
-    requireInvariant al_balance_less_than_allocation(user);
-    requireInvariant al_userAllocation_less_than_maxAllocation(user);
-}
-
-////////////////////////////////////////////
-// INITIALIZED
-////////////////////////////////////////////
-
-
 
 // STATUS - verified
 // - `issuerTimelock` >= 1
 invariant initIssuerTimelockNonZero()
-    initialized() => issuerTimelock() >= 1
+    issuerTimelock() >= 1
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 // - `userTimelock` <= 7 days
 invariant initUserTimelockSeven()
-    initialized() => userTimelock() <= sevenDays()
+    userTimelock() <= sevenDays()
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 // - `auctionStart` > block.timestamp
 invariant initAuctionStart(env e)
-    initialized() => auctionStart() > e.block.timestamp
-    {
-        preserved with (env e2){
-            require e.block.timestamp == e2.block.timestamp;
-        }
-    }
-
+    auctionStart() > e.block.timestamp
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 // STATUS - verified
 //  - `issuerTimelock` > `userTimelock`
 invariant initTimelocksCorrelation()
-    initialized() => issuerTimelock() > userTimelock()
+    issuerTimelock() > userTimelock()
+    { preserved with (env e2) { safeAssumptions(e2); } }
+
+
+////////////////////////////////////////////
+// OPEN
+////////////////////////////////////////////
 
 
 // STATUS - verified
@@ -158,13 +154,8 @@ invariant initTimelocksCorrelation()
 // need to require pair() == 0 to avoid withdrawIncentives(), otherwise violation
 // - `tokenIncentivesForUsers` + tokenIncentiveIssuerRefund == `tokenIncentivesBalance`
 invariant init_IncentivesCorrelation()
-    initialized() => tokenIncentivesForUsers() + tokenIncentiveIssuerRefund() == tokenIncentivesBalance()
-    {
-        preserved with (env e2){
-            requireInvariant non_tokenIncentiveIssuerRefundZero();      // initialize()
-            require pair() == 0;                    // withdrawIncentives() - safe assumption
-        }
-    }
+    open() => tokenIncentivesForUsers() + tokenIncentiveIssuerRefund() == tokenIncentivesBalance()
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - in progress
@@ -172,41 +163,29 @@ invariant init_IncentivesCorrelation()
 // run with preserved block: https://vaas-stg.certora.com/output/3106/ae0992b1cbbc194c21f4/?anonymousKey=53e564ea846a2718c43b6a03673fd13beb4efdf3
 //  - `tokenReserve` + `tokenIncentivesForUsers` == `token.balanceOf(address(this))`
 invariant init_TokenBalanceCheck(env e)
-    initialized() => tokenReserve() + tokenIncentivesForUsers() + tokenAllocated() + tokenIncentiveIssuerRefund() == getTokenBalanceOfThis()  // issuer and avaxAllocation
-    {
-        preserved with (env e2){
-            require pair() == 0;                                // withdrawIncentives() and withdrawLiquidity()    
-            require e.msg.sender == e2.msg.sender;
-            addressDiversity(e2);                               // depositAVAX()
-            requireInvariant init_IncentivesCorrelation();       // skim() 
-            requireInvariant non_tokenIncentiveIssuerRefundZero();
-        }
-    }
-
-
-
-////////////////////////////////////////////
-// OPEN
-////////////////////////////////////////////
-
+    open() => tokenReserve() + tokenIncentivesForUsers() + tokenAllocated() + tokenIncentiveIssuerRefund() == getTokenBalanceOfThis()  // issuer and avaxAllocation
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 // open implies user has not withdrawn
 invariant op_user_not_withdrawn_pair(address user)
     open() => !userHasWithdrawnPair(user)
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 // open implies user has not withdrawn
 invariant op_user_not_withdrawn_incentives(address user)
     open() => !userHasWithdrawnIncentives(user)
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 //  - `avaxReserve` == Σ getUI[user].balance
 invariant opWavaxBalanceAndSumBalances()
    open() => avaxReserve() == sum_of_users_balances()
+   { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
@@ -215,35 +194,34 @@ invariant opWavaxBalanceAndSumBalances()
 // - token balance of this >= tokenReserve
 invariant opTokenBalanceCheck()
     open() => tokenReserve() + tokenIncentivesForUsers() == getTokenBalanceOfThis()
-    {
-        preserved with (env e2){
-            addressDiversity(e2);                           // depositAVAX()
-            requireInvariant op_IncentivesCorrelation();    // skim()
-        }
-    }
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 invariant op_IncentivesCorrelation()
     open() => tokenIncentivesForUsers() == tokenIncentivesBalance()
+    { preserved with (env e2) { safeAssumptions(e2); } }
     
 
 // STATUS - verified
 // - avaxAllocated is 0
 invariant op_avax_alloc_zero()
     open() => avaxAllocated() == 0
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 //  - lpSupply is 0
 invariant op_lp_supply_zero()
     open() => lpSupply() == 0
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
 // - pair.balanceOf(address(this)) == 0
 invariant opPairBalanceIsZero()
     open() => getPairBalanceOfThis() == 0
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - in progress
@@ -252,14 +230,7 @@ invariant opPairBalanceIsZero()
 // TotalSupply of non-existing pair should be 0 
 invariant opPairAndTotalSupplyCorrelation()
     open() => getPairTotalSupply() == 0
-    // {
-    //     preserved with (env e2){
-    //         // NOTE: this is a safe assumption because we assume that the issuer does not distribute tokens before the end of the launch event, so it
-    //         // is impossible for the pair to have a nonzero total supply.
-    //         require open() => getPairTotalSupply() == 0;
-    //     }
-    // }
-
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 ////////////////////////////////////////////
@@ -274,24 +245,19 @@ invariant opPairAndTotalSupplyCorrelation()
 //  - avaxAllocated is Σ getUA[user].balance (avaxReserve() is added as a fix to violations in depost and withdraw)
 invariant cl_avax_alloc_sum_user_balances()
     closed() => avaxAllocated() + avaxReserve() == sum_of_users_balances()
-    {
-        preserved with (env e2){                      
-            requireInvariant opWavaxBalanceAndSumBalances();    // createPair()
-            requireInvariant op_avax_alloc_zero();              // createPair()
-            requireInvariant cl_avaxReservCheck();
-    
-        }
-    }
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // violation in depositAVAX(): https://vaas-stg.certora.com/output/3106/556ff34c4400705cf2cc/?anonymousKey=32fb2e318b921c45daa6c7012c63363f0a6cf24e
 // idk how to fix it except restrict phase
 invariant cl_avaxReservCheck()
     closed() => avaxReserve() == 0
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 invariant cl_PhaseCheck(env e)
     closed() => currentPhase(e) == PhaseThree()
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - in progress 
@@ -299,12 +265,7 @@ invariant cl_PhaseCheck(env e)
 // run with preserved block: 
 invariant cl_AvaxCorrelation(env e)
     closed() => (getBalanceOfThis() == avaxReserve() && avaxReserve() == 0)
-    // {
-    //     preserved with (env e2){
-    //         requireInvariant pairAndGetPairCorrelation(e2);
-    //         require currentPhase(e2) == PhaseThree();
-    //     }
-    // }
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - in progress
@@ -314,16 +275,13 @@ invariant cl_AvaxCorrelation(env e)
 // up to roundoff
 invariant cl_pair_bal_eq_lp_sum()
     closed() => (getPairBalanceOfThis() == lpSupply() / 2 + unwithdrawn_users_lp_tokens)
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 //  - token balance of this = sum of unwithdrawn reserve tokens (as above)  // enough incentives to pay everyone 
 invariant cl_token_bal_eq_res_token()
     closed() => getTokenBalanceOfThis() == tokenIncentivesBalance()
-    {
-        preserved with (env e2){
-            addressDiversity(e2);           // withdrawLiquidity() and withdrawIncentives()
-        }
-    }
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - in progress
@@ -332,11 +290,7 @@ invariant cl_token_bal_eq_res_token()
 // - `tokenIncentivesBalance` <= `tokenIncentivesForUsers`
 invariant cl_incentivesCorrelation()
     closed() => (tokenIncentivesBalance() <= tokenIncentivesForUsers())
-    /*{
-        preserved with (env e2){
-            requireInvariant pairAndGetPairCorrelation(e2);     // createPair()
-        }
-    }*/
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - in progress
@@ -345,12 +299,7 @@ invariant cl_incentivesCorrelation()
 //  - user hasWithdrawnPair <=> pair balance of user is nonzero [can be more specific]
 invariant cl_nonzero_user_pair_bal(address user, env e)
     closed() => (!userHasWithdrawnPair(user) <=> getPairBalance(user) != 0)
-    /*{
-        preserved with (env e2){                  // emergencyWithdraw()
-            require currentPhase(e2) == PhaseThree();           // withdrawAVAX(uint256)
-            requireInvariant pairAndGetPairCorrelation(e2);     // createPair()
-        }
-    }*/
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - in progress
@@ -359,34 +308,22 @@ invariant cl_nonzero_user_pair_bal(address user, env e)
 //  - WAVAX balance of this is 0
 invariant cl_bal_this_zero()
     closed() => getWAVAXbalanceOfThis() == 0
-    {
-        preserved with (env e2){
-            require currentPhase(e2) == PhaseThree();           // depositAVAX()
-            // should I add invariants from open state?
-        }
-    }
-
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified (with harness)
 // -rule_sanity: https://vaas-stg.certora.com/output/3106/c3e711b31a414808a3b3/?anonymousKey=f66a6ec74c47d93a1b72a66ce79cdee30ab9b7ff
 // pair and getPair() should return the same adderess
 invariant pairAndGetPairCorrelation(env e)
-    pair() == Factory.getPair(e, WAVAX(), token())
-    // {
-    //     preserved{
-    //         require initialized();
-    //         requireInvariant factoryGetPairCorrelationCurrentVals(e);
-    //     }
-    // }
-
+    closed() => pair() == Factory.getPair(e, WAVAX(), token())
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 ////////////////////////////////////////////
 // STOPPED
 ////////////////////////////////////////////
 
-
+// TODO: specifiation for stopped state
 
 ////////////////////////////////////////////////////////////////////////////
 //                       Rules                                            //
@@ -396,18 +333,16 @@ invariant pairAndGetPairCorrelation(env e)
 // this was listed as an invariant, but writing a fixed value property makes more sense as a parametric rule
 //  - tokenReserve is fixed (probably nonzero)
 rule op_token_res_fixed(method f, env e) {
+    safeAssumptions(e);
 
-    require pair() == 0;
-    requireInvariant pairAndGetPairCorrelation(e);
-    require initialized();
-    require !stopped();
+    require open();
 
     uint256 tokenReserveBefore = tokenReserve();
 
     calldataarg args;
     f(e, args);
 
-    require pair() == 0;
+    require open();
 
     uint256 tokenReserveAfter = tokenReserve();
 
@@ -421,12 +356,14 @@ rule op_token_res_fixed(method f, env e) {
 // was listed as an invariant but makes more sense as a parametric rule
 //   - getUA[user].allocation is unchanging
 rule cl_user_alloc_unchanging(address user, method f, env e) {
-    require currentPhase(e) == PhaseThree(); // depositAVAX()
+    safeAssumptions(e);
 
     uint256 userAllocationBefore = getUserAllocation(user);
 
+    require closed();
     calldataarg args;
     f(e, args);
+    require closed();
 
     uint256 userAllocationAfter = getUserAllocation(user);
 
@@ -443,14 +380,16 @@ rule cl_user_alloc_unchanging(address user, method f, env e) {
 // can require pair.totalSupply > 0; it should fix the issue
 // run of clear rule: https://vaas-stg.certora.com/output/3106/6069ba941c41dddb93d0/?anonymousKey=ff0feaa921181f9619053106c79339e70e6c68a4
 // run with requires: https://vaas-stg.certora.com/output/3106/a505898e420fa73c6f46/?anonymousKey=4e20fb5ac95682f53cfbe50ffc848f11c151a5b9
+// TODO: maybe this doesn't make sense to check anymore
 rule cl_avax_alloc_fixed(method f, env e) {
-    require pair() != 0;
-    requireInvariant pairAndGetPairCorrelation(e);
+    safeAssumptions(e);
 
     uint256 wavaxAllocatedBefore = avaxAllocated();
 
+    require closed();
     calldataarg args;
     f(e, args);
+    require closed();
 
     uint256 wavaxAllocatedAfter = avaxAllocated();
 
@@ -461,13 +400,14 @@ rule cl_avax_alloc_fixed(method f, env e) {
 // run of clear rule: https://vaas-stg.certora.com/output/3106/3a0c7c688b06022747cf/?anonymousKey=b77728a94b1d226a2beec6070cf021b13673db34
 // run with requires: https://vaas-stg.certora.com/output/3106/97f94a4070310e71fcc6/?anonymousKey=886fa365aa4a2a5f32009b54a816d1f5d1c8afe5
 rule cl_lp_supply_fixed(method f, env e) {
-    require closed();
-    // requireInvariant pairAndGetPairCorrelation(e);
+    safeAssumptions(e);
 
     uint256 lpSupplyBefore = lpSupply();
 
+    require closed();
     calldataarg args;
     f(e, args);
+    require closed();
 
     uint256 lpSupplyAfter = lpSupply();
 
