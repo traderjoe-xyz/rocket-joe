@@ -3,9 +3,9 @@ import "../helpers/erc20.spec"
 ////////////////////////////////////////////////////////////////////////////
 //                      Methods                                           //
 ////////////////////////////////////////////////////////////////////////////
-using DummyERC20Impl as Joe
+using DummyERC20Impl as joe
 
-using RocketJoeToken as RJoe
+using RocketJoeToken as rJoe
 
 methods {
     // external functions
@@ -15,6 +15,7 @@ methods {
     lastRewardTimestamp() returns (uint256) envfree
     accRJoePerShare() returns (uint256) envfree
     rJoePerSec() returns (uint256) envfree
+    totalJoeStaked() returns (uint256) envfree
     // mapping(address => UserInfo) public userInfo;
     // Initialize(IERC20Upgradeable _joe, RocketJoeToken _rJoe, uint256 _rJoePerSec)
     
@@ -40,10 +41,11 @@ rule sanity(method f) {
     assert false;
 }
 
-ghost sum_user_balance() returns uint256;
-// {
+ghost sum_user_balance() returns uint256
+{
 //     init_state axiom sum_user_balance() == 0;
-// }
+    axiom forall address a. forall address b. sum_user_balance() >= userJoeStaked(a) + userJoeStaked(b);
+}
 
 ghost sum_user_rewards() returns uint256;
 // {
@@ -56,24 +58,43 @@ hook Sstore userInfo[KEY address user].amount uint256 userBalance (uint256 oldUs
         sum_user_balance@new() == sum_user_balance@old() + userBalance - oldUserBalance;
 }
 
-hook Sstore RJoe._balances[KEY address user] uint256 reward (uint256 oldReward) STORAGE {
+hook Sstore rJoe._balances[KEY address user] uint256 reward (uint256 oldReward) STORAGE {
     havoc sum_user_rewards assuming
         sum_user_rewards@new() == sum_user_rewards@old() + reward - oldReward;
 }
 
 // initialization invariance 
 
-ghost initialized()  returns bool;
+ghost initialized() returns bool;
 
-hook Sstore _initialized bool init STORAGE {
+ghost initializing() returns bool;
+
+hook Sload bool init currentContract._initialized STORAGE {
   havoc initialized assuming initialized@new() == init;
 }
 
+hook Sstore currentContract._initializing bool initing STORAGE {
+    havoc initializing assuming initializing@new() == initing;
+}
+
+// helper invariants 
 invariant is_initialized()
     initialized()
 
+invariant not_initializing()
+    !initializing()
+
 invariant precision_nonzero()
     PRECISION() > 0
+
+invariant sum_user_balance_helper(address a, address b)
+    a != b => sum_user_balance() >= userJoeStaked(a) + userJoeStaked(b)
+{ preserved with (env e) {
+    require e.msg.sender != currentContract;
+}}
+
+invariant stupid_ghost_invariant(address a)
+    sum_user_balance() >= userJoeStaked(a)
 
 ////////////////////////////////////////////////////////////////////////////
 //                       Invariants                                       //
@@ -85,12 +106,34 @@ invariant precision_nonzero()
 
 // rule
 //rJoe.balanceOf(RJStaking) ≥ Σ pendingRewards over all users
-invariant staking_RJ_balance_eq_pending_rewards(env e)
-    RJoe.balanceOf(e, currentContract) >= sum_user_rewards()
+// the way this is written actually sums out the given rewards
+// invariant staking_RJ_balance_eq_pending_rewards(env e)
+//     rJoe.balanceOf(e, currentContract) >= sum_user_rewards()
 
 //joe.balanceOf(RJStaking)  ≥ Σ userInfo[user].amount
 invariant staking_joe_bal_sums_user_balance(env e)
-    Joe.balanceOf(e, currentContract) >= sum_user_balance()
+   joe.balanceOf(e, currentContract) >= sum_user_balance()
+{ preserved {
+    address a; address b;
+    requireInvariant user_balances_less_than_totalJoeStaked(a, b);
+} }
+
+invariant totalJoeStaked_sums_user_balance() // passes
+    totalJoeStaked() >= sum_user_balance()
+
+invariant balanceOf_Joe_eq_totalJoeStaked(env e)
+   joe.balanceOf(e, currentContract) >= totalJoeStaked()
+{ preserved {
+    address a; address b;
+    requireInvariant user_balances_less_than_totalJoeStaked(a, b);
+} }
+
+invariant user_balances_less_than_totalJoeStaked(address a, address b)
+    a != b => totalJoeStaked() >= userJoeStaked(a) + userJoeStaked(b) 
+{ preserved with (env e) {
+    require e.msg.sender != currentContract;
+    requireInvariant is_initialized();
+}}
 
 // non-zero e.msg.sender implies a non-zero reward debt?
 
@@ -103,7 +146,7 @@ rule updatePool_increases_accRJoePerShare() {
     requireInvariant precision_nonzero();
     env e;
     require e.block.timestamp > lastRewardTimestamp();
-    require Joe.balanceOf(e, currentContract) > 0; // will not increase if supply is 0
+    require joe.balanceOf(e, currentContract) > 0; // will not increase if supply is 0
     uint256 pre = accRJoePerShare();
     updatePool(e);
     uint256 post = accRJoePerShare();
@@ -127,6 +170,7 @@ rule userInfo_amount_safe_mutate(method f) {
 // rJoePerSec only changed by owner in updateEmissionRate
 rule RJPS_only_owner_and_function(method f) //  filtered { f -> f.selector != 0xeb990c59} 
 {
+    requireInvariant not_initializing();
     requireInvariant is_initialized();
     env e; calldataarg args;
     uint256 RJPS_pre = rJoePerSec();
@@ -139,8 +183,11 @@ rule RJPS_only_owner_and_function(method f) //  filtered { f -> f.selector != 0x
 
 // pendingReward[user] only decreased by user
 rule pending_reward_decreased_only_user(method f) {
+    requireInvariant not_initializing();
     requireInvariant is_initialized();
+    requireInvariant totalJoeStaked_sums_user_balance();
     env e; calldataarg args;
+    require e.msg.sender != currentContract;
     address user;
     uint256 rjoe_pre = pendingRJoe(e, user);
     f(e, args);
@@ -150,26 +197,32 @@ rule pending_reward_decreased_only_user(method f) {
 
 //  - If I am staked, I get some RJoe
 rule staking_non_trivial_rJoe() {
-    uint256 joe;
-    require joe > 0;
+    requireInvariant precision_nonzero();
+    requireInvariant totalJoeStaked_sums_user_balance();
+    uint256 amount;
+    require amount > 0;
     env e0;
     env e1;
     require e0.msg.sender == e1.msg.sender; 
     require e1.block.timestamp > e0.block.timestamp;
-    require userRewardDebt(e0.msg.sender) < 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF; // todo find the maxuint256 function and use that
-    uint delta_t = e1.block.timestamp - e0.block.timestamp; // store this as a variable for more readable cex
+    require userRewardDebt(e0.msg.sender) < max_uint256; // todo find the maxuint256 function and use that
+    uint dt = e1.block.timestamp - e0.block.timestamp; // store this as a variable for more readable cex
 
+    // 1 = x * rjps * precision / joesupply
+    // x = joesupply / rjps * precision
+    // minimum interval afterwhich accRJoePerShare increases
+    uint256 min_interval = totalJoeStaked() / (rJoePerSec() * PRECISION());
 
-    deposit(e0, joe);
+    deposit(e0, amount);
     uint256 rJoe = pendingRJoe(e1, e0.msg.sender);
-    assert rJoe != 0, "trivial rJoe";
+    assert dt >= min_interval => rJoe != 0, "trivial rJoe";
 }
 
 rule staking_trivial_on_zero_time() {
-    uint256 joe;
-    require joe > 0;
+    uint256 amount;
+    require amount > 0;
     env e0;
-    deposit(e0, joe);
+    deposit(e0, amount);
 
     env e1; 
     uint delta_t = e1.block.timestamp - e0.block.timestamp; // store this as a variable for more readable cex
@@ -182,8 +235,8 @@ rule staking_trivial_on_zero_time() {
 rule stake_duration_correlates_return() {
 
     storage init = lastStorage; 
-    uint256 joe;
-    require joe > 0;
+    uint256 amount;
+    require amount > 0;
     env e0;
     env e1; 
     env e2; 
@@ -193,12 +246,15 @@ rule stake_duration_correlates_return() {
     // account 2 stakes longer than account 1, which stakes more than 0 seconds
     require e1.block.timestamp > e0.block.timestamp && e2.block.timestamp > e1.block.timestamp;
 
-    deposit(e0, joe);
+    
+
+    deposit(e0, amount);
     uint256 rJoe1 = pendingRJoe(e1, e0.msg.sender);
-    deposit(e0, joe) at init;
+    deposit(e0, amount) at init;
     uint256 rJoe2 = pendingRJoe(e2, e0.msg.sender);
 
-    assert rJoe2 > rJoe1; 
+    // assert rJoe2 > rJoe1; 
+    assert exists uint256 dt. e2.block.timestamp - e1.block.timestamp >= dt => rJoe2 > rJoe1;
 }
 
 //  - No front-running for deposit:   `f(); deposit(...)` has same result as `deposit()`)
@@ -297,10 +353,13 @@ rule verify_deposit() {
 
     uint256 balance_pre = userJoeStaked(e.msg.sender);
     uint256 reward_debt_pre = userRewardDebt(e.msg.sender);
+    uint256 total_pre = totalJoeStaked();
     deposit(e, amount);
     uint256 balance_post = userJoeStaked(e.msg.sender);
     uint256 reward_debt_post = userRewardDebt(e.msg.sender);
+    uint256 total_post = totalJoeStaked();
 
+    assert total_post == total_pre + amount, "totalJoeStaked not updated properly";
     assert balance_post - amount == balance_pre, "improper amount deposited";
     assert (e.block.timestamp > lastRewardTimestamp() => reward_debt_post > reward_debt_pre)  || userJoeStaked(e.msg.sender) == 0, "reward debt not increased";
     assert pendingRJoe(e, e.msg.sender) == 0, "user has unclaimed rewards";
@@ -313,10 +372,13 @@ rule verify_withdraw() {
 
     uint256 balance_pre = userJoeStaked(e.msg.sender);
     uint256 reward_debt_pre = userRewardDebt(e.msg.sender);
+    uint256 total_pre = totalJoeStaked();
     withdraw(e, amount);
     uint256 balance_post = userJoeStaked(e.msg.sender);
     uint256 reward_debt_post = userRewardDebt(e.msg.sender);
+    uint256 total_post = totalJoeStaked();
 
+    assert total_post == total_pre - amount, "totalJoeStaked not updated properly";
     assert balance_pre - amount == balance_post, "improper amount withdrawn";
     assert (e.block.timestamp > lastRewardTimestamp() => reward_debt_post > reward_debt_pre) || userJoeStaked(e.msg.sender) == 0, "reward debt not increased";
     assert pendingRJoe(e, e.msg.sender) == 0, "user has unclaimed rewards";
@@ -343,10 +405,14 @@ rule verify_emergencyWithdraw() {
     env e;
 
     uint256 userJoe_pre = userJoeStaked(e.msg.sender);
-    uint256 stakingJoe_pre = Joe.balanceOf(e, currentContract);
+    uint256 stakingJoe_pre = joe.balanceOf(e, currentContract);
+    uint256 total_joe_pre = totalJoeStaked();
 
     emergencyWithdraw@withrevert(e);
+
+    uint256 total_joe_post = totalJoeStaked();
     
+    assert total_joe_post == total_joe_pre - userJoe_pre, "totalJoeStaked not updated properly";
     assert lastReverted == false, "failed, should not fail"; 
     assert userJoeStaked(e.msg.sender) == 0, "user still had joe remaining";
 }

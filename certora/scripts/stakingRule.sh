@@ -1,4 +1,4 @@
-if [ -z "$2" ]
+if [ -z "$1" ]
   then
     echo "Incorrect number of arguments"
     echo ""
@@ -8,18 +8,21 @@ if [ -z "$2" ]
     exit 1
 fi
 
-rule=$1
-msg=$2
+msg=$1
+rule=$2
 shift 2
 
-
 certoraRun certora/munged/RocketJoeStaking.sol \
+           certora/helpers/DummyERC20Impl.sol \
+           certora/munged/RocketJoeToken.sol  \
     --verify RocketJoeStaking:certora/spec/staking.spec \
-    --solc solc8.6                   \
+    --optimistic_loop --loop_iter 1 \
+    --solc solc8.6  \
     --solc_args '["--optimize"]' \
     --settings -t=600,-postProcessCounterExamples=true \
-    --msg ${msg} \
-    --cache RocketjoeStaking \
+    --link RocketJoeStaking:joe=DummyERC20Impl \
+    --link RocketJoeStaking:rJoe=RocketJoeToken \
+    --cache RocketJoeStaking \
+    --msg "${msg}" \
     --rule ${rule} \
     --staging \
-    $*

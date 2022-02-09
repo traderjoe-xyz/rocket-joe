@@ -28,10 +28,8 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         return owner();
     }
 
-
-
     // this is added so the system will always be in the initialized state for invariants
-    constructor(IERC20Upgradeable _joe, RocketJoeToken _rJoe, uint256 _rJoePerSec, uint256 _startTime) public {
+    constructor(IERC20Upgradeable _joe, RocketJoeToken _rJoe, uint256 _rJoePerSec, uint256 _startTime) {
         initialize(_joe, _rJoe, _rJoePerSec, _startTime);
     }
 
@@ -94,7 +92,7 @@ contract RocketJoeStaking is Initializable, OwnableUpgradeable {
         RocketJoeToken _rJoe,
         uint256 _rJoePerSec,
         uint256 _startTime
-    ) external initializer {
+    ) public initializer {
         __Ownable_init();
 
         require(
