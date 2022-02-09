@@ -39,36 +39,36 @@ function safeAssumptions(env e) {
     requireInvariant alwaysInitialized();
     requireInvariant statesComplete();
 
-    // requireInvariant alwaysInitialized()
-    // requireInvariant factoryGetPairCorrelationCurrentVals(e)
-    // requireInvariant al_issuer_allocation_zero()
-    // requireInvariant al_balance_less_than_allocation(address user)
-    // requireInvariant al_userAllocation_less_than_maxAllocation(address user)
-    // requireInvariant initIssuerTimelockNonZero()
-    // requireInvariant initUserTimelockSeven()
-    // requireInvariant initAuctionStart(e)
-    // requireInvariant initTimelocksCorrelation()
-    // requireInvariant init_IncentivesCorrelation()
-    // requireInvariant init_TokenBalanceCheck(e)
-    // requireInvariant op_user_not_withdrawn_pair(address user)
-    // requireInvariant op_user_not_withdrawn_incentives(address user)
-    // requireInvariant opWavaxBalanceAndSumBalances()
-    // requireInvariant opTokenBalanceCheck()
-    // requireInvariant op_IncentivesCorrelation()
-    // requireInvariant op_avax_alloc_zero()
-    // requireInvariant op_lp_supply_zero()
-    // requireInvariant opPairBalanceIsZero()
-    // requireInvariant opPairAndTotalSupplyCorrelation()
-    // requireInvariant cl_avax_alloc_sum_user_balances()
-    // requireInvariant cl_avaxReservCheck()
-    // requireInvariant cl_PhaseCheck(env e)
-    // requireInvariant cl_AvaxCorrelation(env e)
-    // requireInvariant cl_pair_bal_eq_lp_sum()
-    // requireInvariant cl_token_bal_eq_res_token()
-    // requireInvariant cl_incentivesCorrelation()
-    // requireInvariant cl_nonzero_user_pair_bal(address user, env e)
-    // requireInvariant cl_bal_this_zero()
-    // requireInvariant pairAndGetPairCorrelation(env e)
+    requireInvariant alwaysInitialized();
+    requireInvariant factoryGetPairCorrelationCurrentVals(e);
+    requireInvariant al_issuer_allocation_zero();
+    // TODO: passes but needs argument requireInvariant al_balance_less_than_allocation(address user);
+    // TODO: needs user requireInvariant al_userAllocation_less_than_maxAllocation(address user);
+    requireInvariant initIssuerTimelockNonZero();
+    requireInvariant initUserTimelockSeven();
+    requireInvariant initAuctionStart(e);
+    requireInvariant initTimelocksCorrelation();
+    requireInvariant init_IncentivesCorrelation();
+    requireInvariant init_TokenBalanceCheck(e);
+    // TODO: needs user requireInvariant op_user_not_withdrawn_pair(address user);
+    // TODO: needs user requireInvariant op_user_not_withdrawn_incentives(address user);
+    requireInvariant opWavaxBalanceAndSumBalances();
+    requireInvariant opTokenBalanceCheck();
+    requireInvariant op_IncentivesCorrelation();
+    requireInvariant op_avax_alloc_zero();
+    requireInvariant op_lp_supply_zero();
+    requireInvariant opPairBalanceIsZero();
+    requireInvariant opPairAndTotalSupplyCorrelation();
+    requireInvariant cl_avax_alloc_sum_user_balances();
+    requireInvariant cl_avaxReservCheck();
+    requireInvariant cl_PhaseCheck(e);
+    requireInvariant cl_AvaxCorrelation(e);
+    requireInvariant cl_pair_bal_eq_lp_sum();
+    requireInvariant cl_token_bal_eq_res_token();
+    requireInvariant cl_incentivesCorrelation();
+    // TODO: requireInvariant cl_nonzero_user_pair_bal(address user, env e);
+    requireInvariant cl_bal_this_zero();
+    requireInvariant pairAndGetPairCorrelation(e);
 }
 
 ////////////////////////////////////////////
@@ -167,7 +167,7 @@ invariant init_IncentivesCorrelation()
 // run with preserved block: https://vaas-stg.certora.com/output/3106/ae0992b1cbbc194c21f4/?anonymousKey=53e564ea846a2718c43b6a03673fd13beb4efdf3
 //  - `tokenReserve` + `tokenIncentivesForUsers` == `token.balanceOf(address(this))`
 invariant init_TokenBalanceCheck(env e)
-    open() => tokenReserve() + tokenIncentivesForUsers() + tokenAllocated() + tokenIncentiveIssuerRefund() == getTokenBalanceOfThis()  // issuer and avaxAllocation
+    open() => tokenReserve() + tokenIncentivesForUsers() == getTokenBalanceOfThis()  // issuer and avaxAllocation
     { preserved with (env e2) { safeAssumptions(e2); } }
 
 
@@ -261,7 +261,8 @@ invariant cl_avaxReservCheck()
 
 invariant cl_PhaseCheck(env e)
     closed() => currentPhase(e) == PhaseThree()
-    { preserved with (env e2) { safeAssumptions(e2); } }
+    { preserved with (env e2) { require e.block.timestamp == e2.block.timestamp;
+                                safeAssumptions(e2); } }
 
 
 // STATUS - in progress 
