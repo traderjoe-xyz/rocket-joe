@@ -24,6 +24,6 @@ certoraRun \
     --optimistic_loop \
     --staging \
     --send_only \
-    --rule "$1"
+    --rule "$1" \
     --msg "$1"
 
