@@ -24,7 +24,9 @@ function addressDiversity(env e) {
 
 function safeAssumptions(env e) {
     addressDiversity(e);
-    e.msg.sender != 0;
+
+    // always true
+    require e.msg.sender != 0;
 
     // We assume that there are no launch tokens in circulation before the
     // launch, and therefore there can be no supply of LP tokens.
@@ -32,8 +34,8 @@ function safeAssumptions(env e) {
     // This assumption can be violated by the issuer.
     require open() => getPairTotalSupply() == 0;
 
-    // requireInvariant alwaysInitialized();
-    // requireInvariant statesComplete(e);
+    requireInvariant alwaysInitialized();
+    requireInvariant statesComplete();
 
     // requireInvariant alwaysInitialized()
     // requireInvariant factoryGetPairCorrelationCurrentVals(e)

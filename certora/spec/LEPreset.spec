@@ -30,9 +30,6 @@ methods {
     // generated getters
     issuer() returns(address) envfree
     auctionStart() returns(uint256) envfree           
-    PHASE_ONE_DURATION() returns(uint256) envfree
-    PHASE_ONE_NO_FEE_DURATION() returns(uint256) envfree
-    PHASE_TWO_DURATION() returns(uint256) envfree
     tokenIncentivesPercent() returns(uint256) envfree
     floorPrice() returns(uint256) envfree
     userTimelock() returns(uint256) envfree
@@ -40,7 +37,6 @@ methods {
     maxWithdrawPenalty() returns(uint256) envfree
     fixedWithdrawPenalty() returns(uint256) envfree
     rJoePerAvax() returns(uint256) envfree
-    initialized() returns(bool) envfree
     stopped() returns(bool) envfree
     maxAllocation() returns(uint256) envfree
     WAVAX() returns(address) envfree
@@ -115,18 +111,18 @@ function helperFunctionsForWithdrawLiquidity(method f, env e) {
 ////////////////////////////////////////////////////////////////////////////
 
 
-definition open(env e) returns bool =
+definition open() returns bool =
     pair() == 0 && !stopped();
 
-definition closed(env e) returns bool
-    auctionStart() <= e.block.timestamp && pair() != 0 && !stopped();
+definition closed() returns bool =
+    pair() != 0 && !stopped();
 
 definition isStopped() returns bool =
     stopped();
 
 
-invariant statesComplete(env e)
-    open(e) || closed(e) || isStopped(e)
+invariant statesComplete()
+    open() || closed() || isStopped()
 
 // TODO (maybe): only in one state
 
