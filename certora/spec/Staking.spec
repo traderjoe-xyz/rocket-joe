@@ -41,11 +41,11 @@ rule sanity(method f) {
     assert false;
 }
 
-ghost sum_user_balance() returns uint256
-{
-//     init_state axiom sum_user_balance() == 0;
-    axiom forall address a. forall address b. sum_user_balance() >= userJoeStaked(a) + userJoeStaked(b);
-}
+ghost sum_user_balance() returns uint256;
+// {
+// //     init_state axiom sum_user_balance() == 0;
+//     // axiom forall address a. forall address b. sum_user_balance() >= userJoeStaked(a) + userJoeStaked(b);
+// }
 
 ghost sum_user_rewards() returns uint256;
 // {
@@ -87,14 +87,6 @@ invariant not_initializing()
 invariant precision_nonzero()
     PRECISION() > 0
 
-invariant sum_user_balance_helper(address a, address b)
-    a != b => sum_user_balance() >= userJoeStaked(a) + userJoeStaked(b)
-{ preserved with (env e) {
-    require e.msg.sender != currentContract;
-}}
-
-invariant stupid_ghost_invariant(address a)
-    sum_user_balance() >= userJoeStaked(a)
 
 ////////////////////////////////////////////////////////////////////////////
 //                       Invariants                                       //
@@ -109,30 +101,41 @@ invariant stupid_ghost_invariant(address a)
 // the way this is written actually sums out the given rewards
 // invariant staking_RJ_balance_eq_pending_rewards(env e)
 //     rJoe.balanceOf(e, currentContract) >= sum_user_rewards()
+// new variation rJoe.balanceOf(currenctContract) >= pendingRJoe(user)
+invariant rJoe_solvency(env e, address user)
+    rJoe.balanceOf(e, currentContract) >= pendingRJoe(e, user)
+{ preserved with (env otherE) {
+    require otherE.msg.sender != currentContract;
+}}
 
 //joe.balanceOf(RJStaking)  ≥ Σ userInfo[user].amount
-invariant staking_joe_bal_sums_user_balance(env e)
+invariant staking_joe_bal_sums_user_balance(env e) // passes
    joe.balanceOf(e, currentContract) >= sum_user_balance()
-{ preserved {
+{ preserved with (env otherE) {
+    require otherE.msg.sender != currentContract;
     address a; address b;
-    requireInvariant user_balances_less_than_totalJoeStaked(a, b);
+    require a != b;
+    require sum_user_balance() > userJoeStaked(a) + userJoeStaked(b);
 } }
 
 invariant totalJoeStaked_sums_user_balance() // passes
-    totalJoeStaked() >= sum_user_balance()
-
-invariant balanceOf_Joe_eq_totalJoeStaked(env e)
-   joe.balanceOf(e, currentContract) >= totalJoeStaked()
+    totalJoeStaked() == sum_user_balance()
 { preserved {
     address a; address b;
-    requireInvariant user_balances_less_than_totalJoeStaked(a, b);
+    require a != b;
+    require sum_user_balance() > userJoeStaked(a) + userJoeStaked(b);
+}}
+
+invariant balanceOf_Joe_eq_totalJoeStaked(env e) // passes
+   joe.balanceOf(e, currentContract) >= totalJoeStaked()
+{ preserved with (env otherE){
+    require otherE.msg.sender != currentContract;
 } }
 
-invariant user_balances_less_than_totalJoeStaked(address a, address b)
-    a != b => totalJoeStaked() >= userJoeStaked(a) + userJoeStaked(b) 
+invariant user_balances_less_than_totalJoeStaked()
+    forall address a. forall address b. a != b => totalJoeStaked() >= userJoeStaked(a) + userJoeStaked(b) 
 { preserved with (env e) {
     require e.msg.sender != currentContract;
-    requireInvariant is_initialized();
 }}
 
 // non-zero e.msg.sender implies a non-zero reward debt?
