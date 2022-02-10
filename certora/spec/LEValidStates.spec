@@ -39,19 +39,20 @@ function safeAssumptions(env e) {
     requireInvariant alwaysInitialized();
     requireInvariant statesComplete();
 
-    requireInvariant alwaysInitialized();
     requireInvariant factoryGetPairCorrelationCurrentVals(e);
     requireInvariant al_issuer_allocation_zero();
-    // TODO: passes but needs argument requireInvariant al_balance_less_than_allocation(address user);
-    // TODO: needs user requireInvariant al_userAllocation_less_than_maxAllocation(address user);
+    requireInvariant pairAndGetPairCorrelation(e);
+    requireInvariant al_balance_less_than_allocation(e.msg.sender);
+    requireInvariant al_userAllocation_less_than_maxAllocation(e.msg.sender);
+    
     requireInvariant initIssuerTimelockNonZero();
     requireInvariant initUserTimelockSeven();
-    requireInvariant initAuctionStart(e);
     requireInvariant initTimelocksCorrelation();
     requireInvariant init_IncentivesCorrelation();
     requireInvariant init_TokenBalanceCheck(e);
-    // TODO: needs user requireInvariant op_user_not_withdrawn_pair(address user);
-    // TODO: needs user requireInvariant op_user_not_withdrawn_incentives(address user);
+    
+    requireInvariant op_user_not_withdrawn_pair(e.msg.sender);
+    requireInvariant op_user_not_withdrawn_incentives(e.msg.sender);
     requireInvariant opWavaxBalanceAndSumBalances();
     requireInvariant opTokenBalanceCheck();
     requireInvariant op_IncentivesCorrelation();
@@ -59,16 +60,16 @@ function safeAssumptions(env e) {
     requireInvariant op_lp_supply_zero();
     requireInvariant opPairBalanceIsZero();
     requireInvariant opPairAndTotalSupplyCorrelation();
+    
     requireInvariant cl_avax_alloc_sum_user_balances();
     requireInvariant cl_avaxReservCheck();
     requireInvariant cl_PhaseCheck(e);
     requireInvariant cl_AvaxCorrelation(e);
-    requireInvariant cl_pair_bal_eq_lp_sum();
+    // requireInvariant cl_pair_bal_eq_lp_sum();
     requireInvariant cl_token_bal_eq_res_token();
     requireInvariant cl_incentivesCorrelation();
-    // TODO: requireInvariant cl_nonzero_user_pair_bal(address user, env e);
+    requireInvariant cl_nonzero_user_pair_bal(e.msg.sender, e);
     requireInvariant cl_bal_this_zero();
-    requireInvariant pairAndGetPairCorrelation(e);
 }
 
 ////////////////////////////////////////////
@@ -135,12 +136,6 @@ invariant initUserTimelockSeven()
 
 
 // STATUS - verified
-// - `auctionStart` > block.timestamp
-invariant initAuctionStart(env e)
-    auctionStart() > e.block.timestamp
-    { preserved with (env e2) { safeAssumptions(e2); } }
-
-// STATUS - verified
 //  - `issuerTimelock` > `userTimelock`
 invariant initTimelocksCorrelation()
     issuerTimelock() > userTimelock()
@@ -189,7 +184,7 @@ invariant op_user_not_withdrawn_incentives(address user)
 //  - `avaxReserve` == Σ getUI[user].balance
 invariant opWavaxBalanceAndSumBalances()
    open() => avaxReserve() == sum_of_users_balances()
-   { preserved with (env e2) { safeAssumptions(e2); } }
+   // { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
@@ -335,7 +330,7 @@ invariant pairAndGetPairCorrelation(env e)
 ////////////////////////////////////////////////////////////////////////////
 
 // STATUS - verified
-// this was listed as an invariant, but writing a fixed value property makes more sense as a parametric rule
+// sanity issue: https://vaas-stg.certora.com/output/3106/8dfcc21ca9829a14afa8/?anonymousKey=9b79dd816505bd3748f94db3d078cda47ca2aa97
 //  - tokenReserve is fixed (probably nonzero)
 rule op_token_res_fixed(method f, env e) {
     safeAssumptions(e);
@@ -355,10 +350,8 @@ rule op_token_res_fixed(method f, env e) {
 }
 
 
-// STATUS - verified (wirh phase require)
-// run of clear rule: https://vaas-stg.certora.com/output/3106/9a14fbfc06f5370a3ff8/?anonymousKey=47be67415c25ce594ca9756c7f1345a2dc65b91b
-// run with requires: https://vaas-stg.certora.com/output/3106/c67f41b614e18d7efea7/?anonymousKey=0b1b8ed56327b03298dec62bada231b20c8df0ff
-// was listed as an invariant but makes more sense as a parametric rule
+// STATUS - verified 
+// sanity issue: https://vaas-stg.certora.com/output/3106/62b0954854dd88df7d94/?anonymousKey=ac2a2de905088ece00c7ddda287849a5a04e18b3
 //   - getUA[user].allocation is unchanging
 rule cl_user_alloc_unchanging(address user, method f, env e) {
     safeAssumptions(e);
@@ -381,11 +374,8 @@ rule cl_user_alloc_unchanging(address user, method f, env e) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// STATUS - in progress (createPair has pair == 0 OR totalSupply == 0 - it's the issue)
-// can require pair.totalSupply > 0; it should fix the issue
-// run of clear rule: https://vaas-stg.certora.com/output/3106/6069ba941c41dddb93d0/?anonymousKey=ff0feaa921181f9619053106c79339e70e6c68a4
-// run with requires: https://vaas-stg.certora.com/output/3106/a505898e420fa73c6f46/?anonymousKey=4e20fb5ac95682f53cfbe50ffc848f11c151a5b9
-// TODO: maybe this doesn't make sense to check anymore
+// STATUS - verified
+// sanity issue: https://vaas-stg.certora.com/output/3106/3bcde5e8b416f2c08b4b/?anonymousKey=b18c5d9e314bf734d1467f5cc04589b9d56da53d
 rule cl_avax_alloc_fixed(method f, env e) {
     safeAssumptions(e);
 
@@ -401,9 +391,8 @@ rule cl_avax_alloc_fixed(method f, env e) {
     assert wavaxAllocatedBefore == wavaxAllocatedAfter, "not yet implemented";
 }
 
-// STATUS - in progress (the same issue as above)
-// run of clear rule: https://vaas-stg.certora.com/output/3106/3a0c7c688b06022747cf/?anonymousKey=b77728a94b1d226a2beec6070cf021b13673db34
-// run with requires: https://vaas-stg.certora.com/output/3106/97f94a4070310e71fcc6/?anonymousKey=886fa365aa4a2a5f32009b54a816d1f5d1c8afe5
+// STATUS - verified
+// sanity issue: https://vaas-stg.certora.com/output/3106/8fda00fd319420fa60d7/?anonymousKey=0e32aea6972068594deacd19b34178abbd7005d8
 rule cl_lp_supply_fixed(method f, env e) {
     safeAssumptions(e);
 

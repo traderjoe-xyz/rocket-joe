@@ -122,7 +122,10 @@ definition isStopped() returns bool =
 
 
 invariant statesComplete()
-    open() || closed() || isStopped()
+    open() && !closed() && !isStopped() ||
+    !open() && closed() && !isStopped() ||
+    !open() && !closed() && isStopped()
+
 
 // TODO (maybe): only in one state
 

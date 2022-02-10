@@ -1,5 +1,32 @@
 import "./LEValidStates.spec"
 
+use invariant alwaysInitialized
+use invariant statesComplete
+use invariant factoryGetPairCorrelationCurrentVals
+use invariant al_issuer_allocation_zero
+use invariant initIssuerTimelockNonZero
+use invariant initUserTimelockSeven
+use invariant initAuctionStart
+use invariant initTimelocksCorrelation
+use invariant init_IncentivesCorrelation
+use invariant init_TokenBalanceCheck
+use invariant opWavaxBalanceAndSumBalances
+use invariant opTokenBalanceCheck
+use invariant op_IncentivesCorrelation
+use invariant op_avax_alloc_zero
+use invariant op_lp_supply_zero
+use invariant opPairBalanceIsZero
+use invariant opPairAndTotalSupplyCorrelation
+use invariant cl_avax_alloc_sum_user_balances
+use invariant cl_avaxReservCheck
+use invariant cl_PhaseCheck
+use invariant cl_AvaxCorrelation
+use invariant cl_pair_bal_eq_lp_sum
+use invariant cl_token_bal_eq_res_token
+use invariant cl_incentivesCorrelation
+use invariant cl_bal_this_zero
+use invariant pairAndGetPairCorrelation
+
 // ALWAYS
 
 
@@ -36,11 +63,13 @@ rule al_stoppedOnlyByOwner(method f, env e){
 // OPEN
 
 
-// STATUS - in progress (strange sanity again deposit and withdraw AVAX: https://vaas-stg.certora.com/output/3106/bc15b3b66210ce04bde5/?anonymousKey=4b3ae52a5a992806a04a2314ab5c560cdc3ffd3d)
+// STATUS - verified
+// sanity issue: https://vaas-stg.certora.com/output/3106/803f0d0b53975ac8efca/?anonymousKey=2715cb118d2185eca7c96916ccdbce86009da2db
 // - getUI[user].balance only changed by user in deposit and withdraw (see method specs)
 rule op_balanceChangeByDepositOrWithdraw(method f, env e){     
+    require open();
+    
     address user;
-
     uint256 balanceBefore = getUserBalance(user);
 
     calldataarg args;
@@ -72,11 +101,6 @@ rule op_allocationChangeByDeposit(method f, env e){
 // run with requires: https://vaas-stg.certora.com/output/3106/0ac33a29f30c6644f35e/?anonymousKey=91a997ff0a506811488b71e5b52a7d9f8874b935
 // - `tokenReserve` is unchanging
 rule op_tokenReserveUnchange(method f, env e){
-    require pair() == 0;                    // createPair() and withdrawLiquidity()
-    requireInvariant pairAndGetPairCorrelation(e);   // createPair()
-    requireInvariant opPairAndTotalSupplyCorrelation();     // createPair()
-    requireInvariant op_not_stopped();      // emergencyWithdraw()
-    requireInvariant isInitialized();       // initialize()
 
     uint256 tokenReserveBefore = tokenReserve();
 
@@ -93,9 +117,6 @@ rule op_tokenReserveUnchange(method f, env e){
 // run with requires: https://vaas-stg.certora.com/output/3106/c699ff5c5be3fbef1861/?anonymousKey=47eb62af13b8a4505f8fbbb213e31480caa0404e
 // - `tokenIncentivesBalance` is unchanging
 rule op_tokenIncentivesBalanceUnchange(method f, env e){
-    require pair() == 0;                    // withdrawIncentives()
-    requireInvariant op_not_stopped();      // emergencyWithdraw()
-    requireInvariant isInitialized();       // initialize()
 
     uint256 tokenIncentivesBalanceBefore = tokenIncentivesBalance();
 
@@ -112,10 +133,6 @@ rule op_tokenIncentivesBalanceUnchange(method f, env e){
 // run with requires: https://vaas-stg.certora.com/output/3106/c47a11d2ce4c6a14be09/?anonymousKey=54b4657ee6216dcc865048773ab193a481d91b1c
 // - `tokenIncentivesForUsers` is unchanging
 rule op_tokenIncentivesForUsersUnchange(method f, env e){
-    require pair() == 0;                    // createPair()
-    requireInvariant pairAndGetPairCorrelation(e);   // createPair()
-    requireInvariant opPairAndTotalSupplyCorrelation();     // createPair()
-    requireInvariant isInitialized();       // initialize()
 
     uint256 tokenIncentivesForUsersBefore = tokenIncentivesForUsers();
 
@@ -131,10 +148,7 @@ rule op_tokenIncentivesForUsersUnchange(method f, env e){
 // run of clear rule: https://vaas-stg.certora.com/output/3106/ce28f43ca464d99b6d6a/?anonymousKey=9bad700e78b9b7b33110f37a414d45accdcfc698
 // run with requires: https://vaas-stg.certora.com/output/3106/856420e40afee720de4e/?anonymousKey=c62d3855f1b6acdbf588674c9ee7135f46d3e81e
 // - `tokenIncentiveIssuerRefund` is unchanging
-rule op_tokenIncentiveIssuerRefundUnchange(method f, env e){
-    require pair() == 0;                                    // createPair()
-    requireInvariant pairAndGetPairCorrelation(e);          // createPair()
-    requireInvariant opPairAndTotalSupplyCorrelation();     // createPair()
+rule op_tokenIncentiveIssuerRefundUnchange(method f, env e){// createPair()
 
     uint256 tokenIncentiveIssuerRefundBefore = tokenIncentiveIssuerRefund();
 
@@ -162,7 +176,6 @@ rule op_tokenIncentiveIssuerRefundUnchange(method f, env e){
 // run with requires: https://vaas-stg.certora.com/output/3106/fe2a0a0a63bf759a67c1/?anonymousKey=bb597b279b979745058a8b85c40e56a41e585455
 // maybe it's not correct that pair should change in createPair()
 rule tr_pairOnlyChange(method f, env e){     
-    requireInvariant pairAndGetPairCorrelation(e);
 
     address pairBefore = pair();
 
@@ -177,15 +190,15 @@ rule tr_pairOnlyChange(method f, env e){
 
 // STATUS - verified
 rule tr_initializedOnlyChange(method f){     
-    bool initBefore = initialized();
+    uint256 initBefore = auctionStart();
 
     env e;
     calldataarg args;
     f(e, args);
 
-    bool initAfter = initialized();
+    uint256 initAfter = auctionStart();
 
-    assert initBefore != initAfter <=> f.selector == initialize(address, uint256, address, uint256, uint256, uint256, uint256, uint256, uint256, uint256).selector, "initialized was changed by wrong method";
+    assert initBefore != initAfter <=> (initBefore == 0 && f.selector == initialize(address, uint256, address, uint256, uint256, uint256, uint256, uint256, uint256, uint256).selector), "initialized was changed by wrong method";
 }
 
 
@@ -229,8 +242,6 @@ rule tr_incentiveIssuerRefundChanges(method f){
 // STATUS - verified
 // - pair is unchanging
 rule cl_unchangingPair(method f, env e){
-    require pair() != 0;
-    requireInvariant pairAndGetPairCorrelation(e);
 
     address pairBefore = pair();
 
@@ -307,13 +318,7 @@ rule cl_hasWithdrawnPair_pairBalance_OnlyChangeIssuer(method f, env e){
 // run with requires (createPair() can be called for the second time 
 // (because totalBalance == 0). it causes violation): https://vaas-stg.certora.com/output/3106/cbba8a84f218d35d76e0/?anonymousKey=41ddb51a318fbfcdc2b0d224f5c055e632ba890f
 // - LP and launch token balance of LaunchEvent are decreasing
-rule cl_pairAndTokenBalancesNonIncreasing(method f, env e){
-    require pair() != 0;                                // createPair()
-    requireInvariant pairAndGetPairCorrelation(e);      // createPair()
-    requireInvariant isInitialized();                   // initialize()
-    require currentPhase(e) == PhaseThree();            // depositAVAX() 
-
-
+rule cl_pairAndTokenBalancesNonIncreasing(method f, env e){          
     uint256 tokenBalanceBefore = getTokenBalanceOfThis();
     uint256 pairBalanceBefore = getPairBalanceOfThis();
 
@@ -347,9 +352,7 @@ rule cl_hasWithdrawnIncentivesOnlyChange(method f, env e){
 // run with requires: https://vaas-stg.certora.com/output/3106/117db959388ea6161147/?anonymousKey=bebe9014aced19c204572942b2c2dd85c7bcb23a
 // - tokenIncentivesBalance is non-increasing
 rule cl_tokenIncentivesBalancesNonIncreasing(method f, env e){
-    require initialized();
-    // require pair() != 0;
-    // require pair() == Factory.getPair(e, WAVAX(), token());
+    requireInvariant alwaysInitialized();
 
     uint256 tokenIncentivesBalanceBefore = tokenIncentivesBalance();
 
@@ -367,7 +370,7 @@ rule cl_tokenIncentivesBalancesNonIncreasing(method f, env e){
 // run with requires:
 // - tokenIncentivesBalance can be 0 only if emergencyWithdraw() was called or all users withdrawn their incentives (need ghost - idk how to do it)
 rule cl_tokenIncentivesBalanceCanBeZero(method f, env e){
-    require initialized();          // initialize()
+    requireInvariant alwaysInitialized();   
 
     uint256 tokenIncentivesBalanceBefore = tokenIncentivesBalance();
 
@@ -380,8 +383,3 @@ rule cl_tokenIncentivesBalanceCanBeZero(method f, env e){
 
     assert tokenIncentivesBalanceAfter == 0 <=> f.selector == emergencyWithdraw().selector, "tokenIncentivesBalance is 0 unintentionally";
 }
-
-
-
-
-// tokenReserve before createPair() == tokenReserve + token allocated after create pair is called
