@@ -27,4 +27,3 @@ certoraRun \
     --rule "$1" \
     --rule_sanity \
     --msg "$1"
-

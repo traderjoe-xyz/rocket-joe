@@ -21,7 +21,6 @@ sh certora/scripts/verifyLEValidStates.sh opPairBalanceIsZero
 sh certora/scripts/verifyLEValidStates.sh opPairAndTotalSupplyCorrelation
 sh certora/scripts/verifyLEValidStates.sh cl_avax_alloc_sum_user_balances
 sh certora/scripts/verifyLEValidStates.sh cl_avaxReservCheck
-sh certora/scripts/verifyLEValidStates.sh cl_PhaseCheck
 sh certora/scripts/verifyLEValidStates.sh cl_AvaxCorrelation
 sh certora/scripts/verifyLEValidStates.sh cl_pair_bal_eq_lp_sum
 sh certora/scripts/verifyLEValidStates.sh cl_token_bal_eq_res_token

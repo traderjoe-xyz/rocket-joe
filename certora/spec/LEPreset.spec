@@ -68,7 +68,9 @@ methods {
     getPairTotalSupply() returns (uint256) envfree
     getPairTotalSupplyOfThis() returns (uint256) envfree
     getBalanceOfThis() returns (uint256) envfree
-
+    factoryGetPairWT() returns (address) envfree
+    factoryGetPairTW() returns (address) envfree
+ 
     isRJLaunchEvent(address) returns(bool) envfree => DISPATCHER(true)
     receiveETH() => DISPATCHER(true)
     
@@ -121,10 +123,22 @@ definition isStopped() returns bool =
     stopped();
 
 
-invariant statesComplete()
+invariant oneStateOnly()
     open() && !closed() && !isStopped() ||
     !open() && closed() && !isStopped() ||
     !open() && !closed() && isStopped()
+
+
+/*
+invariant testState(env e)
+    open() && !closed() && !isStopped() && currentPhase(e) == PhaseOne() ||
+    open() && !closed() && !isStopped() && currentPhase(e) == PhaseTwo() ||
+    open() && !closed() && !isStopped() && currentPhase(e) == PhaseThree() ||
+    !open() && closed() && !isStopped() && currentPhase(e) == PhaseThree() ||
+    !open() && !closed() && isStopped() && currentPhase(e) == PhaseOne() ||
+    !open() && !closed() && isStopped() && currentPhase(e) == PhaseTwo() ||
+    !open() && !closed() && isStopped() && currentPhase(e) == PhaseThree()
+*/
 
 
 // TODO (maybe): only in one state

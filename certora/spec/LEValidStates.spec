@@ -1,6 +1,6 @@
 import "./LEPreset.spec"
 
-use invariant statesComplete
+use invariant oneStateOnly
 
 // This function is here because:
 // 1. I requireInvariants from this file
@@ -37,14 +37,14 @@ function safeAssumptions(env e) {
     require open() => getPairTotalSupply() == 0;
 
     requireInvariant alwaysInitialized();
-    requireInvariant statesComplete();
+    requireInvariant oneStateOnly();
 
     requireInvariant factoryGetPairCorrelationCurrentVals(e);
     requireInvariant al_issuer_allocation_zero();
     requireInvariant pairAndGetPairCorrelation(e);
     requireInvariant al_balance_less_than_allocation(e.msg.sender);
     requireInvariant al_userAllocation_less_than_maxAllocation(e.msg.sender);
-    
+
     requireInvariant initIssuerTimelockNonZero();
     requireInvariant initUserTimelockSeven();
     requireInvariant initTimelocksCorrelation();
@@ -63,7 +63,7 @@ function safeAssumptions(env e) {
     
     requireInvariant cl_avax_alloc_sum_user_balances();
     requireInvariant cl_avaxReservCheck();
-    requireInvariant cl_PhaseCheck(e);
+    // requireInvariant cl_PhaseCheck(e);
     requireInvariant cl_AvaxCorrelation(e);
     // requireInvariant cl_pair_bal_eq_lp_sum();
     requireInvariant cl_token_bal_eq_res_token();
@@ -84,7 +84,7 @@ invariant alwaysInitialized()
 // --rule_sanity failed instate: https://vaas-stg.certora.com/output/3106/2de5b9f58130ede9258d/?anonymousKey=1395a42b2a103b263f982faa8130a8b892f7a1b6
 // getPair() should return the same results for both permutations (for current values in the contract)
 invariant factoryGetPairCorrelationCurrentVals(env e)
-    Factory.getPair(e, token(), WAVAX()) == Factory.getPair(e, WAVAX(), token())
+    factoryGetPairWT() == factoryGetPairTW()
     { preserved with (env e2) { safeAssumptions(e2); } }
 
 
@@ -184,7 +184,7 @@ invariant op_user_not_withdrawn_incentives(address user)
 //  - `avaxReserve` == Σ getUI[user].balance
 invariant opWavaxBalanceAndSumBalances()
    open() => avaxReserve() == sum_of_users_balances()
-   // { preserved with (env e2) { safeAssumptions(e2); } }
+   { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // STATUS - verified
@@ -254,10 +254,12 @@ invariant cl_avaxReservCheck()
     { preserved with (env e2) { safeAssumptions(e2); } }
 
 
-invariant cl_PhaseCheck(env e)
-    closed() => currentPhase(e) == PhaseThree()
-    { preserved with (env e2) { require e.block.timestamp == e2.block.timestamp;
-                                safeAssumptions(e2); } }
+// invariant PhaseCheck(env e)
+//     ( open() => currentPhase(e) == PhaseOne() || currentPhase(e) == PhaseTwo() || currentPhase(e) == PhaseThree() ) 
+//             || ( closed() => currentPhase(e) == PhaseThree() )
+//             || ( isStopped() => currentPhase(e) == PhaseOne() || currentPhase(e) == PhaseTwo() || currentPhase(e) == PhaseThree() ) 
+//     { preserved with (env e2) { require e.block.timestamp == e2.block.timestamp;
+//                                 safeAssumptions(e2); } }
 
 
 // STATUS - in progress 
@@ -315,7 +317,7 @@ invariant cl_bal_this_zero()
 // -rule_sanity: https://vaas-stg.certora.com/output/3106/c3e711b31a414808a3b3/?anonymousKey=f66a6ec74c47d93a1b72a66ce79cdee30ab9b7ff
 // pair and getPair() should return the same adderess
 invariant pairAndGetPairCorrelation(env e)
-    closed() => pair() == Factory.getPair(e, WAVAX(), token())
+    closed() => pair() ==  factoryGetPairWT() // Factory.getPair(e, WAVAX(), token())
     { preserved with (env e2) { safeAssumptions(e2); } }
 
 

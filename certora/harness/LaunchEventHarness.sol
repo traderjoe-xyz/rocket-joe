@@ -103,6 +103,16 @@ contract LaunchEventHarness is LaunchEvent {
     function _safeTransferAVAX(address _to, uint256 _value) override internal {
         IReceiver(_to).receiveETH{value: _value}();
     }    
+
+    function factoryGetPairWT() public returns (address){
+        return factory.getPair(address(WAVAX), address(token));
+    }
+
+    function factoryGetPairTW() public returns (address){
+        return factory.getPair(address(token), address(WAVAX));
+    }
+
+
 }
 
 interface IReceiver {
