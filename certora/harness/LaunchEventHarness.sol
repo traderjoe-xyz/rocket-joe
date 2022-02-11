@@ -69,10 +69,6 @@ contract LaunchEventHarness is LaunchEvent {
         return pair.balanceOf(address(this));
     }
 
-    function getPairTotalSupplyOfThis() public returns (uint256) {
-        return pair.totalSupply();
-    }
-
     function getPairBalance(address user) public returns (uint256) {
         return pair.balanceOf(user);
     }
@@ -95,6 +91,12 @@ contract LaunchEventHarness is LaunchEvent {
         getUserPairBalance[_user] = super.pairBalance(_user);
         return getUserPairBalance[_user];
     }  
+
+
+    // below are two equal methods but respresented differently
+     function getPairTotalSupplyOfThis() public returns (uint256) {
+        return pair.totalSupply();
+    }
 
     function getPairTotalSupply() public returns (uint256) {
         return IJoePair(IJoeFactory(factory).getPair(address(WAVAX), address(token))).totalSupply();

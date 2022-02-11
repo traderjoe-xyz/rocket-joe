@@ -68,6 +68,7 @@ rule hl_depositAdditivity(env e, env e2){
     assert userOneBalanceAfter == userTwoBalanceAfter, "deposit is not additive";
 }
 
+
 // STATUS - verified
 // - additivity of withdraw:  withdraw(a); withdraw(b) has same effect as withdraw(a+b)
 rule hl_withdrawAdditivity(env e){

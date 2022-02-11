@@ -93,25 +93,6 @@ definition twoDays()    returns uint256 = 2 * oneDay();
 definition sevenDays()    returns uint256 = 7 * oneDay();
 
 
-////////////////////////////////////////////////////////////////////////////
-//                         Functions                                      //
-////////////////////////////////////////////////////////////////////////////
-
-
-function helperFunctionsForWithdrawLiquidity(method f, env e) {
-	if (f.selector == withdrawLiquidity().selector) {
-		withdrawLiquidity(e);
-	} else {
-        calldataarg args;
-        f(e, args);
-    }
-}
-
-
-////////////////////////////////////////////////////////////////////////////
-//                         Definitions                                    //
-////////////////////////////////////////////////////////////////////////////
-
 
 definition open() returns bool =
     pair() == 0 && !stopped();
@@ -143,6 +124,22 @@ invariant testState(env e)
 
 // TODO (maybe): only in one state
 
+
+////////////////////////////////////////////////////////////////////////////
+//                         Functions                                      //
+////////////////////////////////////////////////////////////////////////////
+
+
+function helperFunctionsForWithdrawLiquidity(method f, env e) {
+	if (f.selector == withdrawLiquidity().selector) {
+		withdrawLiquidity(e);
+	} else {
+        calldataarg args;
+        f(e, args);
+    }
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 //                           Ghosts                                       //
 ////////////////////////////////////////////////////////////////////////////
@@ -165,5 +162,44 @@ ghost uint256 unwithdrawn_users_lp_tokens{
 }
 
 hook Sstore getUserPairBalance[KEY address user] uint256 userPairBalance (uint256 old_userPairBalance) STORAGE {
-	havoc unwithdrawn_users_lp_tokens assuming unwithdrawn_users_lp_tokens@new == unwithdrawn_users_lp_tokens@old - old_userPairBalance + userPairBalance;
+	havoc unwithdrawn_users_lp_tokens assuming unwithdrawn_users_lp_tokens@new == unwithdrawn_users_lp_tokens@old - userPairBalance + old_userPairBalance;
 }
+
+
+/*
+ghost totalBalance ...
+
+
+hook ...users[user].hasWithdrawn {
+    totalBalance -= users[user].balance;
+}
+
+hook ...users[user].balance {
+    if !users[user].hasWithdrawn
+        totalBalance -= users[user].balance;
+}
+*/
+
+// env e; env e2; env e3; env e4;
+// 
+// require e.block.timestamp == e2.block.timestamp;
+// require e.block.timestamp > e3.block.timestamp;
+// require e3.block.timestamp < e4.block.timestamp;
+// 
+// require e.msg.sender != e2.msg.sender;
+// require e.msg.sender == e3.msg.sender;
+// require e2.msg.sender == e4.msg.sender;
+// 
+// require e.msg.value < e2.msg.value;
+// 
+// uint256 tokenBalance1 = getUserBalance(e.msg.sender);
+// uint256 tokenBalance2 = getUserBalance(e2.msg.sender);
+// require tokenBalance1 == tokenBalance2;
+// 
+// depositAVAX(e);
+// depositAVAX(e2);
+// 
+// createPair(e);
+// 
+// pairBalance(e3);
+// pairBalance(e4);

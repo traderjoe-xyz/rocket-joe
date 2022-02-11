@@ -26,4 +26,4 @@ certoraRun \
     --send_only \
     --rule "$1" \
     --rule_sanity \
-    --msg "$1"
+    --msg "$1 with sanity"

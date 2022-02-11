@@ -9,19 +9,37 @@ use invariant oneStateOnly
 function addressDiversity(env e) {
     require token() != currentContract;
     require token() != Weth;
+
     require Weth != currentContract;
+
     require e.msg.sender != currentContract;
     require e.msg.sender != Weth;
     require e.msg.sender != token();
+
     require pair() != token();
     require pair() != Weth;
     require pair() != currentContract;
     require pair() != e.msg.sender;
+
     require rJoe() != Weth;
     require rJoe() != token();
     require rJoe() != pair();
     require rJoe() != e.msg.sender;
     require rJoe() != currentContract;
+
+    require factoryGetPairWT() != currentContract;
+    require factoryGetPairWT() != Weth;
+    require factoryGetPairWT() != token();
+    require factoryGetPairWT() != e.msg.sender;
+    require factoryGetPairWT() != pair();
+    require factoryGetPairWT() != rJoe();
+
+    require factoryGetPairTW() != currentContract;
+    require factoryGetPairTW() != Weth;
+    require factoryGetPairTW() != token();
+    require factoryGetPairTW() != e.msg.sender;
+    require factoryGetPairTW() != pair();
+    require factoryGetPairTW() != rJoe();
 }
 
 function safeAssumptions(env e) {
@@ -61,6 +79,7 @@ function safeAssumptions(env e) {
     requireInvariant opPairBalanceIsZero();
     requireInvariant opPairAndTotalSupplyCorrelation();
     
+    // requireInvariant cl_pairTotalZero();
     requireInvariant cl_avax_alloc_sum_user_balances();
     requireInvariant cl_avaxReservCheck();
     // requireInvariant cl_PhaseCheck(e);
@@ -237,42 +256,50 @@ invariant opPairAndTotalSupplyCorrelation()
 ////////////////////////////////////////////
 
 
+// STATUS - in progress
+invariant cl_pairTotalZero()
+    closed() => getPairTotalSupplyOfThis() != 0 && getPairTotalSupply() == getPairTotalSupplyOfThis()
+    { preserved with (env e2) { safeAssumptions(e2); } }
 
-// STATUS - verified with not verified invarinat below
-// run without preserved block: 
-// run with preserved block: https://vaas-stg.certora.com/output/3106/9d59b11fd419a4c1de61/?anonymousKey=bfa92a50ea74047c15fb9f6d72c4f83ab2d366c5
+
+// STATUS - verified
 //  - avaxAllocated is Σ getUA[user].balance (avaxReserve() is added as a fix to violations in depost and withdraw)
 invariant cl_avax_alloc_sum_user_balances()
     closed() => avaxAllocated() + avaxReserve() == sum_of_users_balances()
     { preserved with (env e2) { safeAssumptions(e2); } }
 
 
-// violation in depositAVAX(): https://vaas-stg.certora.com/output/3106/556ff34c4400705cf2cc/?anonymousKey=32fb2e318b921c45daa6c7012c63363f0a6cf24e
-// idk how to fix it except restrict phase
+// STATUS - in progress (fail on deposit)
+// https://vaas-stg.certora.com/output/3106/9c2fe56024490f8cae96/?anonymousKey=5708f2a562e6a156609242b832db7159e155f557
 invariant cl_avaxReservCheck()
     closed() => avaxReserve() == 0
     { preserved with (env e2) { safeAssumptions(e2); } }
 
 
 // invariant PhaseCheck(env e)
-//     ( open() => currentPhase(e) == PhaseOne() || currentPhase(e) == PhaseTwo() || currentPhase(e) == PhaseThree() ) 
-//             || ( closed() => currentPhase(e) == PhaseThree() )
-//             || ( isStopped() => currentPhase(e) == PhaseOne() || currentPhase(e) == PhaseTwo() || currentPhase(e) == PhaseThree() ) 
+//     ( open() => notstate currentPhase(e) == PhaseOne() || currentPhase(e) == PhaseTwo() || currentPhase(e) == PhaseThree() ) 
+//             && ( closed() => currentPhase(e) == PhaseThree() )
+//             && ( isStopped() => currentPhase(e) == PhaseOne() || currentPhase(e) == PhaseTwo() || currentPhase(e) == PhaseThree() ) 
 //     { preserved with (env e2) { require e.block.timestamp == e2.block.timestamp;
 //                                 safeAssumptions(e2); } }
 
 
 // STATUS - in progress 
-// run without preserved block: 
-// run with preserved block: 
+// assume issue in createPair() because of dispatcher: https://vaas-stg.certora.com/output/3106/daf1e9e56688d547ca48/?anonymousKey=2ce96e28028d5b67b424820cbd4d79be88ab835d
+// tool doesn't know what to do with WAVAX.deposit{value: avaxAllocated}();
 invariant cl_AvaxCorrelation(env e)
     closed() => (getBalanceOfThis() == avaxReserve() && avaxReserve() == 0)
-    { preserved with (env e2) { safeAssumptions(e2); } }
+    { 
+        preserved with (env e2) { 
+            safeAssumptions(e2); 
+            require e2.msg.value == e.msg.value;
+            require e2.msg.value == avaxReserve();
+        } 
+    }
 
 
 // STATUS - in progress
-// run without preserved block: 
-// run with preserved block: 
+// wrong ghost: https://vaas-stg.certora.com/output/3106/b84a03505e212d3ae954/?anonymousKey=5f802070bac9c44703cf0255acadc27ea379edc4
 // - pair balance of this = sum of unwithdrawn lp tokens over all users (half to issuers, remainder to users)
 // up to roundoff
 invariant cl_pair_bal_eq_lp_sum()
@@ -280,10 +307,30 @@ invariant cl_pair_bal_eq_lp_sum()
     { preserved with (env e2) { safeAssumptions(e2); } }
 
 
-//  - token balance of this = sum of unwithdrawn reserve tokens (as above)  // enough incentives to pay everyone 
-invariant cl_token_bal_eq_res_token()
-    closed() => getTokenBalanceOfThis() == tokenIncentivesBalance()
+// STATUS - in progress
+// need it to fix invariant below (withdrawIncentives()) - not sure
+invariant cl_issuerIncentivesAndGetIncCorrelation(env e)
+    closed() => getIncentives(e, issuer()) == tokenIncentiveIssuerRefund()
     { preserved with (env e2) { safeAssumptions(e2); } }
+
+
+// STATUS - in progress
+//  - token balance of this = sum of unwithdrawn reserve tokens (as above)  // enough incentives to pay everyone 
+// dispatcher works incorrectly for withdrawLiquidity()
+// withdrawIncentives() - idk if tokenIncentiveIssuerRefund should be equal tokenReserve after create pair
+// what happens with token reserv in withdrawIncentives(): https://vaas-stg.certora.com/output/3106/2f75f745232805801f15/?anonymousKey=68f2356c24e5fc9846c6b7100518a1efff79539e
+// older: https://vaas-stg.certora.com/output/3106/d6418346bfd3d8d224da/?anonymousKey=d6fde4a0938978a9fe521ee48bb0c87cb198906e#cl_token_bal_eq_res_token_preservecreatePair()CallTrace
+invariant cl_token_bal_eq_res_token()
+    closed() => getTokenBalanceOfThis() == tokenIncentivesBalance() + tokenReserve() // tokenReserve beceause of if in createPair()
+    { preserved with (env e2) { safeAssumptions(e2); } }
+
+
+
+
+
+
+
+
 
 
 // STATUS - in progress
@@ -313,7 +360,7 @@ invariant cl_bal_this_zero()
     { preserved with (env e2) { safeAssumptions(e2); } }
 
 
-// STATUS - verified (with harness)
+// STATUS - verified
 // -rule_sanity: https://vaas-stg.certora.com/output/3106/c3e711b31a414808a3b3/?anonymousKey=f66a6ec74c47d93a1b72a66ce79cdee30ab9b7ff
 // pair and getPair() should return the same adderess
 invariant pairAndGetPairCorrelation(env e)
