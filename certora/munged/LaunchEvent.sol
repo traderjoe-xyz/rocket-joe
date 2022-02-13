@@ -334,7 +334,7 @@ contract LaunchEvent {
         external
         payable
         isStopped(false)
-        //atPhase(Phase.PhaseOne)
+        atPhase(Phase.PhaseOne)
     {
         require(msg.sender != issuer, "LaunchEvent: issuer cannot participate");
         require(
