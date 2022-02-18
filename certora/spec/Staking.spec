@@ -103,6 +103,7 @@ invariant not_initializing()
 
 
 
+<<<<<<< HEAD
 //joe.balanceOf(RJStaking)  ≥ Σ userInfo[user].amount
 // invariant staking_joe_bal_sums_user_balance(env e) // passes
 //    joe.balanceOf(e, currentContract) >= sum_user_balance()
@@ -116,6 +117,13 @@ invariant not_initializing()
 // { preserved {
 //     requireInvariant user_balances_less_than_totalJoeStaked();
 // }}
+=======
+invariant totalJoeStaked_sums_user_balance() // passes
+    totalJoeStaked() == sum_user_balance()
+{ preserved {
+    requireInvariant user_balances_less_than_totalJoeStaked();
+}}
+>>>>>>> 3418089 (staking mostly passing, added some TODO's)
 
 invariant balanceOf_Joe_eq_totalJoeStaked(env e) // passes
    joe.balanceOf(e, currentContract) >= totalJoeStaked()
@@ -184,9 +192,14 @@ rule pending_reward_decreased_only_user(method f) filtered { f -> (f.selector !=
 
 //  - If I am staked, I get some RJoe
 rule staking_non_trivial_rJoe() {
+<<<<<<< HEAD
     // requireInvariant totalJoeStaked_sums_user_balance();
     requireInvariant is_initialized();
     requireInvariant not_initializing();
+=======
+    requireInvariant totalJoeStaked_sums_user_balance();
+    requireInvariant is_initialized();
+>>>>>>> 3418089 (staking mostly passing, added some TODO's)
     require PRECISION() > 0;
     require rJoePerSec() > 0 && rJoePerSec() < 1000000; // realistic range to help the tool run this rule faster
 
@@ -200,7 +213,11 @@ rule staking_non_trivial_rJoe() {
     require userRewardDebt(e0.msg.sender) < max_uint256;
     uint dt = e1.block.timestamp - lastRewardTimestamp(); // store this as a variable for more readable cex
     uint256 rewards = pendingRJoe(e1, e0.msg.sender);
+<<<<<<< HEAD
     assert exists uint256 t. (t == dt) => rewards > 0,  "trivial rJoe";
+=======
+    assert exists uint256 t. t == dt => rewards > 0,  "trivial rJoe";
+>>>>>>> 3418089 (staking mostly passing, added some TODO's)
 
     // doing the min interval calculations would likely be a better rule but causes timeouts, left for future consideration
     // uint256 min_interval = totalJoeStaked() / rJoePerSec();
@@ -252,6 +269,7 @@ rule longer_stake_greater_return() { // passes
 
 
 //  - No front-running for deposit:   `f(); deposit(...)` has same result as `deposit()`)
+// measure user's erc20 balance too? TODO
 rule deposit_no_frontrunning(method f) // passes
 {
     // setup
@@ -282,6 +300,7 @@ rule deposit_no_frontrunning(method f) // passes
     assert user_bal_pre_clean - user_bal_post_clean == user_bal_pre_f - user_bal_post_f, "balance not received by user";
 }
 //  - No front-running for withdraw   `f(); withdraw(...)` has same result as `withdraw()`)
+// change to support case where balance is less than amount? // TODO
 rule withdraw_no_frontrunning(method f) filtered { f-> (f.selector != emergencyWithdraw().selector)}
 {
     // setup
