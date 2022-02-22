@@ -1,31 +1,33 @@
 import "./LEValidStates.spec"
 
 use invariant alwaysInitialized
-use invariant statesComplete
+use invariant oneStateOnly
 use invariant factoryGetPairCorrelationCurrentVals
 use invariant al_issuer_allocation_zero
+use invariant al_balance_less_than_allocation
+use invariant al_userAllocation_less_than_maxAllocation
 use invariant initIssuerTimelockNonZero
 use invariant initUserTimelockSeven
-use invariant initAuctionStart
 use invariant initTimelocksCorrelation
-use invariant init_IncentivesCorrelation
-use invariant init_TokenBalanceCheck
+use invariant op_incentivesCorrelation
+use invariant op_user_not_withdrawn_pair
+use invariant op_user_not_withdrawn_incentives
 use invariant opWavaxBalanceAndSumBalances
-use invariant opTokenBalanceCheck
-use invariant op_IncentivesCorrelation
 use invariant op_avax_alloc_zero
 use invariant op_lp_supply_zero
 use invariant opPairBalanceIsZero
-use invariant opPairAndTotalSupplyCorrelation
+// use invariant opPairAndTotalSupplyCorrelation
+// use invariant cl_pairTotalZero
 use invariant cl_avax_alloc_sum_user_balances
 use invariant cl_avaxReservCheck
-use invariant cl_PhaseCheck
-use invariant cl_AvaxCorrelation
-use invariant cl_pair_bal_eq_lp_sum
-use invariant cl_token_bal_eq_res_token
-use invariant cl_incentivesCorrelation
-use invariant cl_bal_this_zero
-use invariant pairAndGetPairCorrelation
+// use invariant cl_PhaseCheck
+// use invariant cl_AvaxCorrelation
+// use invariant cl_pair_bal_eq_lp_sum
+// use invariant cl_incentivesCorrelation
+// use invariant cl_nonzero_user_pair_bal
+// use invariant cl_bal_this_zero
+use invariant cl_pairAndGetPairCorrelation
+
 
 // ALWAYS
 

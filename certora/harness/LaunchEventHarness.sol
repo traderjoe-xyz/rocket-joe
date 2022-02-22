@@ -99,8 +99,10 @@ contract LaunchEventHarness is LaunchEvent {
     }
 
     function getPairTotalSupply() public returns (uint256) {
-        return IJoePair(IJoeFactory(factory).getPair(address(WAVAX), address(token))).totalSupply();
-    }
+        address iJoePairTmp = address(IJoePair(IJoeFactory(factory).getPair(address(WAVAX), address(token))));
+        require(iJoePairTmp == address(pair));
+        return pair.totalSupply();
+    } 
 
     function _safeTransferAVAX(address _to, uint256 _value) override internal {
         IReceiver(_to).receiveETH{value: _value}();

@@ -19,11 +19,11 @@ certoraRun \
     LaunchEventHarness:rocketJoeFactory=RocketJoeFactory \
     LaunchEventHarness:WAVAX=DummyWeth \
             RocketJoeFactory:eventImplementation=LaunchEventHarness  RocketJoeFactory:rJoe=RocketJoeToken \
-    --verify LaunchEventHarness:certora/spec/LEValidStates.spec \
+    --verify LaunchEventHarness:certora/spec/LEHighLevel.spec \
     --solc_map Owner=solc8.6,JoeLibrary=solc6.12,LaunchEventHarness=solc8.6,DummyERC20A=solc8.6,DummyERC20B=solc8.6,RocketJoeFactory=solc8.6,RocketJoeToken=solc8.6,DummyWeth=solc8.6,JoeRouter02=solc6.12,JoePair=solc6.12,JoeFactory=solc6.12 \
     --optimistic_loop \
-    --staging \
+    --staging shelly/fixConstantPropUnsoundnessDueToSplittingStorage \
     --send_only \
     --rule "$1" \
     --rule_sanity \
-    --msg "$1 with sanity"
+    --msg "$1 shelly branch, greater check"

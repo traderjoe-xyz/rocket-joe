@@ -1,54 +1,46 @@
-import "./LEVarTran.spec"
+import "./LEValidStates.spec"
 
-// STATUS - in progress (check correctness, how to write a ghost)
-// - pair balance of this == pair balance of issuer + Σ pair balance of user  == pair.totalSupply
-invariant hl_EqualityOfPairs()
-    getPairBalanceOfThis() == getPairBalance(issuer()) + sumOfPairBalances()
+use invariant alwaysInitialized
+use invariant oneStateOnly
+use invariant factoryGetPairCorrelationCurrentVals
+use invariant al_issuerAllocationZero
+use invariant al_balanceLessThanAllocation
+use invariant al_userAllocationLessThanMaxAllocation
+use invariant al_issuerTimelockNonZero
+use invariant al_userTimelockSeven
+use invariant al_timelocksCorrelation
+use invariant op_incentivesCorrelation
+use invariant op_userNotWithdrawnPair
+use invariant op_userNotWithdrawnIncentives
+use invariant op_wavaxBalanceAndSumBalances
+use invariant op_avaxAllocZero
+use invariant op_lpSupplyZero
+use invariant op_PairBalanceIsZero
+use invariant op_AvaxCorrelation
+use invariant op_PairAndTotalSupplyCorrelation
+use invariant op_tokenCorrelation
+use invariant cl_avaxAllocSumUserBalances
+use invariant cl_avaxReservCheck
+use invariant cl_incentivesCorrelation
+use invariant cl_pairAndGetPairCorrelation
+use invariant os_tokenCorrelation
+use invariant os_avaxAllocSumUserBalances
 
 
-// STATUS - in progress
-// run without preserved block: https://vaas-stg.certora.com/output/3106/1f91c36ac4e4424e389f/?anonymousKey=c30c7ee9fd1cb8fe7198145cf50a5e0959f623e4
-// run with preserved block: 
-invariant hl_EqualityOfPairAndTotalSupply()
-    getPairBalanceOfThis() == getPairTotalSupplyOfThis()
 
-
-// STATUS - in progress
-// run without preserved block: https://vaas-stg.certora.com/output/3106/23f2a4a600d0a020f0cb/?anonymousKey=d1d4fef9e201e201fd039a0dd0ddc1ea5306c9d7
-// run with preserved block: https://vaas-stg.certora.com/output/3106/9a888396ade18f00c01a/?anonymousKey=a7cdb01cf4b007d42ee8c2eb885757bfeebef6e6
-invariant hl_TotalSupplyEquality()
-    getPairTotalSupply() == getPairTotalSupplyOfThis()
-    {
-        preserved with (env e2){
-            requireInvariant factoryGetPairCorrelationCurrentVals(e2);
-            // requireInvariant factoryGetPairCorrelationNewVals(e2);
-            requireInvariant pairAndGetPairCorrelation(e2);
-            require Weth != currentContract;
-        }
-    }
-
-
-// STATUS - in progress (check correctness)
-// run without preserved block: https://vaas-stg.certora.com/output/3106/97ef875729677fd13d3e/?anonymousKey=2de9f81c045b5e5905703a7e1858051c83398e3c
-// run with preserved block: https://vaas-stg.certora.com/output/3106/fd13b3facc56fe203493/?anonymousKey=215dd5bd8dea94c48915359907e365dafbeee0c1
+// STATUS - verified
 // - token balance of this == tokenReserve + tokenIncentivesBalance
-// don't see if loop for withdrawLiquidity()
-// strange call trace for emergencyWithdraw()
 invariant hl_EqualityOfToken(env e) 
     getTokenBalanceOfThis() == tokenReserve() + tokenIncentivesBalance()
     {
         preserved with (env e2){
-            require token() == SymbERC20A || token() == SymbERC20B;     // depositAVAX() and many more          // token != instead of ==
-            require e2.msg.sender != currentContract;                   // withdrawIncentives()
-            require e.msg.sender == e2.msg.sender;       
-            // require e2.msg.sender == issuer();               
+            safeAssumptions(e2);
+            require e.msg.sender == e2.msg.sender;              
         }
     }
 
 
-// STATUS - in progress
-// run of clear rule: https://vaas-stg.certora.com/output/3106/f4bc7ac13d8eb2bd3a0a/?anonymousKey=8f7ad6b696892571f8fd47f715a541e782849805
-// run with requires:
+// STATUS - verified
 // - additivity of deposit: deposit(a); deposit(b) has same effect as deposit(a+b)
 rule hl_depositAdditivity(env e, env e2){
     require e.msg.value > 0;
@@ -76,8 +68,6 @@ rule hl_withdrawAdditivity(env e){
     require single > 0 && doubleOne > 0 && doubleTwo > 0;
     require single == doubleOne + doubleTwo;
 
-    uint256 userBalanceAtStart = getUserBalance(e.msg.sender);
-
     storage initialStorage = lastStorage;
     withdrawAVAX(e, single);
 
@@ -92,88 +82,62 @@ rule hl_withdrawAdditivity(env e){
 }
 
 
-// STATUS - in progress
-// values are set in a way that pairBalance() returns 0: https://vaas-stg.certora.com/output/3106/8d248960ef13f105b235/?anonymousKey=8a2c40d9e5369140c4fae50b8a9705cef9b5bde4
-// in withdrawIncentives() pair and token are mixed up by dispatcher (instead of token, pair transfer is used) that's why pairBalance was increased
-// why was token balance increased too?
-// run: https://vaas-stg.certora.com/output/3106/c1f832414d46105ad050/?anonymousKey=76fee1c34e2a9c4f7192143d89e967335e2f73c5
-// maybe avaxAllocated() should be set correctly
-// run: https://vaas-stg.certora.com/output/3106/0f95076ff69d2b551578/?anonymousKey=212ef1e0e250849feac6ffb6421768c745899ace
-// maybe incentives too
+// STATUS - in progress.
+// idk what sanity fails: https://vaas-stg.certora.com/output/3106/6b41114d2a39a3f1fc9a/?anonymousKey=37995b9ab6de6251fe5ee102578b7fabeb23ae56
 // - if I deposit more AVAX, I receive more LP and launch tokens
-
-// define formula for depositin in order to get more
-rule hl_moreDepositMoreGet(method f, env e, env e2){
+rule hl_moreDepositMoreGet(method f, env e, env e2, env e3){
     require e.msg.sender != e2.msg.sender;
+    require e.msg.sender != e3.msg.sender;
+    require e2.msg.sender != e3.msg.sender;
     require e.msg.sender != issuer();
     require e2.msg.sender != issuer();
     require e.msg.sender != currentContract;
     require e2.msg.sender != currentContract;
-    require lpSupply() >= avaxAllocated(); // assumption, need to double check
-    require token() == SymbERC20A || token() == SymbERC20B;
+    require e3.msg.sender != currentContract;
+    require e.msg.value > e2.msg.value;
 
-    uint256 balanceOfuser1 = getUserBalance(e.msg.sender);
-    uint256 balanceOfuser2 = getUserBalance(e2.msg.sender);
-    require balanceOfuser2 > balanceOfuser1;
-    require avaxAllocated() >= balanceOfuser2 + balanceOfuser1;
+    require open();
 
-    uint256 pairOfuser1Before = getPairBalance(e.msg.sender);
-    uint256 tokenOfuser1Before = getTokenBalance(e.msg.sender);
+    depositAVAX(e);
+    depositAVAX(e2);
 
-    uint256 pairOfuser2Before = getPairBalance(e2.msg.sender);
-    uint256 tokenOfuser2Before = getTokenBalance(e2.msg.sender);
+    createPair(e3);
 
-    require pairOfuser1Before == pairOfuser2Before;
-    require tokenOfuser1Before == tokenOfuser2Before;
+    uint256 pairBalanceOne = pairBalance(e, e.msg.sender);
+    uint256 pairBalanceTwo = pairBalance(e2, e2.msg.sender);
 
-    withdrawLiquidity(e);
-    withdrawIncentives(e);
-    // check how much can I withdrawLiquidity or how much I withdrawn
-    uint256 pairOfuser1After = getPairBalance(e.msg.sender);
-    // check how much can I withdrawIncentives or how much I withdrawn
-    uint256 tokenOfuser1After = getTokenBalance(e.msg.sender);
-
-    withdrawLiquidity(e2);
-    withdrawIncentives(e2);
-    // check how much can I withdrawLiquidity or how much I withdrawn
-    uint256 pairOfuser2After = getPairBalance(e2.msg.sender);
-    // check how much can I withdrawIncentives or how much I withdrawn
-    uint256 tokenOfuser2After = getTokenBalance(e2.msg.sender);
-
-    //assert
-    assert pairOfuser1After < pairOfuser2After && tokenOfuser1After < tokenOfuser2After, "more deposit doesn't guarantee more rewards";
-}
-
-
-// STATUS - in progress
-// need to play with setup: https://vaas-stg.certora.com/output/3106/7dbf520e634a88f8f53d/?anonymousKey=f1f9b5601b6ba73425a4c3389ef0408e658ba972
-// - if I withdraw AVAX later, I have a larger penalty
-rule hl_withdrawLateMorePenalty(method f, env e, env e2){
-    // define phase 1, the second half
-
-    require auctionStart() < e.block.timestamp;
-    require e.block.timestamp < e2.block.timestamp;
-    require e.block.timestamp > oneDay() && e.block.timestamp < twoDays();
-    require e2.block.timestamp < twoDays();
-
-    require e.msg.sender == e2.msg.sender;
-    require e.msg.sender != issuer();
-    require e.msg.sender != currentContract;
-
-    uint256 earlyPenalty = getPenalty(e);
-    uint256 latePenalty = getPenalty(e2);
-
-    assert earlyPenalty < latePenalty, "penalty isn't greater";
+    uint256 incentivesBalanceOne = getIncentives(e, e.msg.sender);
+    uint256 incentivesBalanceTwo = getIncentives(e2, e2.msg.sender);
+    
+    assert pairBalanceOne > pairBalanceTwo, "more deposit worng";
+    assert incentivesBalanceOne > incentivesBalanceTwo, "more incentives worng";
 }
 
 
 // STATUS - verified
-// run of clear rule: 
-// run with requires: 
-// do I need to check for non-reverting? 
+// - if I withdraw AVAX later, I eventually have a greater penalty
+rule hl_withdrawLateMorePenalty(method f, env e, env e2){
+    require auctionStart() < e.block.timestamp;
+    require e.block.timestamp < e2.block.timestamp;
+    require phaseOneNoFeeDuration() == oneDay();
+    require phaseOneDuration() == twoDays();
+    require e.block.timestamp > auctionStart() + phaseOneNoFeeDuration();
+    require e.block.timestamp < auctionStart() + phaseOneDuration();
+    require e2.block.timestamp < auctionStart() + phaseOneDuration();
+
+    uint256 earlyPenalty = getPenalty(e);
+    uint256 latePenalty = getPenalty(e2);
+
+    assert exists uint256 dt. e2.block.timestamp - e.block.timestamp > dt => latePenalty > earlyPenalty;
+}
+
+
+// STATUS - in progress
+// idk what sanity fails: https://vaas-stg.certora.com/output/3106/7bba16a351e488cf57cf/?anonymousKey=392ace2282e60640170b105c24df334921c6c87d
 // - deposit and withdraw are two-sided inverses on the state (if successful)
 rule hl_twoSideInverse(env e){
     uint256 amount;
+    require getUserBalance(e.msg.sender) > amount;
 
     storage initialStorage = lastStorage;
 
@@ -189,9 +153,11 @@ rule hl_twoSideInverse(env e){
 }
 
 
-// STATUS - verified. --rule_sanity fails on 2 methods: https://vaas-stg.certora.com/output/3106/aa1385e04d4954850309/?anonymousKey=12d1ecc17e5ad4ad9ca4dd2803136d0897ff898e 
+
+// STATUS - verified 
 // - no front-running for deposit: effect of deposit unchanged by an intervening operation by another user
 rule hl_noDepositFrontRun(method f, env e, env e2){
+    require open();
     require e.msg.sender != e2.msg.sender;
 
     calldataarg args;
@@ -211,9 +177,11 @@ rule hl_noDepositFrontRun(method f, env e, env e2){
 }
 
 
-// STATUS - verified (assume the same as above)
+// STATUS - in progress.
+// strange createPair() and withdrawAVAX() results: https://vaas-stg.certora.com/output/3106/625901b4d593342db109/?anonymousKey=9fce1aad25acd59a048e2ddd75c2438cf6ba1262
 // - no front-running for withdraw
 rule hl_noWithdrawFrontRun(method f, env e, env e2){
+    require open();
     require e.msg.sender != e2.msg.sender;
     uint256 amount;
 
@@ -234,13 +202,16 @@ rule hl_noWithdrawFrontRun(method f, env e, env e2){
 }
 
 
-// STATUS - in progress. 
-// Need phases. run: https://vaas-stg.certora.com/output/3106/b5504d1e06207a552948/?anonymousKey=465bcaf38ba6e5b1d88a97b655413542c853d014
+
+// STATUS - in progress
+// seems like ok but I'm not sure: https://vaas-stg.certora.com/output/3106/5c662248f8d37db74a82/?anonymousKey=c618284a1190b9ea84f008bef2b26770df054fef
 // - no front-running for withdrawLiquidity
 rule hl_noWithdrawLiquidityFrontRun(method f, env e, env e2){
     require e.msg.sender != e2.msg.sender;
     require e.msg.sender != currentContract;
     require e2.msg.sender != currentContract;
+    require closed();
+    safeAssumptions(e);
 
     calldataarg args;
 
@@ -261,17 +232,46 @@ rule hl_noWithdrawLiquidityFrontRun(method f, env e, env e2){
 }
 
 
-// - createPair can be called at least once (DoS check)
-// no front running for create pair
-rule hl_createPairAtLeastOnce(env e){
+// STATUS - verified 
+// if stopped then only allowEmergencyWithdraw was called
+rule hl_stoppedOnlySwitch(method f, env e){
     require !stopped();
 
-    // storage
+    calldataarg args;
+    f(e, args);
 
-    createPair(e);
+    bool isStopped = stopped();
 
-    // storage
+    assert isStopped => f.selector == allowEmergencyWithdraw().selector, "stopped was switch by wrong method";
+}
 
 
-    assert !lastReverted, "createPair DoS";
+// STATUS - verified 
+// allowEmergencyWithdraw only owner call
+rule hl_onlyOwnerSwitch(method f, env e){
+    require !stopped();
+
+    calldataarg args;
+    allowEmergencyWithdraw(e);
+
+    bool isStopped = stopped();
+
+    assert isStopped => e.msg.sender == getOwner(), "stopped was switch by wrong method";
+}
+
+
+// STATUS - in progress
+// i didn't get a violation: https://vaas-stg.certora.com/output/3106/a422295b5afe610235da/?anonymousKey=724c07c3125626b6659c81fb68f69676260bb6fc
+// if stopped, appropriate functions will revert
+rule hl_whatShouldRevert(method f, env e){
+    require stopped();
+
+    calldataarg args;
+    f@withrevert(e, args);
+
+    assert(lastReverted => f.selector == depositAVAX().selector
+                || f.selector == withdrawAVAX(uint256).selector
+                || f.selector == createPair().selector
+                || f.selector == withdrawLiquidity().selector, 
+                "function was not reverted");
 }

@@ -4,6 +4,8 @@ using JoeFactory as Factory
 using DummyERC20A as SymbERC20A
 using DummyERC20B as SymbERC20B
 using DummyWeth as Weth
+using JoePair as JP
+using RocketJoeToken as RJT
 
 ////////////////////////////////////////////////////////////////////////////
 //                      Methods                                           //
@@ -26,6 +28,7 @@ methods {
     getRJoeAmount(uint256) returns (uint256)
     pairBalance(address) returns (uint256)
     _atPhase(uint8)
+    getIncentives(address) returns (uint256)
 
     // generated getters
     issuer() returns(address) envfree
@@ -51,6 +54,9 @@ methods {
     avaxReserve() returns(uint256) envfree
     tokenAllocated() returns(uint256) envfree
     rJoe() returns(address) envfree
+    phaseOneDuration() returns(uint256) envfree
+    phaseOneNoFeeDuration() returns(uint256) envfree
+    phaseTwoDuration() returns(uint256) envfree
 
     // harness functions
     getUserAllocation(address) returns(uint256) envfree
@@ -100,29 +106,18 @@ definition open() returns bool =
 definition closed() returns bool =
     pair() != 0 && !stopped();
 
-definition isStopped() returns bool =
-    stopped();
+definition openStopped() returns bool =
+    pair() == 0 && stopped();
+
+definition closedStopped() returns bool =
+    pair() != 0 && stopped();
 
 
 invariant oneStateOnly()
-    open() && !closed() && !isStopped() ||
-    !open() && closed() && !isStopped() ||
-    !open() && !closed() && isStopped()
-
-
-/*
-invariant testState(env e)
-    open() && !closed() && !isStopped() && currentPhase(e) == PhaseOne() ||
-    open() && !closed() && !isStopped() && currentPhase(e) == PhaseTwo() ||
-    open() && !closed() && !isStopped() && currentPhase(e) == PhaseThree() ||
-    !open() && closed() && !isStopped() && currentPhase(e) == PhaseThree() ||
-    !open() && !closed() && isStopped() && currentPhase(e) == PhaseOne() ||
-    !open() && !closed() && isStopped() && currentPhase(e) == PhaseTwo() ||
-    !open() && !closed() && isStopped() && currentPhase(e) == PhaseThree()
-*/
-
-
-// TODO (maybe): only in one state
+    open() && !closed() && !openStopped() && !closedStopped() ||
+    !open() && closed() && !openStopped() && !closedStopped() ||
+    !open() && !closed() && openStopped() && !closedStopped() ||
+    !open() && !closed() && !openStopped() && closedStopped()
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -131,6 +126,16 @@ invariant testState(env e)
 
 
 function helperFunctionsForWithdrawLiquidity(method f, env e) {
+	if (f.selector == withdrawLiquidity().selector) {
+		withdrawLiquidity(e);
+	} else {
+        calldataarg args;
+        f(e, args);
+    }
+}
+
+
+function revertFunctions(method f, env e) {
 	if (f.selector == withdrawLiquidity().selector) {
 		withdrawLiquidity(e);
 	} else {
@@ -154,9 +159,6 @@ hook Sstore getUserInfo[KEY address user].balance uint256 userBalance (uint256 o
 }
 
 
-// ghost unwithdrawn_users_lp_tokens() returns uint256 {
-//     init_state axiom unwithdrawn_users_lp_tokens() == 0;
-// }
 ghost uint256 unwithdrawn_users_lp_tokens{
     init_state axiom unwithdrawn_users_lp_tokens == 0;
 }
@@ -164,42 +166,3 @@ ghost uint256 unwithdrawn_users_lp_tokens{
 hook Sstore getUserPairBalance[KEY address user] uint256 userPairBalance (uint256 old_userPairBalance) STORAGE {
 	havoc unwithdrawn_users_lp_tokens assuming unwithdrawn_users_lp_tokens@new == unwithdrawn_users_lp_tokens@old - userPairBalance + old_userPairBalance;
 }
-
-
-/*
-ghost totalBalance ...
-
-
-hook ...users[user].hasWithdrawn {
-    totalBalance -= users[user].balance;
-}
-
-hook ...users[user].balance {
-    if !users[user].hasWithdrawn
-        totalBalance -= users[user].balance;
-}
-*/
-
-// env e; env e2; env e3; env e4;
-// 
-// require e.block.timestamp == e2.block.timestamp;
-// require e.block.timestamp > e3.block.timestamp;
-// require e3.block.timestamp < e4.block.timestamp;
-// 
-// require e.msg.sender != e2.msg.sender;
-// require e.msg.sender == e3.msg.sender;
-// require e2.msg.sender == e4.msg.sender;
-// 
-// require e.msg.value < e2.msg.value;
-// 
-// uint256 tokenBalance1 = getUserBalance(e.msg.sender);
-// uint256 tokenBalance2 = getUserBalance(e2.msg.sender);
-// require tokenBalance1 == tokenBalance2;
-// 
-// depositAVAX(e);
-// depositAVAX(e2);
-// 
-// createPair(e);
-// 
-// pairBalance(e3);
-// pairBalance(e4);
