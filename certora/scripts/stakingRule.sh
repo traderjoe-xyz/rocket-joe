@@ -8,8 +8,8 @@ if [ -z "$1" ]
     exit 1
 fi
 
-msg=$1
-rule=$2
+msg=$2
+rule=$1
 shift 2
 
 certoraRun certora/munged/RocketJoeStaking.sol \

@@ -4,7 +4,7 @@ import "../helpers/erc20.spec"
 //                      Methods                                           //
 ////////////////////////////////////////////////////////////////////////////
 using DummyERC20Impl as joe
-using DummyERc20A as A
+using DummyERC20A as A
 
 using RocketJoeToken as rJoe
 
@@ -203,7 +203,7 @@ rule staking_non_trivial_rJoe() {
     require userRewardDebt(e0.msg.sender) < max_uint256;
     uint dt = e1.block.timestamp - lastRewardTimestamp(); // store this as a variable for more readable cex
     uint256 rewards = pendingRJoe(e1, e0.msg.sender);
-    assert exists uint256 t. t == dt => rewards > 0,  "trivial rJoe";
+    assert exists uint256 t. (t == dt) => rewards > 0,  "trivial rJoe";
 
     // doing the min interval calculations would likely be a better rule but causes timeouts, left for future consideration
     // uint256 min_interval = totalJoeStaked() / rJoePerSec();
@@ -225,7 +225,7 @@ rule staking_trivial_on_zero_time() { // passes
 }
 
 //  - If I stake longer, I get more reward
-rule stake_duration_correlates_return() { // passes
+rule longer_stake_greater_return() { // passes
 
     storage init = lastStorage; 
     uint256 amount;
@@ -250,8 +250,33 @@ rule stake_duration_correlates_return() { // passes
     assert exists uint256 dt. e2.block.timestamp - e1.block.timestamp >= dt => rJoe2 > rJoe1;
 }
 
+// TODO, write with <=> for >= instead of exists
+rule stake_duration_correlates_return() { // passes
+
+    storage init = lastStorage; 
+    uint256 amount;
+    require amount > 0;
+    env e0;
+    env e1; 
+    env e2; 
+
+    // accessing the same account, not current contract
+    require e0.msg.sender != currentContract && e1.msg.sender == e0.msg.sender && e2.msg.sender == e0.msg.sender;
+    // account 2 stakes longer than account 1, which stakes more than 0 seconds
+    require e1.block.timestamp > e0.block.timestamp && e2.block.timestamp > e1.block.timestamp;
+
+    
+
+    deposit(e0, amount);
+    uint256 rJoe1 = pendingRJoe(e1, e0.msg.sender);
+    deposit(e0, amount) at init;
+    uint256 rJoe2 = pendingRJoe(e2, e0.msg.sender);
+
+    // assert rJoe2 > rJoe1; 
+    assert e2.block.timestamp > e1.block.timestamp <=> rJoe2 >= rJoe1;
+}
+
 //  - No front-running for deposit:   `f(); deposit(...)` has same result as `deposit()`)
-// measure user's erc20 balance too? TODO
 rule deposit_no_frontrunning(method f) // passes
 {
     // setup
@@ -259,22 +284,27 @@ rule deposit_no_frontrunning(method f) // passes
     uint256 x;
     require userJoeStaked(currentContract) > x;
     uint256 bal_pre_clean = userJoeStaked(e.msg.sender);
+    uint256 user_bal_pre_clean = joe.balanceOf(e, e.msg.sender);
     storage init = lastStorage;
 
     // run with frontrunning
     f(e, args);
     require userJoeStaked(currentContract) > x;
     uint256 bal_pre_f = userJoeStaked(e.msg.sender);
+    uint256 user_bal_pre_f = joe.balanceOf(e, e.msg.sender);
     deposit(e, x);
     uint256 bal_post_f = userJoeStaked(e.msg.sender);
+    uint256 user_bal_post_f = joe.balanceOf(e, e.msg.sender);
     uint256 delta_f = bal_post_f - bal_pre_f;
 
     // run without frontrunning
     deposit(e, x) at init;
     uint256 bal_post_clean = userJoeStaked(e.msg.sender);
+    uint256 user_bal_post_clean = joe.balanceOf(e, e.msg.sender);
     uint256 delta_clean = bal_post_clean - bal_pre_clean;
 
     assert delta_f == delta_clean, "frontrunning found";
+    assert user_bal_pre_clean - user_bal_post_clean == user_bal_pre_f - user_bal_post_f, "balance not received by user";
 }
 //  - No front-running for withdraw   `f(); withdraw(...)` has same result as `withdraw()`)
 // change to support case where balance is less than amount? // TODO
@@ -285,22 +315,27 @@ rule withdraw_no_frontrunning(method f) filtered { f-> (f.selector != emergencyW
     uint256 x;
     require userJoeStaked(currentContract) > x;
     uint256 bal_pre_clean =  userJoeStaked(e.msg.sender);
+    uint256 user_bal_pre_clean = joe.balanceOf(e, e.msg.sender);
     storage init = lastStorage;
 
     // run with frontrunning
     f(e, args);
     require userJoeStaked(currentContract) > x;
     uint256 bal_pre_f = userJoeStaked(e.msg.sender);
+    uint256 user_bal_pre_f = joe.balanceOf(e, e.msg.sender);
     withdraw(e, x);
     uint256 bal_post_f = userJoeStaked(e.msg.sender);
+    uint256 user_bal_post_f = joe.balanceOf(e, e.msg.sender);
     uint256 delta_f = bal_pre_f - bal_post_f;
 
     // run without fruntrunning
     withdraw(e, x) at init;
+    uint256 user_bal_post_clean = joe.balanceOf(e, e.msg.sender);
     uint256 bal_post_clean = userJoeStaked(e.msg.sender);
     uint256 delta_clean = bal_pre_clean - bal_post_clean;
 
     assert delta_f == delta_clean, "frontrunning found";
+    assert user_bal_post_clean - user_bal_pre_clean == user_bal_post_f - user_bal_pre_f, "user joe not spent";
 }
 
 // additivty with frontrunning for greater coverage?
