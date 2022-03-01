@@ -55,7 +55,7 @@ rule hl_moreDepositMoreGet(method f, env e, env e2, env e3, env e4, env e5){
 }
 
 
-// STATUS - verified
+// STATUS - in progress
 // - if I withdraw AVAX later, I eventually have a greater penalty
 rule hl_withdrawLateMorePenalty(method f, env e, env e2){
     require auctionStart() < e.block.timestamp;

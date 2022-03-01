@@ -1,5 +1,3 @@
-
-
 certoraRun \
     certora/harness/LaunchEventHarness.sol \
     certora/harness/OwnerA.sol \
@@ -26,5 +24,4 @@ certoraRun \
     --cloud \
     --send_only \
     --rule "$1" \
-    --rule_sanity \
-    --msg "$1 shelly branch"
+    --msg "$1"
