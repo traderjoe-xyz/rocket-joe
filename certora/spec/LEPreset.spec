@@ -67,6 +67,7 @@ methods {
     getPenaltyCollector() returns (address) envfree
     getTokenBalanceOfThis() returns (uint256) envfree
     getWAVAXbalanceOfThis() returns (uint256) envfree
+    getWAVAXbalanceOfPair() returns (uint256) envfree
     getPairBalanceOfThis() returns (uint256) envfree
     getOwner() returns (address) envfree
     getPairBalance(address) returns (uint256) envfree
@@ -156,13 +157,4 @@ ghost sum_of_users_balances() returns uint256 {
 
 hook Sstore getUserInfo[KEY address user].balance uint256 userBalance (uint256 old_userBalance) STORAGE {
     havoc sum_of_users_balances assuming sum_of_users_balances@new() == sum_of_users_balances@old() - old_userBalance + userBalance;
-}
-
-
-ghost uint256 unwithdrawn_users_lp_tokens{
-    init_state axiom unwithdrawn_users_lp_tokens == 0;
-}
-
-hook Sstore getUserPairBalance[KEY address user] uint256 userPairBalance (uint256 old_userPairBalance) STORAGE {
-	havoc unwithdrawn_users_lp_tokens assuming unwithdrawn_users_lp_tokens@new == unwithdrawn_users_lp_tokens@old - userPairBalance + old_userPairBalance;
 }

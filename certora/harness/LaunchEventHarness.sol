@@ -57,6 +57,10 @@ contract LaunchEventHarness is LaunchEvent {
         return WAVAX.balanceOf(address(this));
     }
 
+    function getWAVAXbalanceOfPair() public returns (uint256){
+        return WAVAX.balanceOf(address(pair));
+    }
+
     function getPenaltyCollector() public returns (address){
         return rocketJoeFactory.penaltyCollector();
     }

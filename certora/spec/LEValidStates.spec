@@ -62,6 +62,7 @@ function safeAssumptions(env e) {
     requireInvariant cl_avaxReservCheck();
     requireInvariant cl_incentivesCorrelation();
     requireInvariant cl_pairAndGetPairCorrelation();
+    requireInvariant cl_AvaxCorrelation();
 
     requireInvariant os_tokenCorrelation();
     requireInvariant os_avaxAllocSumUserBalances();
@@ -346,10 +347,25 @@ rule cl_lpSupplyFixed(method f, env e) {
 }
 
 
+// STATUS - verified
+// address(this).balance and avaxReserve are equal to 0
+invariant cl_AvaxCorrelation()
+    closed() => (getBalanceOfThis() == avaxReserve() && avaxReserve() == 0)
+    { 
+        preserved with (env e2) { 
+            require currentPhase(e2) == PhaseThree();
+            safeAssumptions(e2); 
+            require currentContract != WAVAX();
+        } 
+    }   
+
+
 
 ////////////////////////////////////////////
 // STOPPED
 ////////////////////////////////////////////
+
+
 
 // pair() == 0
 
@@ -459,97 +475,3 @@ rule cs_avaxAllocatedFixed(method f, env e) {
 
     assert avaxBefore == avaxAfter, "avaxAllocated is different";
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// STATUS - in progress
-// probably bug in a tool wavax balance is unchanged and no correlation in DummyWeth.balanceOf and DummyWeth.transfer(): 
-// https://vaas-stg.certora.com/output/3106/b063b2a6bb598396a84e/?anonymousKey=358463f1e17d105b2ef89e4abdb765981f6bf4dd
-rule cl_balThisZero(address user, method f, env e) {
-    safeAssumptions(e);
-    require currentPhase(e) == PhaseThree();
-
-    uint256 wavaxBalanceBefore = getWAVAXbalanceOfThis();
-
-    require open();
-    calldataarg args;
-    f(e, args);
-    require closed();
-
-    uint256 wavaxBalanceAfter = getWAVAXbalanceOfThis();
-
-    assert wavaxBalanceBefore == wavaxBalanceAfter + avaxAllocated(), "tokenReserve was changed";   // maybe avaxReserve
-}
-
-
-// STATUS - in progress
-// strange call trace of withdrawLiquidity() (especially prestate): https://vaas-stg.certora.com/output/3106/b4f5dd9d88ce430a69ae/?anonymous Key=05ee608c07c21797f435de179567f8376d11d98f
-// - pair balance of this = sum of unwithdrawn lp tokens over all users (half to issuers, remainder to users)
-// up to roundoff
-invariant cl_pair_bal_eq_lp_sum()
-    closed() => (getPairBalanceOfThis() == lpSupply() / 2 + unwithdrawn_users_lp_tokens)
-    { preserved with (env e2) { safeAssumptions(e2); } }
-
-
-// STATUS - in progress    
-// createPair() - doesn't update getBalanceOfThis()
-// https://vaas-stg.certora.com/output/3106/cb86218f80bf94009eab/?anonymousKey=95556169903be4867c1194617f38d4106b2eac62
-invariant cl_AvaxCorrelation()
-    closed() => (getBalanceOfThis() == avaxReserve() && avaxReserve() == 0)
-    { 
-        preserved with (env e2) { 
-            require currentPhase(e2) == PhaseThree();
-            safeAssumptions(e2); 
-        } 
-    }
-
-
-
-/* 
-sh certora/scripts/verifyLEValidStates.sh alwaysInitialized
-sh certora/scripts/verifyLEValidStates.sh factoryGetPairCorrelationCurrentVals
-sh certora/scripts/verifyLEValidStates.sh cl_pairAndGetPairCorrelation
-sh certora/scripts/verifyLEValidStates.sh al_issuerAllocationZero
-sh certora/scripts/verifyLEValidStates.sh al_balanceLessThanAllocation
-sh certora/scripts/verifyLEValidStates.sh al_userAllocationLessThanMaxAllocation
-sh certora/scripts/verifyLEValidStates.sh al_issuerTimelockNonZero
-sh certora/scripts/verifyLEValidStates.sh al_userTimelockSeven
-sh certora/scripts/verifyLEValidStates.sh al_timelocksCorrelation
-sh certora/scripts/verifyLEValidStates.sh op_incentivesCorrelation
-sh certora/scripts/verifyLEValidStates.sh op_userNotWithdrawnPair
-sh certora/scripts/verifyLEValidStates.sh op_userNotWithdrawnIncentives
-sh certora/scripts/verifyLEValidStates.sh op_wavaxBalanceAndSumBalances
-sh certora/scripts/verifyLEValidStates.sh op_avaxAllocZero
-sh certora/scripts/verifyLEValidStates.sh op_lpSupplyZero
-sh certora/scripts/verifyLEValidStates.sh op_PairBalanceIsZero
-sh certora/scripts/verifyLEValidStates.sh op_PairAndTotalSupplyCorrelation
-sh certora/scripts/verifyLEValidStates.sh op_AvaxCorrelation
-sh certora/scripts/verifyLEValidStates.sh op_tokenCorrelation
-sh certora/scripts/verifyLEValidStates.sh op_tokenResFixed
-sh certora/scripts/verifyLEValidStates.sh cl_avaxAllocSumUserBalances
-sh certora/scripts/verifyLEValidStates.sh cl_avaxReservCheck
-sh certora/scripts/verifyLEValidStates.sh cl_incentivesCorrelation
-sh certora/scripts/verifyLEValidStates.sh cl_userAllocUnchanging
-sh certora/scripts/verifyLEValidStates.sh cl_avaxAllocUnchanging
-sh certora/scripts/verifyLEValidStates.sh cl_userBalanceFixed 
-sh certora/scripts/verifyLEValidStates.sh cl_lpSupplyFixed
-sh certora/scripts/verifyLEValidStates.sh os_tokenCorrelation
-sh certora/scripts/verifyLEValidStates.sh os_avaxAllocSumUserBalances
-sh certora/scripts/verifyLEValidStates.sh os_avaxReserveDecrease
-sh certora/scripts/verifyLEValidStates.sh os_userBalanceNonIncreasing
-sh certora/scripts/verifyLEValidStates.sh cs_lpSupplyFixed
-sh certora/scripts/verifyLEValidStates.sh cs_userBalanceFixed
-sh certora/scripts/verifyLEValidStates.sh cs_avaxAllocatedFixed
