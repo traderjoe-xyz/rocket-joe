@@ -67,7 +67,7 @@ contract LaunchEventLens {
         for (uint256 i = _offset; i < end; i++) {
             address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
             ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
-            launchEventDatas[i] = getLaunchEventData(launchEvent);
+            launchEventDatas[i - _offset] = getLaunchEventData(launchEvent);
         }
 
         return launchEventDatas;
@@ -98,7 +98,10 @@ contract LaunchEventLens {
         for (uint256 i = _offset; i < end; i++) {
             address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
             ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
-            launchEventDatas[i] = getUserLaunchEventData(launchEvent, _user);
+            launchEventDatas[i - _offset] = getUserLaunchEventData(
+                launchEvent,
+                _user
+            );
         }
 
         return launchEventDatas;
