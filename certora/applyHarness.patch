@@ -1,185 +1,12 @@
 diff -ruN .gitignore .gitignore
 --- .gitignore	1969-12-31 19:00:00.000000000 -0500
-+++ .gitignore	2022-03-04 12:30:39.781548863 -0500
++++ .gitignore	2022-03-04 15:15:10.795830361 -0500
 @@ -0,0 +1,2 @@
 +*
 +!.gitignore
-diff -ruN LaunchEventLens.sol LaunchEventLens.sol
---- LaunchEventLens.sol	2022-03-04 12:30:33.585643311 -0500
-+++ LaunchEventLens.sol	1969-12-31 19:00:00.000000000 -0500
-@@ -1,169 +0,0 @@
--// SPDX-License-Identifier: MIT
--
--pragma solidity 0.8.6;
--
--import "./interfaces/ILaunchEvent.sol";
--import "./interfaces/IRocketJoeFactory.sol";
--
--/// @title Launch Event Lens
--/// @author Trader Joe
--/// @notice Helper contract to fetch launch event data
--contract LaunchEventLens {
--    struct LaunchEventData {
--        uint256 auctionStart;
--        uint256 avaxAllocated;
--        uint256 avaxReserve;
--        uint256 floorPrice;
--        uint256 incentives;
--        uint256 issuerTimelock;
--        uint256 maxAllocation;
--        uint256 maxWithdrawPenalty;
--        uint256 pairBalance;
--        uint256 penalty;
--        uint256 phaseOneDuration;
--        uint256 phaseOneNoFeeDuration;
--        uint256 phaseTwoDuration;
--        uint256 rJoePerAvax;
--        uint256 tokenAllocated;
--        uint256 tokenDecimals;
--        uint256 tokenIncentivesPercent;
--        uint256 tokenReserve;
--        uint256 userTimelock;
--        address id;
--        address token;
--        address pair;
--        ILaunchEvent.UserInfo userInfo;
--    }
--
--    IRocketJoeFactory public rocketJoeFactory;
--
--    /// @notice Create a new instance with required parameters
--    /// @param _rocketJoeFactory Address of the RocketJoeFactory
--    constructor(address _rocketJoeFactory) {
--        rocketJoeFactory = IRocketJoeFactory(_rocketJoeFactory);
--    }
--
--    /// @notice Get all launch event datas
--    /// @param _offset Index to start at when looking up launch events
--    /// @param _limit Maximum number of launch event datas to return
--    /// @return Array of all launch event datas
--    function getAllLaunchEvents(uint256 _offset, uint256 _limit)
--        external
--        view
--        returns (LaunchEventData[] memory)
--    {
--        LaunchEventData[] memory launchEventDatas;
--        uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();
--
--        if (_offset >= numLaunchEvents || _limit == 0) {
--            return launchEventDatas;
--        }
--
--        uint256 end = _offset + _limit > numLaunchEvents
--            ? numLaunchEvents
--            : _offset + _limit;
--        launchEventDatas = new LaunchEventData[](end - _offset);
--
--        for (uint256 i = _offset; i < end; i++) {
--            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
--            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
--            launchEventDatas[i] = getLaunchEventData(launchEvent);
--        }
--
--        return launchEventDatas;
--    }
--
--    /// @notice Get all launch event datas with a given `_user`
--    /// @param _offset Index to start at when looking up launch events
--    /// @param _limit Maximum number of launch event datas to return
--    /// @param _user User to lookup
--    /// @return Array of all launch event datas with user info
--    function getAllLaunchEventsWithUser(
--        uint256 _offset,
--        uint256 _limit,
--        address _user
--    ) external view returns (LaunchEventData[] memory) {
--        LaunchEventData[] memory launchEventDatas;
--        uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();
--
--        if (_offset >= numLaunchEvents || _limit == 0) {
--            return launchEventDatas;
--        }
--
--        uint256 end = _offset + _limit > numLaunchEvents
--            ? numLaunchEvents
--            : _offset + _limit;
--        launchEventDatas = new LaunchEventData[](end - _offset);
--
--        for (uint256 i = _offset; i < end; i++) {
--            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
--            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
--            launchEventDatas[i] = getUserLaunchEventData(launchEvent, _user);
--        }
--
--        return launchEventDatas;
--    }
--
--    /// @notice Get launch event data for a given launch event and user
--    /// @param _launchEvent Launch event to lookup
--    /// @param _user User to look up
--    /// @return Launch event data for the given `_launchEvent` and `_user`
--    function getUserLaunchEventData(ILaunchEvent _launchEvent, address _user)
--        public
--        view
--        returns (LaunchEventData memory)
--    {
--        LaunchEventData memory launchEventData = getLaunchEventData(
--            _launchEvent
--        );
--        launchEventData.incentives = _launchEvent.getIncentives(_user);
--        launchEventData.pairBalance = _launchEvent.pairBalance(_user);
--        launchEventData.userInfo = _launchEvent.getUserInfo(_user);
--        return launchEventData;
--    }
--
--    /// @notice Get launch event data for a given launch event
--    /// @param _launchEvent Launch event to lookup
--    /// @return Launch event data for the given `_launchEvent`
--    function getLaunchEventData(ILaunchEvent _launchEvent)
--        public
--        view
--        returns (LaunchEventData memory)
--    {
--        (uint256 avaxReserve, uint256 tokenReserve) = _launchEvent
--            .getReserves();
--        IERC20Metadata token = _launchEvent.token();
--
--        return
--            LaunchEventData({
--                auctionStart: _launchEvent.auctionStart(),
--                avaxAllocated: _launchEvent.avaxAllocated(),
--                avaxReserve: avaxReserve,
--                floorPrice: _launchEvent.floorPrice(),
--                incentives: 0,
--                issuerTimelock: _launchEvent.issuerTimelock(),
--                maxAllocation: _launchEvent.maxAllocation(),
--                maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),
--                penalty: _launchEvent.getPenalty(),
--                pairBalance: 0,
--                phaseOneDuration: _launchEvent.phaseOneDuration(),
--                phaseOneNoFeeDuration: _launchEvent.phaseOneNoFeeDuration(),
--                phaseTwoDuration: _launchEvent.phaseTwoDuration(),
--                rJoePerAvax: _launchEvent.rJoePerAvax(),
--                tokenAllocated: _launchEvent.tokenAllocated(),
--                tokenDecimals: token.decimals(),
--                tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),
--                tokenReserve: tokenReserve,
--                userTimelock: _launchEvent.userTimelock(),
--                id: address(_launchEvent),
--                token: address(token),
--                pair: address(_launchEvent.pair()),
--                userInfo: ILaunchEvent.UserInfo({
--                    allocation: 0,
--                    balance: 0,
--                    hasWithdrawnPair: false,
--                    hasWithdrawnIncentives: false
--                })
--            });
--    }
--}
 diff -ruN LaunchEvent.sol LaunchEvent.sol
---- LaunchEvent.sol	2022-03-04 12:30:33.585643311 -0500
-+++ LaunchEvent.sol	2022-03-04 12:52:26.077184442 -0500
+--- LaunchEvent.sol	2022-03-04 15:14:38.651039808 -0500
++++ LaunchEvent.sol	2022-03-04 15:15:10.795830361 -0500
 @@ -48,7 +48,7 @@
      address public issuer;
  
@@ -273,73 +100,11 @@ diff -ruN LaunchEvent.sol LaunchEvent.sol
 -    function _safeTransferAVAX(address _to, uint256 _value) internal {
 +    function _safeTransferAVAX(address _to, uint256 _value) virtual internal {
          require(
-             address(this).balance >= avaxReserve,
+             address(this).balance - _value >= avaxReserve,
              "LaunchEvent: not enough avax"
-diff -ruN mocks/ERC20Token6decimals.sol mocks/ERC20Token6decimals.sol
---- mocks/ERC20Token6decimals.sol	2022-03-04 12:30:33.585643311 -0500
-+++ mocks/ERC20Token6decimals.sol	1969-12-31 19:00:00.000000000 -0500
-@@ -1,30 +0,0 @@
--// SPDX-License-Identifier: MIT
--
--pragma solidity 0.8.6;
--
--import "@openzeppeltoken/ERC20/ERC20.sol";
--import "@openzeppelaccess/Ownable.sol";
--
--/// @title Joe Token, JOE
--/// @author Trader Joe
--/// @dev ONLY FOR TESTS
--contract ERC20Token6decimals is ERC20("Token", "token"), Ownable {
--    /// @dev Mint _amount to _to. Callable only by owner
--    /// @param _to The address that will receive the mint
--    /// @param _amount The amount to be minted
--    function mint(address _to, uint256 _amount) external onlyOwner {
--        _mint(_to, _amount);
--    }
--
--    /// @dev Destroys `_amount` tokens from `msg.sender`
--    /// @param _amount The amount to be burned
--    function burn(uint256 _amount) external {
--        _burn(msg.sender, _amount);
--    }
--
--    /// @dev Define the number of decimals
--    /// @return The number of decimals
--    function decimals() public view virtual override returns (uint8) {
--        return 6;
--    }
--}
-diff -ruN mocks/ERC20Token.sol mocks/ERC20Token.sol
---- mocks/ERC20Token.sol	2022-03-04 12:30:33.585643311 -0500
-+++ mocks/ERC20Token.sol	1969-12-31 19:00:00.000000000 -0500
-@@ -1,24 +0,0 @@
--// SPDX-License-Identifier: MIT
--
--pragma solidity 0.8.6;
--
--import "@openzeppeltoken/ERC20/ERC20.sol";
--import "@openzeppelaccess/Ownable.sol";
--
--/// @title Joe Token, JOE
--/// @author Trader Joe
--/// @dev ONLY FOR TESTS
--contract ERC20Token is ERC20("Token", "token"), Ownable {
--    /// @dev Mint _amount to _to. Callable only by owner
--    /// @param _to The address that will receive the mint
--    /// @param _amount The amount to be minted
--    function mint(address _to, uint256 _amount) external onlyOwner {
--        _mint(_to, _amount);
--    }
--
--    /// @dev Destroys `_amount` tokens from `msg.sender`
--    /// @param _amount The amount to be burned
--    function burn(uint256 _amount) external {
--        _burn(msg.sender, _amount);
--    }
--}
 diff -ruN RocketJoeStaking.sol RocketJoeStaking.sol
---- RocketJoeStaking.sol	2022-03-04 12:30:33.585643311 -0500
-+++ RocketJoeStaking.sol	2022-03-04 12:30:39.777548924 -0500
+--- RocketJoeStaking.sol	2022-03-04 15:14:38.651039808 -0500
++++ RocketJoeStaking.sol	2022-03-04 15:15:32.224357581 -0500
 @@ -14,6 +14,33 @@
  contract RocketJoeStaking is Initializable, OwnableUpgradeable {
      using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -394,7 +159,7 @@ diff -ruN RocketJoeStaking.sol RocketJoeStaking.sol
          require(
 diff -ruN traderjoe/FarmLens.sol traderjoe/FarmLens.sol
 --- traderjoe/FarmLens.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/FarmLens.sol	2022-03-04 12:30:39.777548924 -0500
++++ traderjoe/FarmLens.sol	2022-03-04 15:15:32.224357581 -0500
 @@ -0,0 +1,244 @@
 +// SPDX-License-Identifier: MIT
 +pragma solidity 0.6.12;
@@ -642,7 +407,7 @@ diff -ruN traderjoe/FarmLens.sol traderjoe/FarmLens.sol
 +}
 diff -ruN traderjoe/interfaces/IERC20.sol traderjoe/interfaces/IERC20.sol
 --- traderjoe/interfaces/IERC20.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/interfaces/IERC20.sol	2022-03-04 12:30:39.777548924 -0500
++++ traderjoe/interfaces/IERC20.sol	2022-03-04 15:15:32.224357581 -0500
 @@ -0,0 +1,30 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -676,7 +441,7 @@ diff -ruN traderjoe/interfaces/IERC20.sol traderjoe/interfaces/IERC20.sol
 +}
 diff -ruN traderjoe/interfaces/IJoeCallee.sol traderjoe/interfaces/IJoeCallee.sol
 --- traderjoe/interfaces/IJoeCallee.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/interfaces/IJoeCallee.sol	2022-03-04 12:30:39.777548924 -0500
++++ traderjoe/interfaces/IJoeCallee.sol	2022-03-04 15:15:32.224357581 -0500
 @@ -0,0 +1,12 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -692,7 +457,7 @@ diff -ruN traderjoe/interfaces/IJoeCallee.sol traderjoe/interfaces/IJoeCallee.so
 +}
 diff -ruN traderjoe/interfaces/IJoeERC20.sol traderjoe/interfaces/IJoeERC20.sol
 --- traderjoe/interfaces/IJoeERC20.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/interfaces/IJoeERC20.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/interfaces/IJoeERC20.sol	2022-03-04 15:15:32.224357581 -0500
 @@ -0,0 +1,46 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -742,7 +507,7 @@ diff -ruN traderjoe/interfaces/IJoeERC20.sol traderjoe/interfaces/IJoeERC20.sol
 +}
 diff -ruN traderjoe/interfaces/IJoeFactory.sol traderjoe/interfaces/IJoeFactory.sol
 --- traderjoe/interfaces/IJoeFactory.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/interfaces/IJoeFactory.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/interfaces/IJoeFactory.sol	2022-03-04 15:15:32.224357581 -0500
 @@ -0,0 +1,27 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -773,7 +538,7 @@ diff -ruN traderjoe/interfaces/IJoeFactory.sol traderjoe/interfaces/IJoeFactory.
 +}
 diff -ruN traderjoe/interfaces/IJoePair.sol traderjoe/interfaces/IJoePair.sol
 --- traderjoe/interfaces/IJoePair.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/interfaces/IJoePair.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/interfaces/IJoePair.sol	2022-03-04 15:15:32.224357581 -0500
 @@ -0,0 +1,98 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -875,7 +640,7 @@ diff -ruN traderjoe/interfaces/IJoePair.sol traderjoe/interfaces/IJoePair.sol
 +}
 diff -ruN traderjoe/interfaces/IJoeRouter01.sol traderjoe/interfaces/IJoeRouter01.sol
 --- traderjoe/interfaces/IJoeRouter01.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/interfaces/IJoeRouter01.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/interfaces/IJoeRouter01.sol	2022-03-04 15:15:32.224357581 -0500
 @@ -0,0 +1,156 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1035,7 +800,7 @@ diff -ruN traderjoe/interfaces/IJoeRouter01.sol traderjoe/interfaces/IJoeRouter0
 +}
 diff -ruN traderjoe/interfaces/IJoeRouter02.sol traderjoe/interfaces/IJoeRouter02.sol
 --- traderjoe/interfaces/IJoeRouter02.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/interfaces/IJoeRouter02.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/interfaces/IJoeRouter02.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,52 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1091,7 +856,7 @@ diff -ruN traderjoe/interfaces/IJoeRouter02.sol traderjoe/interfaces/IJoeRouter0
 +}
 diff -ruN traderjoe/interfaces/IWAVAX.sol traderjoe/interfaces/IWAVAX.sol
 --- traderjoe/interfaces/IWAVAX.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/interfaces/IWAVAX.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/interfaces/IWAVAX.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,11 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1106,7 +871,7 @@ diff -ruN traderjoe/interfaces/IWAVAX.sol traderjoe/interfaces/IWAVAX.sol
 +}
 diff -ruN traderjoe/JoeERC20.sol traderjoe/JoeERC20.sol
 --- traderjoe/JoeERC20.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/JoeERC20.sol	2022-03-04 12:30:39.777548924 -0500
++++ traderjoe/JoeERC20.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,115 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1225,7 +990,7 @@ diff -ruN traderjoe/JoeERC20.sol traderjoe/JoeERC20.sol
 +}
 diff -ruN traderjoe/JoeFactory.sol traderjoe/JoeFactory.sol
 --- traderjoe/JoeFactory.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/JoeFactory.sol	2022-03-04 12:30:39.777548924 -0500
++++ traderjoe/JoeFactory.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,67 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1296,7 +1061,7 @@ diff -ruN traderjoe/JoeFactory.sol traderjoe/JoeFactory.sol
 +}
 diff -ruN traderjoe/JoePair.sol traderjoe/JoePair.sol
 --- traderjoe/JoePair.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/JoePair.sol	2022-03-04 12:30:39.777548924 -0500
++++ traderjoe/JoePair.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,243 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1543,7 +1308,7 @@ diff -ruN traderjoe/JoePair.sol traderjoe/JoePair.sol
 +}
 diff -ruN traderjoe/JoeRouter02.sol traderjoe/JoeRouter02.sol
 --- traderjoe/JoeRouter02.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/JoeRouter02.sol	2022-03-04 12:30:39.777548924 -0500
++++ traderjoe/JoeRouter02.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,479 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2026,7 +1791,7 @@ diff -ruN traderjoe/JoeRouter02.sol traderjoe/JoeRouter02.sol
 +}
 diff -ruN traderjoe/libraries/JoeLibrary.sol traderjoe/libraries/JoeLibrary.sol
 --- traderjoe/libraries/JoeLibrary.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/libraries/JoeLibrary.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/libraries/JoeLibrary.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,118 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2148,7 +1913,7 @@ diff -ruN traderjoe/libraries/JoeLibrary.sol traderjoe/libraries/JoeLibrary.sol
 +}
 diff -ruN traderjoe/libraries/Math.sol traderjoe/libraries/Math.sol
 --- traderjoe/libraries/Math.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/libraries/Math.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/libraries/Math.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,25 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2177,7 +1942,7 @@ diff -ruN traderjoe/libraries/Math.sol traderjoe/libraries/Math.sol
 +}
 diff -ruN traderjoe/libraries/SafeMath.sol traderjoe/libraries/SafeMath.sol
 --- traderjoe/libraries/SafeMath.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/libraries/SafeMath.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/libraries/SafeMath.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,19 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2200,7 +1965,7 @@ diff -ruN traderjoe/libraries/SafeMath.sol traderjoe/libraries/SafeMath.sol
 +}
 diff -ruN traderjoe/libraries/TransferHelper.sol traderjoe/libraries/TransferHelper.sol
 --- traderjoe/libraries/TransferHelper.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/libraries/TransferHelper.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/libraries/TransferHelper.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,42 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2246,7 +2011,7 @@ diff -ruN traderjoe/libraries/TransferHelper.sol traderjoe/libraries/TransferHel
 +}
 diff -ruN traderjoe/libraries/UQ112x112.sol traderjoe/libraries/UQ112x112.sol
 --- traderjoe/libraries/UQ112x112.sol	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/libraries/UQ112x112.sol	2022-03-04 12:30:39.781548863 -0500
++++ traderjoe/libraries/UQ112x112.sol	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,22 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -2272,7 +2037,7 @@ diff -ruN traderjoe/libraries/UQ112x112.sol traderjoe/libraries/UQ112x112.sol
 +}
 diff -ruN traderjoe/LICENSE traderjoe/LICENSE
 --- traderjoe/LICENSE	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/LICENSE	2022-03-04 12:30:39.777548924 -0500
++++ traderjoe/LICENSE	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,674 @@
 +                    GNU GENERAL PUBLIC LICENSE
 +                       Version 3, 29 June 2007
@@ -2950,7 +2715,7 @@ diff -ruN traderjoe/LICENSE traderjoe/LICENSE
 +<https://www.gnu.org/licenses/why-not-lgpl.html>.
 diff -ruN traderjoe/README.md traderjoe/README.md
 --- traderjoe/README.md	1969-12-31 19:00:00.000000000 -0500
-+++ traderjoe/README.md	2022-03-04 12:30:39.777548924 -0500
++++ traderjoe/README.md	2022-03-04 15:15:32.228357679 -0500
 @@ -0,0 +1,13 @@
 +# Uniswap V2 Area
 +
