@@ -12,15 +12,11 @@ jobs to the Certora verification service. These scripts should be run from the
 root directory; for example by running
 
 ```sh
-sh certora/scripts/verifyExampleContract.sh <arguments>
+sh certora/scripts/verifyAll.sh
 ```
 
-TODO: update example above, and add any special information for this customer's
-setup
-
 After the job is complete, the results will be available on
-[the staging Certora portal](https://vaas-stg.certora.com/) (by default, the
-scripts run on our staging cloud).
+[the Certora portal](https://portal.certora.com/).
 
 ## Adapting to changes
 
