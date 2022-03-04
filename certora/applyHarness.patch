@@ -1,19 +1,352 @@
 diff -ruN .gitignore .gitignore
---- .gitignore	1969-12-31 16:00:00.000000000 -0800
-+++ .gitignore	2022-01-26 11:18:51.000000000 -0800
+--- .gitignore	1969-12-31 19:00:00.000000000 -0500
++++ .gitignore	2022-03-04 12:30:39.781548863 -0500
 @@ -0,0 +1,2 @@
 +*
 +!.gitignore
+diff -ruN LaunchEventLens.sol LaunchEventLens.sol
+--- LaunchEventLens.sol	2022-03-04 12:30:33.585643311 -0500
++++ LaunchEventLens.sol	1969-12-31 19:00:00.000000000 -0500
+@@ -1,169 +0,0 @@
+-// SPDX-License-Identifier: MIT
+-
+-pragma solidity 0.8.6;
+-
+-import "./interfaces/ILaunchEvent.sol";
+-import "./interfaces/IRocketJoeFactory.sol";
+-
+-/// @title Launch Event Lens
+-/// @author Trader Joe
+-/// @notice Helper contract to fetch launch event data
+-contract LaunchEventLens {
+-    struct LaunchEventData {
+-        uint256 auctionStart;
+-        uint256 avaxAllocated;
+-        uint256 avaxReserve;
+-        uint256 floorPrice;
+-        uint256 incentives;
+-        uint256 issuerTimelock;
+-        uint256 maxAllocation;
+-        uint256 maxWithdrawPenalty;
+-        uint256 pairBalance;
+-        uint256 penalty;
+-        uint256 phaseOneDuration;
+-        uint256 phaseOneNoFeeDuration;
+-        uint256 phaseTwoDuration;
+-        uint256 rJoePerAvax;
+-        uint256 tokenAllocated;
+-        uint256 tokenDecimals;
+-        uint256 tokenIncentivesPercent;
+-        uint256 tokenReserve;
+-        uint256 userTimelock;
+-        address id;
+-        address token;
+-        address pair;
+-        ILaunchEvent.UserInfo userInfo;
+-    }
+-
+-    IRocketJoeFactory public rocketJoeFactory;
+-
+-    /// @notice Create a new instance with required parameters
+-    /// @param _rocketJoeFactory Address of the RocketJoeFactory
+-    constructor(address _rocketJoeFactory) {
+-        rocketJoeFactory = IRocketJoeFactory(_rocketJoeFactory);
+-    }
+-
+-    /// @notice Get all launch event datas
+-    /// @param _offset Index to start at when looking up launch events
+-    /// @param _limit Maximum number of launch event datas to return
+-    /// @return Array of all launch event datas
+-    function getAllLaunchEvents(uint256 _offset, uint256 _limit)
+-        external
+-        view
+-        returns (LaunchEventData[] memory)
+-    {
+-        LaunchEventData[] memory launchEventDatas;
+-        uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();
+-
+-        if (_offset >= numLaunchEvents || _limit == 0) {
+-            return launchEventDatas;
+-        }
+-
+-        uint256 end = _offset + _limit > numLaunchEvents
+-            ? numLaunchEvents
+-            : _offset + _limit;
+-        launchEventDatas = new LaunchEventData[](end - _offset);
+-
+-        for (uint256 i = _offset; i < end; i++) {
+-            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
+-            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
+-            launchEventDatas[i] = getLaunchEventData(launchEvent);
+-        }
+-
+-        return launchEventDatas;
+-    }
+-
+-    /// @notice Get all launch event datas with a given `_user`
+-    /// @param _offset Index to start at when looking up launch events
+-    /// @param _limit Maximum number of launch event datas to return
+-    /// @param _user User to lookup
+-    /// @return Array of all launch event datas with user info
+-    function getAllLaunchEventsWithUser(
+-        uint256 _offset,
+-        uint256 _limit,
+-        address _user
+-    ) external view returns (LaunchEventData[] memory) {
+-        LaunchEventData[] memory launchEventDatas;
+-        uint256 numLaunchEvents = rocketJoeFactory.numLaunchEvents();
+-
+-        if (_offset >= numLaunchEvents || _limit == 0) {
+-            return launchEventDatas;
+-        }
+-
+-        uint256 end = _offset + _limit > numLaunchEvents
+-            ? numLaunchEvents
+-            : _offset + _limit;
+-        launchEventDatas = new LaunchEventData[](end - _offset);
+-
+-        for (uint256 i = _offset; i < end; i++) {
+-            address launchEventAddr = rocketJoeFactory.allRJLaunchEvents(i);
+-            ILaunchEvent launchEvent = ILaunchEvent(launchEventAddr);
+-            launchEventDatas[i] = getUserLaunchEventData(launchEvent, _user);
+-        }
+-
+-        return launchEventDatas;
+-    }
+-
+-    /// @notice Get launch event data for a given launch event and user
+-    /// @param _launchEvent Launch event to lookup
+-    /// @param _user User to look up
+-    /// @return Launch event data for the given `_launchEvent` and `_user`
+-    function getUserLaunchEventData(ILaunchEvent _launchEvent, address _user)
+-        public
+-        view
+-        returns (LaunchEventData memory)
+-    {
+-        LaunchEventData memory launchEventData = getLaunchEventData(
+-            _launchEvent
+-        );
+-        launchEventData.incentives = _launchEvent.getIncentives(_user);
+-        launchEventData.pairBalance = _launchEvent.pairBalance(_user);
+-        launchEventData.userInfo = _launchEvent.getUserInfo(_user);
+-        return launchEventData;
+-    }
+-
+-    /// @notice Get launch event data for a given launch event
+-    /// @param _launchEvent Launch event to lookup
+-    /// @return Launch event data for the given `_launchEvent`
+-    function getLaunchEventData(ILaunchEvent _launchEvent)
+-        public
+-        view
+-        returns (LaunchEventData memory)
+-    {
+-        (uint256 avaxReserve, uint256 tokenReserve) = _launchEvent
+-            .getReserves();
+-        IERC20Metadata token = _launchEvent.token();
+-
+-        return
+-            LaunchEventData({
+-                auctionStart: _launchEvent.auctionStart(),
+-                avaxAllocated: _launchEvent.avaxAllocated(),
+-                avaxReserve: avaxReserve,
+-                floorPrice: _launchEvent.floorPrice(),
+-                incentives: 0,
+-                issuerTimelock: _launchEvent.issuerTimelock(),
+-                maxAllocation: _launchEvent.maxAllocation(),
+-                maxWithdrawPenalty: _launchEvent.maxWithdrawPenalty(),
+-                penalty: _launchEvent.getPenalty(),
+-                pairBalance: 0,
+-                phaseOneDuration: _launchEvent.phaseOneDuration(),
+-                phaseOneNoFeeDuration: _launchEvent.phaseOneNoFeeDuration(),
+-                phaseTwoDuration: _launchEvent.phaseTwoDuration(),
+-                rJoePerAvax: _launchEvent.rJoePerAvax(),
+-                tokenAllocated: _launchEvent.tokenAllocated(),
+-                tokenDecimals: token.decimals(),
+-                tokenIncentivesPercent: _launchEvent.tokenIncentivesPercent(),
+-                tokenReserve: tokenReserve,
+-                userTimelock: _launchEvent.userTimelock(),
+-                id: address(_launchEvent),
+-                token: address(token),
+-                pair: address(_launchEvent.pair()),
+-                userInfo: ILaunchEvent.UserInfo({
+-                    allocation: 0,
+-                    balance: 0,
+-                    hasWithdrawnPair: false,
+-                    hasWithdrawnIncentives: false
+-                })
+-            });
+-    }
+-}
+diff -ruN LaunchEvent.sol LaunchEvent.sol
+--- LaunchEvent.sol	2022-03-04 12:30:33.585643311 -0500
++++ LaunchEvent.sol	2022-03-04 12:52:26.077184442 -0500
+@@ -48,7 +48,7 @@
+     address public issuer;
+ 
+     /// @notice The start time of phase 1
+-    uint256 public auctionStart;
++    uint256 public auctionStart;                
+ 
+     uint256 public phaseOneDuration;
+     uint256 public phaseOneNoFeeDuration;
+@@ -80,11 +80,11 @@
+ 
+     IRocketJoeToken public rJoe;
+     uint256 public rJoePerAvax;
+-    IWAVAX private WAVAX;
++    IWAVAX public WAVAX;                       // HARNESS: private -> public
+     IERC20MetadataUpgradeable public token;
+ 
+     IJoeRouter02 private router;
+-    IJoeFactory private factory;
++    IJoeFactory public factory;                // HARNESS: private -> public
+     IRocketJoeFactory public rocketJoeFactory;
+ 
+     bool public stopped;
+@@ -104,29 +104,29 @@
+     uint256 public tokenAllocated;
+ 
+     /// @dev The exact supply of LP minted when creating the initial liquidity pair.
+-    uint256 private lpSupply;
++    uint256 public lpSupply;                    // HARNESS: private -> public
+ 
+     /// @dev Used to know how many issuing tokens will be sent to JoeRouter to create the initial
+     /// liquidity pair. If floor price is not met, we will send fewer issuing tokens and `tokenReserve`
+     /// will keep track of the leftover amount. It's then used to calculate the number of tokens needed
+     /// to be sent to both issuer and users (if there are leftovers and every token is sent to the pair,
+     /// tokenReserve will be equal to 0)
+-    uint256 private tokenReserve;
++    uint256 public tokenReserve;                // HARNESS: private -> public
+ 
+     /// @dev Keeps track of amount of token incentives that needs to be kept by contract in order to send the right
+     /// amounts to issuer and users
+-    uint256 private tokenIncentivesBalance;
++    uint256 public tokenIncentivesBalance;      // HARNESS: private -> public
+     /// @dev Total incentives for users for locking their LPs for an additional period of time after the pair is created
+-    uint256 private tokenIncentivesForUsers;
++    uint256 public tokenIncentivesForUsers;     // HARNESS: private -> public
+     /// @dev The share refunded to the issuer. Users receive 5% of the token that were sent to the Router.
+     /// If the floor price is not met, the incentives still needs to be 5% of the value sent to the Router, so there
+     /// will be an excess of tokens returned to the issuer if he calls `withdrawIncentives()`
+-    uint256 private tokenIncentiveIssuerRefund;
++    uint256 public tokenIncentiveIssuerRefund;  // HARNESS: private -> public
+ 
+     /// @dev avaxReserve is the exact amount of AVAX that needs to be kept inside the contract in order to send everyone's
+     /// AVAX. If there is some excess (because someone sent token directly to the contract), the
+     /// penaltyCollector can collect the excess using `skim()`
+-    uint256 private avaxReserve;
++    uint256 public avaxReserve;                 // HARNESS: private -> public
+ 
+     event LaunchEventInitialized(
+         uint256 tokenIncentivesPercent,
+@@ -225,7 +225,7 @@
+         uint256 _maxAllocation,
+         uint256 _userTimelock,
+         uint256 _issuerTimelock
+-    ) external atPhase(Phase.NotStarted) {
++    ) public atPhase(Phase.NotStarted) {      // HARNESS: external -> public
+         require(auctionStart == 0, "LaunchEvent: already initialized");
+         rocketJoeFactory = IRocketJoeFactory(msg.sender);
+         require(
+@@ -620,7 +620,7 @@
+     /// @notice The total amount of liquidity pool tokens the user can withdraw
+     /// @param _user The address of the user to check
+     /// @return The user's balance of liquidity pool token
+-    function pairBalance(address _user) public view returns (uint256) {
++    function pairBalance(address _user) public virtual returns (uint256) {     // HARNESS: made it virtual and non-view to override
+         UserInfo memory user = getUserInfo[_user];
+         if (avaxAllocated == 0 || user.hasWithdrawnPair) {
+             return 0;
+@@ -633,7 +633,7 @@
+ 
+     /// @dev Bytecode size optimization for the `atPhase` modifier
+     /// This works becuase internal functions are not in-lined in modifiers
+-    function _atPhase(Phase _phase) internal view {
++    function _atPhase(Phase _phase) public view {
+         require(currentPhase() == _phase, "LaunchEvent: wrong phase");
+     }
+ 
+@@ -670,7 +670,7 @@
+     /// @param _to The receiving address
+     /// @param _value The amount of AVAX to send
+     /// @dev Will revert on failure
+-    function _safeTransferAVAX(address _to, uint256 _value) internal {
++    function _safeTransferAVAX(address _to, uint256 _value) virtual internal {
+         require(
+             address(this).balance >= avaxReserve,
+             "LaunchEvent: not enough avax"
+diff -ruN mocks/ERC20Token6decimals.sol mocks/ERC20Token6decimals.sol
+--- mocks/ERC20Token6decimals.sol	2022-03-04 12:30:33.585643311 -0500
++++ mocks/ERC20Token6decimals.sol	1969-12-31 19:00:00.000000000 -0500
+@@ -1,30 +0,0 @@
+-// SPDX-License-Identifier: MIT
+-
+-pragma solidity 0.8.6;
+-
+-import "@openzeppeltoken/ERC20/ERC20.sol";
+-import "@openzeppelaccess/Ownable.sol";
+-
+-/// @title Joe Token, JOE
+-/// @author Trader Joe
+-/// @dev ONLY FOR TESTS
+-contract ERC20Token6decimals is ERC20("Token", "token"), Ownable {
+-    /// @dev Mint _amount to _to. Callable only by owner
+-    /// @param _to The address that will receive the mint
+-    /// @param _amount The amount to be minted
+-    function mint(address _to, uint256 _amount) external onlyOwner {
+-        _mint(_to, _amount);
+-    }
+-
+-    /// @dev Destroys `_amount` tokens from `msg.sender`
+-    /// @param _amount The amount to be burned
+-    function burn(uint256 _amount) external {
+-        _burn(msg.sender, _amount);
+-    }
+-
+-    /// @dev Define the number of decimals
+-    /// @return The number of decimals
+-    function decimals() public view virtual override returns (uint8) {
+-        return 6;
+-    }
+-}
+diff -ruN mocks/ERC20Token.sol mocks/ERC20Token.sol
+--- mocks/ERC20Token.sol	2022-03-04 12:30:33.585643311 -0500
++++ mocks/ERC20Token.sol	1969-12-31 19:00:00.000000000 -0500
+@@ -1,24 +0,0 @@
+-// SPDX-License-Identifier: MIT
+-
+-pragma solidity 0.8.6;
+-
+-import "@openzeppeltoken/ERC20/ERC20.sol";
+-import "@openzeppelaccess/Ownable.sol";
+-
+-/// @title Joe Token, JOE
+-/// @author Trader Joe
+-/// @dev ONLY FOR TESTS
+-contract ERC20Token is ERC20("Token", "token"), Ownable {
+-    /// @dev Mint _amount to _to. Callable only by owner
+-    /// @param _to The address that will receive the mint
+-    /// @param _amount The amount to be minted
+-    function mint(address _to, uint256 _amount) external onlyOwner {
+-        _mint(_to, _amount);
+-    }
+-
+-    /// @dev Destroys `_amount` tokens from `msg.sender`
+-    /// @param _amount The amount to be burned
+-    function burn(uint256 _amount) external {
+-        _burn(msg.sender, _amount);
+-    }
+-}
 diff -ruN RocketJoeStaking.sol RocketJoeStaking.sol
---- RocketJoeStaking.sol	2022-01-26 11:18:46.000000000 -0800
-+++ RocketJoeStaking.sol	2022-02-07 12:47:15.000000000 -0800
-@@ -14,6 +14,24 @@
+--- RocketJoeStaking.sol	2022-03-04 12:30:33.585643311 -0500
++++ RocketJoeStaking.sol	2022-03-04 12:30:39.777548924 -0500
+@@ -14,6 +14,33 @@
  contract RocketJoeStaking is Initializable, OwnableUpgradeable {
      using SafeERC20Upgradeable for IERC20Upgradeable;
  
 +    // harness functions
 +
-+    function userJoe(address user) public view returns (uint256) {
++    function userJoeStaked(address user) public view returns (uint256) {
 +        return userInfo[user].amount;
 +    }
 +
@@ -25,16 +358,43 @@ diff -ruN RocketJoeStaking.sol RocketJoeStaking.sol
 +        return owner();
 +    }
 +
-+    function stakingJoeBalance() public view returns (uint256) {
-+        return joe.balanceOf(address(this));
++    // this is added so the system will always be in the initialized state for invariants
++    constructor(IERC20Upgradeable _joe, RocketJoeToken _rJoe, uint256 _rJoePerSec, uint256 _startTime) {
++        initialize(_joe, _rJoe, _rJoePerSec, _startTime);
 +    }
++
++    //constructor() public {
++    //     IERC20Upgradeable _joe = new DummyERC20();
++    //     RocketJoeToken _rJoe = new RocketJoeToken();
++    //     uint256 _rJoePerSec;
++    //     uint256 _startTime;
++    //     initialize(_joe, _rJoe, _rJoePerSec, _startTime);
++    // }
 +
      struct UserInfo {
          uint256 amount; // How many JOE tokens the user has provided
          uint256 rewardDebt; // Reward debt. See explanation below
+@@ -36,7 +63,7 @@
+     /// @dev Accumulated rJOE per share, times PRECISION. See above
+     uint256 public accRJoePerShare;
+     /// @notice Precision of accRJoePerShare
+-    uint256 private PRECISION;
++    uint256 public PRECISION;
+ 
+     /// @dev The maximum emission rate per second
+     uint256 public MAX_EMISSION_RATE;
+@@ -65,7 +92,7 @@
+         RocketJoeToken _rJoe,
+         uint256 _rJoePerSec,
+         uint256 _startTime
+-    ) external initializer {
++    ) public initializer {
+         __Ownable_init();
+ 
+         require(
 diff -ruN traderjoe/FarmLens.sol traderjoe/FarmLens.sol
---- traderjoe/FarmLens.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/FarmLens.sol	2022-01-26 11:19:11.000000000 -0800
+--- traderjoe/FarmLens.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/FarmLens.sol	2022-03-04 12:30:39.777548924 -0500
 @@ -0,0 +1,244 @@
 +// SPDX-License-Identifier: MIT
 +pragma solidity 0.6.12;
@@ -280,9 +640,473 @@ diff -ruN traderjoe/FarmLens.sol traderjoe/FarmLens.sol
 +        return allFarmData;
 +    }
 +}
+diff -ruN traderjoe/interfaces/IERC20.sol traderjoe/interfaces/IERC20.sol
+--- traderjoe/interfaces/IERC20.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/interfaces/IERC20.sol	2022-03-04 12:30:39.777548924 -0500
+@@ -0,0 +1,30 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.5.0;
++
++interface IERC20Joe {
++    event Approval(address indexed owner, address indexed spender, uint256 value);
++    event Transfer(address indexed from, address indexed to, uint256 value);
++
++    function name() external view returns (string memory);
++
++    function symbol() external view returns (string memory);
++
++    function decimals() external view returns (uint8);
++
++    function totalSupply() external view returns (uint256);
++
++    function balanceOf(address owner) external view returns (uint256);
++
++    function allowance(address owner, address spender) external view returns (uint256);
++
++    function approve(address spender, uint256 value) external returns (bool);
++
++    function transfer(address to, uint256 value) external returns (bool);
++
++    function transferFrom(
++        address from,
++        address to,
++        uint256 value
++    ) external returns (bool);
++}
+diff -ruN traderjoe/interfaces/IJoeCallee.sol traderjoe/interfaces/IJoeCallee.sol
+--- traderjoe/interfaces/IJoeCallee.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/interfaces/IJoeCallee.sol	2022-03-04 12:30:39.777548924 -0500
+@@ -0,0 +1,12 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.5.0;
++
++interface IJoeCallee {
++    function joeCall(
++        address sender,
++        uint256 amount0,
++        uint256 amount1,
++        bytes calldata data
++    ) external;
++}
+diff -ruN traderjoe/interfaces/IJoeERC20.sol traderjoe/interfaces/IJoeERC20.sol
+--- traderjoe/interfaces/IJoeERC20.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/interfaces/IJoeERC20.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,46 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.5.0;
++
++interface IJoeERC20 {
++    event Approval(address indexed owner, address indexed spender, uint256 value);
++    event Transfer(address indexed from, address indexed to, uint256 value);
++
++    function name() external pure returns (string memory);
++
++    function symbol() external pure returns (string memory);
++
++    function decimals() external pure returns (uint8);
++
++    function totalSupply() external view returns (uint256);
++
++    function balanceOf(address owner) external view returns (uint256);
++
++    function allowance(address owner, address spender) external view returns (uint256);
++
++    function approve(address spender, uint256 value) external returns (bool);
++
++    function transfer(address to, uint256 value) external returns (bool);
++
++    function transferFrom(
++        address from,
++        address to,
++        uint256 value
++    ) external returns (bool);
++
++    function DOMAIN_SEPARATOR() external view returns (bytes32);
++
++    function PERMIT_TYPEHASH() external pure returns (bytes32);
++
++    function nonces(address owner) external view returns (uint256);
++
++    function permit(
++        address owner,
++        address spender,
++        uint256 value,
++        uint256 deadline,
++        uint8 v,
++        bytes32 r,
++        bytes32 s
++    ) external;
++}
+diff -ruN traderjoe/interfaces/IJoeFactory.sol traderjoe/interfaces/IJoeFactory.sol
+--- traderjoe/interfaces/IJoeFactory.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/interfaces/IJoeFactory.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,27 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.5.0;
++
++interface IJoeFactory {
++    event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
++
++    function feeTo() external view returns (address);
++
++    function feeToSetter() external view returns (address);
++
++    function migrator() external view returns (address);
++
++    function getPair(address tokenA, address tokenB) external view returns (address pair);
++
++    function allPairs(uint256) external view returns (address pair);
++
++    function allPairsLength() external view returns (uint256);
++
++    function createPair(address tokenA, address tokenB) external returns (address pair);
++
++    function setFeeTo(address) external;
++
++    function setFeeToSetter(address) external;
++
++    function setMigrator(address) external;
++}
+diff -ruN traderjoe/interfaces/IJoePair.sol traderjoe/interfaces/IJoePair.sol
+--- traderjoe/interfaces/IJoePair.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/interfaces/IJoePair.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,98 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.5.0;
++
++interface IJoePair {
++    event Approval(address indexed owner, address indexed spender, uint256 value);
++    event Transfer(address indexed from, address indexed to, uint256 value);
++
++    function name() external pure returns (string memory);
++
++    function symbol() external pure returns (string memory);
++
++    function decimals() external pure returns (uint8);
++
++    function totalSupply() external view returns (uint256);
++
++    function balanceOf(address owner) external view returns (uint256);
++
++    function allowance(address owner, address spender) external view returns (uint256);
++
++    function approve(address spender, uint256 value) external returns (bool);
++
++    function transfer(address to, uint256 value) external returns (bool);
++
++    function transferFrom(
++        address from,
++        address to,
++        uint256 value
++    ) external returns (bool);
++
++    function DOMAIN_SEPARATOR() external view returns (bytes32);
++
++    function PERMIT_TYPEHASH() external pure returns (bytes32);
++
++    function nonces(address owner) external view returns (uint256);
++
++    function permit(
++        address owner,
++        address spender,
++        uint256 value,
++        uint256 deadline,
++        uint8 v,
++        bytes32 r,
++        bytes32 s
++    ) external;
++
++    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
++    event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
++    event Swap(
++        address indexed sender,
++        uint256 amount0In,
++        uint256 amount1In,
++        uint256 amount0Out,
++        uint256 amount1Out,
++        address indexed to
++    );
++    event Sync(uint112 reserve0, uint112 reserve1);
++
++    function MINIMUM_LIQUIDITY() external pure returns (uint256);
++
++    function factory() external view returns (address);
++
++    function token0() external view returns (address);
++
++    function token1() external view returns (address);
++
++    function getReserves()
++        external
++        view
++        returns (
++            uint112 reserve0,
++            uint112 reserve1,
++            uint32 blockTimestampLast
++        );
++
++    function price0CumulativeLast() external view returns (uint256);
++
++    function price1CumulativeLast() external view returns (uint256);
++
++    function kLast() external view returns (uint256);
++
++    function mint(address to) external returns (uint256 liquidity);
++
++    function burn(address to) external returns (uint256 amount0, uint256 amount1);
++
++    function swap(
++        uint256 amount0Out,
++        uint256 amount1Out,
++        address to,
++        bytes calldata data
++    ) external;
++
++    function skim(address to) external;
++
++    function sync() external;
++
++    function initialize(address, address) external;
++}
+diff -ruN traderjoe/interfaces/IJoeRouter01.sol traderjoe/interfaces/IJoeRouter01.sol
+--- traderjoe/interfaces/IJoeRouter01.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/interfaces/IJoeRouter01.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,156 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.6.2;
++
++interface IJoeRouter01 {
++    function factory() external pure returns (address);
++
++    function WAVAX() external pure returns (address);
++
++    function addLiquidity(
++        address tokenA,
++        address tokenB,
++        uint256 amountADesired,
++        uint256 amountBDesired,
++        uint256 amountAMin,
++        uint256 amountBMin,
++        address to,
++        uint256 deadline
++    )
++        external
++        returns (
++            uint256 amountA,
++            uint256 amountB,
++            uint256 liquidity
++        );
++
++    function addLiquidityAVAX(
++        address token,
++        uint256 amountTokenDesired,
++        uint256 amountTokenMin,
++        uint256 amountAVAXMin,
++        address to,
++        uint256 deadline
++    )
++        external
++        payable
++        returns (
++            uint256 amountToken,
++            uint256 amountAVAX,
++            uint256 liquidity
++        );
++
++    function removeLiquidity(
++        address tokenA,
++        address tokenB,
++        uint256 liquidity,
++        uint256 amountAMin,
++        uint256 amountBMin,
++        address to,
++        uint256 deadline
++    ) external returns (uint256 amountA, uint256 amountB);
++
++    function removeLiquidityAVAX(
++        address token,
++        uint256 liquidity,
++        uint256 amountTokenMin,
++        uint256 amountAVAXMin,
++        address to,
++        uint256 deadline
++    ) external returns (uint256 amountToken, uint256 amountAVAX);
++
++    function removeLiquidityWithPermit(
++        address tokenA,
++        address tokenB,
++        uint256 liquidity,
++        uint256 amountAMin,
++        uint256 amountBMin,
++        address to,
++        uint256 deadline,
++        bool approveMax,
++        uint8 v,
++        bytes32 r,
++        bytes32 s
++    ) external returns (uint256 amountA, uint256 amountB);
++
++    function removeLiquidityAVAXWithPermit(
++        address token,
++        uint256 liquidity,
++        uint256 amountTokenMin,
++        uint256 amountAVAXMin,
++        address to,
++        uint256 deadline,
++        bool approveMax,
++        uint8 v,
++        bytes32 r,
++        bytes32 s
++    ) external returns (uint256 amountToken, uint256 amountAVAX);
++
++    function swapExactTokensForTokens(
++        uint256 amountIn,
++        uint256 amountOutMin,
++        address[] calldata path,
++        address to,
++        uint256 deadline
++    ) external returns (uint256[] memory amounts);
++
++    function swapTokensForExactTokens(
++        uint256 amountOut,
++        uint256 amountInMax,
++        address[] calldata path,
++        address to,
++        uint256 deadline
++    ) external returns (uint256[] memory amounts);
++
++    function swapExactAVAXForTokens(
++        uint256 amountOutMin,
++        address[] calldata path,
++        address to,
++        uint256 deadline
++    ) external payable returns (uint256[] memory amounts);
++
++    function swapTokensForExactAVAX(
++        uint256 amountOut,
++        uint256 amountInMax,
++        address[] calldata path,
++        address to,
++        uint256 deadline
++    ) external returns (uint256[] memory amounts);
++
++    function swapExactTokensForAVAX(
++        uint256 amountIn,
++        uint256 amountOutMin,
++        address[] calldata path,
++        address to,
++        uint256 deadline
++    ) external returns (uint256[] memory amounts);
++
++    function swapAVAXForExactTokens(
++        uint256 amountOut,
++        address[] calldata path,
++        address to,
++        uint256 deadline
++    ) external payable returns (uint256[] memory amounts);
++
++    function quote(
++        uint256 amountA,
++        uint256 reserveA,
++        uint256 reserveB
++    ) external pure returns (uint256 amountB);
++
++    function getAmountOut(
++        uint256 amountIn,
++        uint256 reserveIn,
++        uint256 reserveOut
++    ) external pure returns (uint256 amountOut);
++
++    function getAmountIn(
++        uint256 amountOut,
++        uint256 reserveIn,
++        uint256 reserveOut
++    ) external pure returns (uint256 amountIn);
++
++    function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint256[] memory amounts);
++
++    function getAmountsIn(uint256 amountOut, address[] calldata path) external view returns (uint256[] memory amounts);
++}
+diff -ruN traderjoe/interfaces/IJoeRouter02.sol traderjoe/interfaces/IJoeRouter02.sol
+--- traderjoe/interfaces/IJoeRouter02.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/interfaces/IJoeRouter02.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,52 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.6.2;
++
++import "./IJoeRouter01.sol";
++
++interface IJoeRouter02 is IJoeRouter01 {
++    function removeLiquidityAVAXSupportingFeeOnTransferTokens(
++        address token,
++        uint256 liquidity,
++        uint256 amountTokenMin,
++        uint256 amountAVAXMin,
++        address to,
++        uint256 deadline
++    ) external returns (uint256 amountAVAX);
++
++    function removeLiquidityAVAXWithPermitSupportingFeeOnTransferTokens(
++        address token,
++        uint256 liquidity,
++        uint256 amountTokenMin,
++        uint256 amountAVAXMin,
++        address to,
++        uint256 deadline,
++        bool approveMax,
++        uint8 v,
++        bytes32 r,
++        bytes32 s
++    ) external returns (uint256 amountAVAX);
++
++    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
++        uint256 amountIn,
++        uint256 amountOutMin,
++        address[] calldata path,
++        address to,
++        uint256 deadline
++    ) external;
++
++    function swapExactAVAXForTokensSupportingFeeOnTransferTokens(
++        uint256 amountOutMin,
++        address[] calldata path,
++        address to,
++        uint256 deadline
++    ) external payable;
++
++    function swapExactTokensForAVAXSupportingFeeOnTransferTokens(
++        uint256 amountIn,
++        uint256 amountOutMin,
++        address[] calldata path,
++        address to,
++        uint256 deadline
++    ) external;
++}
+diff -ruN traderjoe/interfaces/IWAVAX.sol traderjoe/interfaces/IWAVAX.sol
+--- traderjoe/interfaces/IWAVAX.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/interfaces/IWAVAX.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,11 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.5.0;
++
++interface IWAVAX {
++    function deposit() external payable;
++
++    function transfer(address to, uint256 value) external returns (bool);
++
++    function withdraw(uint256) external;
++}
 diff -ruN traderjoe/JoeERC20.sol traderjoe/JoeERC20.sol
---- traderjoe/JoeERC20.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/JoeERC20.sol	2022-01-26 11:19:11.000000000 -0800
+--- traderjoe/JoeERC20.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/JoeERC20.sol	2022-03-04 12:30:39.777548924 -0500
 @@ -0,0 +1,115 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -400,8 +1224,8 @@ diff -ruN traderjoe/JoeERC20.sol traderjoe/JoeERC20.sol
 +    }
 +}
 diff -ruN traderjoe/JoeFactory.sol traderjoe/JoeFactory.sol
---- traderjoe/JoeFactory.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/JoeFactory.sol	2022-01-26 11:19:11.000000000 -0800
+--- traderjoe/JoeFactory.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/JoeFactory.sol	2022-03-04 12:30:39.777548924 -0500
 @@ -0,0 +1,67 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -471,8 +1295,8 @@ diff -ruN traderjoe/JoeFactory.sol traderjoe/JoeFactory.sol
 +    }
 +}
 diff -ruN traderjoe/JoePair.sol traderjoe/JoePair.sol
---- traderjoe/JoePair.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/JoePair.sol	2022-01-26 11:19:11.000000000 -0800
+--- traderjoe/JoePair.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/JoePair.sol	2022-03-04 12:30:39.777548924 -0500
 @@ -0,0 +1,243 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -718,8 +1542,8 @@ diff -ruN traderjoe/JoePair.sol traderjoe/JoePair.sol
 +    }
 +}
 diff -ruN traderjoe/JoeRouter02.sol traderjoe/JoeRouter02.sol
---- traderjoe/JoeRouter02.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/JoeRouter02.sol	2022-01-26 11:19:11.000000000 -0800
+--- traderjoe/JoeRouter02.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/JoeRouter02.sol	2022-03-04 12:30:39.777548924 -0500
 @@ -0,0 +1,479 @@
 +// SPDX-License-Identifier: GPL-3.0
 +
@@ -1200,9 +2024,255 @@ diff -ruN traderjoe/JoeRouter02.sol traderjoe/JoeRouter02.sol
 +        return JoeLibrary.getAmountsIn(factory, amountOut, path);
 +    }
 +}
+diff -ruN traderjoe/libraries/JoeLibrary.sol traderjoe/libraries/JoeLibrary.sol
+--- traderjoe/libraries/JoeLibrary.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/libraries/JoeLibrary.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,118 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.5.0;
++
++import "../interfaces/IJoePair.sol";
++
++import "./SafeMath.sol";
++
++library JoeLibrary {
++    using SafeMathJoe for uint256;
++
++    // returns sorted token addresses, used to handle return values from pairs sorted in this order
++    function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
++        require(tokenA != tokenB, "JoeLibrary: IDENTICAL_ADDRESSES");
++        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
++        require(token0 != address(0), "JoeLibrary: ZERO_ADDRESS");
++    }
++
++    // calculates the CREATE2 address for a pair without making any external calls
++    function pairFor(
++        address factory,
++        address tokenA,
++        address tokenB
++    ) internal pure returns (address pair) {
++        (address token0, address token1) = sortTokens(tokenA, tokenB);
++        pair = address(
++            uint256(
++                keccak256(
++                    abi.encodePacked(
++                        hex"ff",
++                        factory,
++                        keccak256(abi.encodePacked(token0, token1)),
++                        hex"0bbca9af0511ad1a1da383135cf3a8d2ac620e549ef9f6ae3a4c33c2fed0af91" // init code fuji
++                    )
++                )
++            )
++        );
++    }
++
++    // fetches and sorts the reserves for a pair
++    function getReserves(
++        address factory,
++        address tokenA,
++        address tokenB
++    ) internal view returns (uint256 reserveA, uint256 reserveB) {
++        (address token0, ) = sortTokens(tokenA, tokenB);
++        (uint256 reserve0, uint256 reserve1, ) = IJoePair(pairFor(factory, tokenA, tokenB)).getReserves();
++        (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
++    }
++
++    // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
++    function quote(
++        uint256 amountA,
++        uint256 reserveA,
++        uint256 reserveB
++    ) internal pure returns (uint256 amountB) {
++        require(amountA > 0, "JoeLibrary: INSUFFICIENT_AMOUNT");
++        require(reserveA > 0 && reserveB > 0, "JoeLibrary: INSUFFICIENT_LIQUIDITY");
++        amountB = amountA.mul(reserveB) / reserveA;
++    }
++
++    // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
++    function getAmountOut(
++        uint256 amountIn,
++        uint256 reserveIn,
++        uint256 reserveOut
++    ) internal pure returns (uint256 amountOut) {
++        require(amountIn > 0, "JoeLibrary: INSUFFICIENT_INPUT_AMOUNT");
++        require(reserveIn > 0 && reserveOut > 0, "JoeLibrary: INSUFFICIENT_LIQUIDITY");
++        uint256 amountInWithFee = amountIn.mul(997);
++        uint256 numerator = amountInWithFee.mul(reserveOut);
++        uint256 denominator = reserveIn.mul(1000).add(amountInWithFee);
++        amountOut = numerator / denominator;
++    }
++
++    // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
++    function getAmountIn(
++        uint256 amountOut,
++        uint256 reserveIn,
++        uint256 reserveOut
++    ) internal pure returns (uint256 amountIn) {
++        require(amountOut > 0, "JoeLibrary: INSUFFICIENT_OUTPUT_AMOUNT");
++        require(reserveIn > 0 && reserveOut > 0, "JoeLibrary: INSUFFICIENT_LIQUIDITY");
++        uint256 numerator = reserveIn.mul(amountOut).mul(1000);
++        uint256 denominator = reserveOut.sub(amountOut).mul(997);
++        amountIn = (numerator / denominator).add(1);
++    }
++
++    // performs chained getAmountOut calculations on any number of pairs
++    function getAmountsOut(
++        address factory,
++        uint256 amountIn,
++        address[] memory path
++    ) internal view returns (uint256[] memory amounts) {
++        require(path.length >= 2, "JoeLibrary: INVALID_PATH");
++        amounts = new uint256[](path.length);
++        amounts[0] = amountIn;
++        for (uint256 i; i < path.length - 1; i++) {
++            (uint256 reserveIn, uint256 reserveOut) = getReserves(factory, path[i], path[i + 1]);
++            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
++        }
++    }
++
++    // performs chained getAmountIn calculations on any number of pairs
++    function getAmountsIn(
++        address factory,
++        uint256 amountOut,
++        address[] memory path
++    ) internal view returns (uint256[] memory amounts) {
++        require(path.length >= 2, "JoeLibrary: INVALID_PATH");
++        amounts = new uint256[](path.length);
++        amounts[amounts.length - 1] = amountOut;
++        for (uint256 i = path.length - 1; i > 0; i--) {
++            (uint256 reserveIn, uint256 reserveOut) = getReserves(factory, path[i - 1], path[i]);
++            amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
++        }
++    }
++}
+diff -ruN traderjoe/libraries/Math.sol traderjoe/libraries/Math.sol
+--- traderjoe/libraries/Math.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/libraries/Math.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,25 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity =0.6.12;
++
++// a library for performing various math operations
++
++library Math {
++    function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
++        z = x < y ? x : y;
++    }
++
++    // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
++    function sqrt(uint256 y) internal pure returns (uint256 z) {
++        if (y > 3) {
++            z = y;
++            uint256 x = y / 2 + 1;
++            while (x < z) {
++                z = x;
++                x = (y / x + x) / 2;
++            }
++        } else if (y != 0) {
++            z = 1;
++        }
++    }
++}
+diff -ruN traderjoe/libraries/SafeMath.sol traderjoe/libraries/SafeMath.sol
+--- traderjoe/libraries/SafeMath.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/libraries/SafeMath.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,19 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity =0.6.12;
++
++// a library for performing overflow-safe math, courtesy of DappHub (https://github.com/dapphub/ds-math)
++
++library SafeMathJoe {
++    function add(uint256 x, uint256 y) internal pure returns (uint256 z) {
++        require((z = x + y) >= x, "ds-math-add-overflow");
++    }
++
++    function sub(uint256 x, uint256 y) internal pure returns (uint256 z) {
++        require((z = x - y) <= x, "ds-math-sub-underflow");
++    }
++
++    function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
++        require(y == 0 || (z = x * y) / y == x, "ds-math-mul-overflow");
++    }
++}
+diff -ruN traderjoe/libraries/TransferHelper.sol traderjoe/libraries/TransferHelper.sol
+--- traderjoe/libraries/TransferHelper.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/libraries/TransferHelper.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,42 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity >=0.6.0;
++
++// helper methods for interacting with ERC20 tokens and sending AVAX that do not consistently return true/false
++library TransferHelper {
++    function safeApprove(
++        address token,
++        address to,
++        uint256 value
++    ) internal {
++        // bytes4(keccak256(bytes('approve(address,uint256)')));
++        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x095ea7b3, to, value));
++        require(success && (data.length == 0 || abi.decode(data, (bool))), "TransferHelper: APPROVE_FAILED");
++    }
++
++    function safeTransfer(
++        address token,
++        address to,
++        uint256 value
++    ) internal {
++        // bytes4(keccak256(bytes('transfer(address,uint256)')));
++        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0xa9059cbb, to, value));
++        require(success && (data.length == 0 || abi.decode(data, (bool))), "TransferHelper: TRANSFER_FAILED");
++    }
++
++    function safeTransferFrom(
++        address token,
++        address from,
++        address to,
++        uint256 value
++    ) internal {
++        // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
++        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd, from, to, value));
++        require(success && (data.length == 0 || abi.decode(data, (bool))), "TransferHelper: TRANSFER_FROM_FAILED");
++    }
++
++    function safeTransferAVAX(address to, uint256 value) internal {
++        (bool success, ) = to.call{value: value}(new bytes(0));
++        require(success, "TransferHelper: AVAX_TRANSFER_FAILED");
++    }
++}
+diff -ruN traderjoe/libraries/UQ112x112.sol traderjoe/libraries/UQ112x112.sol
+--- traderjoe/libraries/UQ112x112.sol	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/libraries/UQ112x112.sol	2022-03-04 12:30:39.781548863 -0500
+@@ -0,0 +1,22 @@
++// SPDX-License-Identifier: GPL-3.0
++
++pragma solidity =0.6.12;
++
++// a library for handling binary fixed point numbers (https://en.wikipedia.org/wiki/Q_(number_format))
++
++// range: [0, 2**112 - 1]
++// resolution: 1 / 2**112
++
++library UQ112x112 {
++    uint224 constant Q112 = 2**112;
++
++    // encode a uint112 as a UQ112x112
++    function encode(uint112 y) internal pure returns (uint224 z) {
++        z = uint224(y) * Q112; // never overflows
++    }
++
++    // divide a UQ112x112 by a uint112, returning a UQ112x112
++    function uqdiv(uint224 x, uint112 y) internal pure returns (uint224 z) {
++        z = x / uint224(y);
++    }
++}
 diff -ruN traderjoe/LICENSE traderjoe/LICENSE
---- traderjoe/LICENSE	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/LICENSE	2022-01-26 11:19:11.000000000 -0800
+--- traderjoe/LICENSE	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/LICENSE	2022-03-04 12:30:39.777548924 -0500
 @@ -0,0 +1,674 @@
 +                    GNU GENERAL PUBLIC LICENSE
 +                       Version 3, 29 June 2007
@@ -1879,8 +2949,8 @@ diff -ruN traderjoe/LICENSE traderjoe/LICENSE
 +Public License instead of this License.  But first, please read
 +<https://www.gnu.org/licenses/why-not-lgpl.html>.
 diff -ruN traderjoe/README.md traderjoe/README.md
---- traderjoe/README.md	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/README.md	2022-01-26 11:19:11.000000000 -0800
+--- traderjoe/README.md	1969-12-31 19:00:00.000000000 -0500
++++ traderjoe/README.md	2022-03-04 12:30:39.777548924 -0500
 @@ -0,0 +1,13 @@
 +# Uniswap V2 Area
 +
@@ -1895,713 +2965,3 @@ diff -ruN traderjoe/README.md traderjoe/README.md
 +```
 +$ git diff 4c4bf551417e3df09a25aa0dbb6941cccbbac11a .
 +```
-diff -ruN traderjoe/interfaces/IERC20.sol traderjoe/interfaces/IERC20.sol
---- traderjoe/interfaces/IERC20.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IERC20.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,30 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.5.0;
-+
-+interface IERC20Joe {
-+    event Approval(address indexed owner, address indexed spender, uint256 value);
-+    event Transfer(address indexed from, address indexed to, uint256 value);
-+
-+    function name() external view returns (string memory);
-+
-+    function symbol() external view returns (string memory);
-+
-+    function decimals() external view returns (uint8);
-+
-+    function totalSupply() external view returns (uint256);
-+
-+    function balanceOf(address owner) external view returns (uint256);
-+
-+    function allowance(address owner, address spender) external view returns (uint256);
-+
-+    function approve(address spender, uint256 value) external returns (bool);
-+
-+    function transfer(address to, uint256 value) external returns (bool);
-+
-+    function transferFrom(
-+        address from,
-+        address to,
-+        uint256 value
-+    ) external returns (bool);
-+}
-diff -ruN traderjoe/interfaces/IJoeCallee.sol traderjoe/interfaces/IJoeCallee.sol
---- traderjoe/interfaces/IJoeCallee.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeCallee.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,12 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.5.0;
-+
-+interface IJoeCallee {
-+    function joeCall(
-+        address sender,
-+        uint256 amount0,
-+        uint256 amount1,
-+        bytes calldata data
-+    ) external;
-+}
-diff -ruN traderjoe/interfaces/IJoeERC20.sol traderjoe/interfaces/IJoeERC20.sol
---- traderjoe/interfaces/IJoeERC20.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeERC20.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,46 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.5.0;
-+
-+interface IJoeERC20 {
-+    event Approval(address indexed owner, address indexed spender, uint256 value);
-+    event Transfer(address indexed from, address indexed to, uint256 value);
-+
-+    function name() external pure returns (string memory);
-+
-+    function symbol() external pure returns (string memory);
-+
-+    function decimals() external pure returns (uint8);
-+
-+    function totalSupply() external view returns (uint256);
-+
-+    function balanceOf(address owner) external view returns (uint256);
-+
-+    function allowance(address owner, address spender) external view returns (uint256);
-+
-+    function approve(address spender, uint256 value) external returns (bool);
-+
-+    function transfer(address to, uint256 value) external returns (bool);
-+
-+    function transferFrom(
-+        address from,
-+        address to,
-+        uint256 value
-+    ) external returns (bool);
-+
-+    function DOMAIN_SEPARATOR() external view returns (bytes32);
-+
-+    function PERMIT_TYPEHASH() external pure returns (bytes32);
-+
-+    function nonces(address owner) external view returns (uint256);
-+
-+    function permit(
-+        address owner,
-+        address spender,
-+        uint256 value,
-+        uint256 deadline,
-+        uint8 v,
-+        bytes32 r,
-+        bytes32 s
-+    ) external;
-+}
-diff -ruN traderjoe/interfaces/IJoeFactory.sol traderjoe/interfaces/IJoeFactory.sol
---- traderjoe/interfaces/IJoeFactory.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeFactory.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,27 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.5.0;
-+
-+interface IJoeFactory {
-+    event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
-+
-+    function feeTo() external view returns (address);
-+
-+    function feeToSetter() external view returns (address);
-+
-+    function migrator() external view returns (address);
-+
-+    function getPair(address tokenA, address tokenB) external view returns (address pair);
-+
-+    function allPairs(uint256) external view returns (address pair);
-+
-+    function allPairsLength() external view returns (uint256);
-+
-+    function createPair(address tokenA, address tokenB) external returns (address pair);
-+
-+    function setFeeTo(address) external;
-+
-+    function setFeeToSetter(address) external;
-+
-+    function setMigrator(address) external;
-+}
-diff -ruN traderjoe/interfaces/IJoePair.sol traderjoe/interfaces/IJoePair.sol
---- traderjoe/interfaces/IJoePair.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoePair.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,98 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.5.0;
-+
-+interface IJoePair {
-+    event Approval(address indexed owner, address indexed spender, uint256 value);
-+    event Transfer(address indexed from, address indexed to, uint256 value);
-+
-+    function name() external pure returns (string memory);
-+
-+    function symbol() external pure returns (string memory);
-+
-+    function decimals() external pure returns (uint8);
-+
-+    function totalSupply() external view returns (uint256);
-+
-+    function balanceOf(address owner) external view returns (uint256);
-+
-+    function allowance(address owner, address spender) external view returns (uint256);
-+
-+    function approve(address spender, uint256 value) external returns (bool);
-+
-+    function transfer(address to, uint256 value) external returns (bool);
-+
-+    function transferFrom(
-+        address from,
-+        address to,
-+        uint256 value
-+    ) external returns (bool);
-+
-+    function DOMAIN_SEPARATOR() external view returns (bytes32);
-+
-+    function PERMIT_TYPEHASH() external pure returns (bytes32);
-+
-+    function nonces(address owner) external view returns (uint256);
-+
-+    function permit(
-+        address owner,
-+        address spender,
-+        uint256 value,
-+        uint256 deadline,
-+        uint8 v,
-+        bytes32 r,
-+        bytes32 s
-+    ) external;
-+
-+    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
-+    event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
-+    event Swap(
-+        address indexed sender,
-+        uint256 amount0In,
-+        uint256 amount1In,
-+        uint256 amount0Out,
-+        uint256 amount1Out,
-+        address indexed to
-+    );
-+    event Sync(uint112 reserve0, uint112 reserve1);
-+
-+    function MINIMUM_LIQUIDITY() external pure returns (uint256);
-+
-+    function factory() external view returns (address);
-+
-+    function token0() external view returns (address);
-+
-+    function token1() external view returns (address);
-+
-+    function getReserves()
-+        external
-+        view
-+        returns (
-+            uint112 reserve0,
-+            uint112 reserve1,
-+            uint32 blockTimestampLast
-+        );
-+
-+    function price0CumulativeLast() external view returns (uint256);
-+
-+    function price1CumulativeLast() external view returns (uint256);
-+
-+    function kLast() external view returns (uint256);
-+
-+    function mint(address to) external returns (uint256 liquidity);
-+
-+    function burn(address to) external returns (uint256 amount0, uint256 amount1);
-+
-+    function swap(
-+        uint256 amount0Out,
-+        uint256 amount1Out,
-+        address to,
-+        bytes calldata data
-+    ) external;
-+
-+    function skim(address to) external;
-+
-+    function sync() external;
-+
-+    function initialize(address, address) external;
-+}
-diff -ruN traderjoe/interfaces/IJoeRouter01.sol traderjoe/interfaces/IJoeRouter01.sol
---- traderjoe/interfaces/IJoeRouter01.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeRouter01.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,156 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.6.2;
-+
-+interface IJoeRouter01 {
-+    function factory() external pure returns (address);
-+
-+    function WAVAX() external pure returns (address);
-+
-+    function addLiquidity(
-+        address tokenA,
-+        address tokenB,
-+        uint256 amountADesired,
-+        uint256 amountBDesired,
-+        uint256 amountAMin,
-+        uint256 amountBMin,
-+        address to,
-+        uint256 deadline
-+    )
-+        external
-+        returns (
-+            uint256 amountA,
-+            uint256 amountB,
-+            uint256 liquidity
-+        );
-+
-+    function addLiquidityAVAX(
-+        address token,
-+        uint256 amountTokenDesired,
-+        uint256 amountTokenMin,
-+        uint256 amountAVAXMin,
-+        address to,
-+        uint256 deadline
-+    )
-+        external
-+        payable
-+        returns (
-+            uint256 amountToken,
-+            uint256 amountAVAX,
-+            uint256 liquidity
-+        );
-+
-+    function removeLiquidity(
-+        address tokenA,
-+        address tokenB,
-+        uint256 liquidity,
-+        uint256 amountAMin,
-+        uint256 amountBMin,
-+        address to,
-+        uint256 deadline
-+    ) external returns (uint256 amountA, uint256 amountB);
-+
-+    function removeLiquidityAVAX(
-+        address token,
-+        uint256 liquidity,
-+        uint256 amountTokenMin,
-+        uint256 amountAVAXMin,
-+        address to,
-+        uint256 deadline
-+    ) external returns (uint256 amountToken, uint256 amountAVAX);
-+
-+    function removeLiquidityWithPermit(
-+        address tokenA,
-+        address tokenB,
-+        uint256 liquidity,
-+        uint256 amountAMin,
-+        uint256 amountBMin,
-+        address to,
-+        uint256 deadline,
-+        bool approveMax,
-+        uint8 v,
-+        bytes32 r,
-+        bytes32 s
-+    ) external returns (uint256 amountA, uint256 amountB);
-+
-+    function removeLiquidityAVAXWithPermit(
-+        address token,
-+        uint256 liquidity,
-+        uint256 amountTokenMin,
-+        uint256 amountAVAXMin,
-+        address to,
-+        uint256 deadline,
-+        bool approveMax,
-+        uint8 v,
-+        bytes32 r,
-+        bytes32 s
-+    ) external returns (uint256 amountToken, uint256 amountAVAX);
-+
-+    function swapExactTokensForTokens(
-+        uint256 amountIn,
-+        uint256 amountOutMin,
-+        address[] calldata path,
-+        address to,
-+        uint256 deadline
-+    ) external returns (uint256[] memory amounts);
-+
-+    function swapTokensForExactTokens(
-+        uint256 amountOut,
-+        uint256 amountInMax,
-+        address[] calldata path,
-+        address to,
-+        uint256 deadline
-+    ) external returns (uint256[] memory amounts);
-+
-+    function swapExactAVAXForTokens(
-+        uint256 amountOutMin,
-+        address[] calldata path,
-+        address to,
-+        uint256 deadline
-+    ) external payable returns (uint256[] memory amounts);
-+
-+    function swapTokensForExactAVAX(
-+        uint256 amountOut,
-+        uint256 amountInMax,
-+        address[] calldata path,
-+        address to,
-+        uint256 deadline
-+    ) external returns (uint256[] memory amounts);
-+
-+    function swapExactTokensForAVAX(
-+        uint256 amountIn,
-+        uint256 amountOutMin,
-+        address[] calldata path,
-+        address to,
-+        uint256 deadline
-+    ) external returns (uint256[] memory amounts);
-+
-+    function swapAVAXForExactTokens(
-+        uint256 amountOut,
-+        address[] calldata path,
-+        address to,
-+        uint256 deadline
-+    ) external payable returns (uint256[] memory amounts);
-+
-+    function quote(
-+        uint256 amountA,
-+        uint256 reserveA,
-+        uint256 reserveB
-+    ) external pure returns (uint256 amountB);
-+
-+    function getAmountOut(
-+        uint256 amountIn,
-+        uint256 reserveIn,
-+        uint256 reserveOut
-+    ) external pure returns (uint256 amountOut);
-+
-+    function getAmountIn(
-+        uint256 amountOut,
-+        uint256 reserveIn,
-+        uint256 reserveOut
-+    ) external pure returns (uint256 amountIn);
-+
-+    function getAmountsOut(uint256 amountIn, address[] calldata path) external view returns (uint256[] memory amounts);
-+
-+    function getAmountsIn(uint256 amountOut, address[] calldata path) external view returns (uint256[] memory amounts);
-+}
-diff -ruN traderjoe/interfaces/IJoeRouter02.sol traderjoe/interfaces/IJoeRouter02.sol
---- traderjoe/interfaces/IJoeRouter02.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IJoeRouter02.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,52 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.6.2;
-+
-+import "./IJoeRouter01.sol";
-+
-+interface IJoeRouter02 is IJoeRouter01 {
-+    function removeLiquidityAVAXSupportingFeeOnTransferTokens(
-+        address token,
-+        uint256 liquidity,
-+        uint256 amountTokenMin,
-+        uint256 amountAVAXMin,
-+        address to,
-+        uint256 deadline
-+    ) external returns (uint256 amountAVAX);
-+
-+    function removeLiquidityAVAXWithPermitSupportingFeeOnTransferTokens(
-+        address token,
-+        uint256 liquidity,
-+        uint256 amountTokenMin,
-+        uint256 amountAVAXMin,
-+        address to,
-+        uint256 deadline,
-+        bool approveMax,
-+        uint8 v,
-+        bytes32 r,
-+        bytes32 s
-+    ) external returns (uint256 amountAVAX);
-+
-+    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
-+        uint256 amountIn,
-+        uint256 amountOutMin,
-+        address[] calldata path,
-+        address to,
-+        uint256 deadline
-+    ) external;
-+
-+    function swapExactAVAXForTokensSupportingFeeOnTransferTokens(
-+        uint256 amountOutMin,
-+        address[] calldata path,
-+        address to,
-+        uint256 deadline
-+    ) external payable;
-+
-+    function swapExactTokensForAVAXSupportingFeeOnTransferTokens(
-+        uint256 amountIn,
-+        uint256 amountOutMin,
-+        address[] calldata path,
-+        address to,
-+        uint256 deadline
-+    ) external;
-+}
-diff -ruN traderjoe/interfaces/IWAVAX.sol traderjoe/interfaces/IWAVAX.sol
---- traderjoe/interfaces/IWAVAX.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/interfaces/IWAVAX.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,11 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.5.0;
-+
-+interface IWAVAX {
-+    function deposit() external payable;
-+
-+    function transfer(address to, uint256 value) external returns (bool);
-+
-+    function withdraw(uint256) external;
-+}
-diff -ruN traderjoe/libraries/JoeLibrary.sol traderjoe/libraries/JoeLibrary.sol
---- traderjoe/libraries/JoeLibrary.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/JoeLibrary.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,118 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.5.0;
-+
-+import "../interfaces/IJoePair.sol";
-+
-+import "./SafeMath.sol";
-+
-+library JoeLibrary {
-+    using SafeMathJoe for uint256;
-+
-+    // returns sorted token addresses, used to handle return values from pairs sorted in this order
-+    function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
-+        require(tokenA != tokenB, "JoeLibrary: IDENTICAL_ADDRESSES");
-+        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-+        require(token0 != address(0), "JoeLibrary: ZERO_ADDRESS");
-+    }
-+
-+    // calculates the CREATE2 address for a pair without making any external calls
-+    function pairFor(
-+        address factory,
-+        address tokenA,
-+        address tokenB
-+    ) internal pure returns (address pair) {
-+        (address token0, address token1) = sortTokens(tokenA, tokenB);
-+        pair = address(
-+            uint256(
-+                keccak256(
-+                    abi.encodePacked(
-+                        hex"ff",
-+                        factory,
-+                        keccak256(abi.encodePacked(token0, token1)),
-+                        hex"0bbca9af0511ad1a1da383135cf3a8d2ac620e549ef9f6ae3a4c33c2fed0af91" // init code fuji
-+                    )
-+                )
-+            )
-+        );
-+    }
-+
-+    // fetches and sorts the reserves for a pair
-+    function getReserves(
-+        address factory,
-+        address tokenA,
-+        address tokenB
-+    ) internal view returns (uint256 reserveA, uint256 reserveB) {
-+        (address token0, ) = sortTokens(tokenA, tokenB);
-+        (uint256 reserve0, uint256 reserve1, ) = IJoePair(pairFor(factory, tokenA, tokenB)).getReserves();
-+        (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
-+    }
-+
-+    // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
-+    function quote(
-+        uint256 amountA,
-+        uint256 reserveA,
-+        uint256 reserveB
-+    ) internal pure returns (uint256 amountB) {
-+        require(amountA > 0, "JoeLibrary: INSUFFICIENT_AMOUNT");
-+        require(reserveA > 0 && reserveB > 0, "JoeLibrary: INSUFFICIENT_LIQUIDITY");
-+        amountB = amountA.mul(reserveB) / reserveA;
-+    }
-+
-+    // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
-+    function getAmountOut(
-+        uint256 amountIn,
-+        uint256 reserveIn,
-+        uint256 reserveOut
-+    ) internal pure returns (uint256 amountOut) {
-+        require(amountIn > 0, "JoeLibrary: INSUFFICIENT_INPUT_AMOUNT");
-+        require(reserveIn > 0 && reserveOut > 0, "JoeLibrary: INSUFFICIENT_LIQUIDITY");
-+        uint256 amountInWithFee = amountIn.mul(997);
-+        uint256 numerator = amountInWithFee.mul(reserveOut);
-+        uint256 denominator = reserveIn.mul(1000).add(amountInWithFee);
-+        amountOut = numerator / denominator;
-+    }
-+
-+    // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
-+    function getAmountIn(
-+        uint256 amountOut,
-+        uint256 reserveIn,
-+        uint256 reserveOut
-+    ) internal pure returns (uint256 amountIn) {
-+        require(amountOut > 0, "JoeLibrary: INSUFFICIENT_OUTPUT_AMOUNT");
-+        require(reserveIn > 0 && reserveOut > 0, "JoeLibrary: INSUFFICIENT_LIQUIDITY");
-+        uint256 numerator = reserveIn.mul(amountOut).mul(1000);
-+        uint256 denominator = reserveOut.sub(amountOut).mul(997);
-+        amountIn = (numerator / denominator).add(1);
-+    }
-+
-+    // performs chained getAmountOut calculations on any number of pairs
-+    function getAmountsOut(
-+        address factory,
-+        uint256 amountIn,
-+        address[] memory path
-+    ) internal view returns (uint256[] memory amounts) {
-+        require(path.length >= 2, "JoeLibrary: INVALID_PATH");
-+        amounts = new uint256[](path.length);
-+        amounts[0] = amountIn;
-+        for (uint256 i; i < path.length - 1; i++) {
-+            (uint256 reserveIn, uint256 reserveOut) = getReserves(factory, path[i], path[i + 1]);
-+            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
-+        }
-+    }
-+
-+    // performs chained getAmountIn calculations on any number of pairs
-+    function getAmountsIn(
-+        address factory,
-+        uint256 amountOut,
-+        address[] memory path
-+    ) internal view returns (uint256[] memory amounts) {
-+        require(path.length >= 2, "JoeLibrary: INVALID_PATH");
-+        amounts = new uint256[](path.length);
-+        amounts[amounts.length - 1] = amountOut;
-+        for (uint256 i = path.length - 1; i > 0; i--) {
-+            (uint256 reserveIn, uint256 reserveOut) = getReserves(factory, path[i - 1], path[i]);
-+            amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
-+        }
-+    }
-+}
-diff -ruN traderjoe/libraries/Math.sol traderjoe/libraries/Math.sol
---- traderjoe/libraries/Math.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/Math.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,25 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity =0.6.12;
-+
-+// a library for performing various math operations
-+
-+library Math {
-+    function min(uint256 x, uint256 y) internal pure returns (uint256 z) {
-+        z = x < y ? x : y;
-+    }
-+
-+    // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
-+    function sqrt(uint256 y) internal pure returns (uint256 z) {
-+        if (y > 3) {
-+            z = y;
-+            uint256 x = y / 2 + 1;
-+            while (x < z) {
-+                z = x;
-+                x = (y / x + x) / 2;
-+            }
-+        } else if (y != 0) {
-+            z = 1;
-+        }
-+    }
-+}
-diff -ruN traderjoe/libraries/SafeMath.sol traderjoe/libraries/SafeMath.sol
---- traderjoe/libraries/SafeMath.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/SafeMath.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,19 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity =0.6.12;
-+
-+// a library for performing overflow-safe math, courtesy of DappHub (https://github.com/dapphub/ds-math)
-+
-+library SafeMathJoe {
-+    function add(uint256 x, uint256 y) internal pure returns (uint256 z) {
-+        require((z = x + y) >= x, "ds-math-add-overflow");
-+    }
-+
-+    function sub(uint256 x, uint256 y) internal pure returns (uint256 z) {
-+        require((z = x - y) <= x, "ds-math-sub-underflow");
-+    }
-+
-+    function mul(uint256 x, uint256 y) internal pure returns (uint256 z) {
-+        require(y == 0 || (z = x * y) / y == x, "ds-math-mul-overflow");
-+    }
-+}
-diff -ruN traderjoe/libraries/TransferHelper.sol traderjoe/libraries/TransferHelper.sol
---- traderjoe/libraries/TransferHelper.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/TransferHelper.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,42 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity >=0.6.0;
-+
-+// helper methods for interacting with ERC20 tokens and sending AVAX that do not consistently return true/false
-+library TransferHelper {
-+    function safeApprove(
-+        address token,
-+        address to,
-+        uint256 value
-+    ) internal {
-+        // bytes4(keccak256(bytes('approve(address,uint256)')));
-+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x095ea7b3, to, value));
-+        require(success && (data.length == 0 || abi.decode(data, (bool))), "TransferHelper: APPROVE_FAILED");
-+    }
-+
-+    function safeTransfer(
-+        address token,
-+        address to,
-+        uint256 value
-+    ) internal {
-+        // bytes4(keccak256(bytes('transfer(address,uint256)')));
-+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0xa9059cbb, to, value));
-+        require(success && (data.length == 0 || abi.decode(data, (bool))), "TransferHelper: TRANSFER_FAILED");
-+    }
-+
-+    function safeTransferFrom(
-+        address token,
-+        address from,
-+        address to,
-+        uint256 value
-+    ) internal {
-+        // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
-+        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd, from, to, value));
-+        require(success && (data.length == 0 || abi.decode(data, (bool))), "TransferHelper: TRANSFER_FROM_FAILED");
-+    }
-+
-+    function safeTransferAVAX(address to, uint256 value) internal {
-+        (bool success, ) = to.call{value: value}(new bytes(0));
-+        require(success, "TransferHelper: AVAX_TRANSFER_FAILED");
-+    }
-+}
-diff -ruN traderjoe/libraries/UQ112x112.sol traderjoe/libraries/UQ112x112.sol
---- traderjoe/libraries/UQ112x112.sol	1969-12-31 16:00:00.000000000 -0800
-+++ traderjoe/libraries/UQ112x112.sol	2022-01-26 11:19:11.000000000 -0800
-@@ -0,0 +1,22 @@
-+// SPDX-License-Identifier: GPL-3.0
-+
-+pragma solidity =0.6.12;
-+
-+// a library for handling binary fixed point numbers (https://en.wikipedia.org/wiki/Q_(number_format))
-+
-+// range: [0, 2**112 - 1]
-+// resolution: 1 / 2**112
-+
-+library UQ112x112 {
-+    uint224 constant Q112 = 2**112;
-+
-+    // encode a uint112 as a UQ112x112
-+    function encode(uint112 y) internal pure returns (uint224 z) {
-+        z = uint224(y) * Q112; // never overflows
-+    }
-+
-+    // divide a UQ112x112 by a uint112, returning a UQ112x112
-+    function uqdiv(uint224 x, uint112 y) internal pure returns (uint224 z) {
-+        z = x / uint224(y);
-+    }
-+}
