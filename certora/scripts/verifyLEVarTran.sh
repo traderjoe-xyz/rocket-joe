@@ -1,3 +1,4 @@
+make -C certora munged
 
 
 certoraRun \

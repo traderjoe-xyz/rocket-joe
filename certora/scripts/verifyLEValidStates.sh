@@ -1,3 +1,5 @@
+make -C certora munged
+
 certoraRun \
     certora/harness/LaunchEventHarness.sol \
     certora/harness/OwnerA.sol \

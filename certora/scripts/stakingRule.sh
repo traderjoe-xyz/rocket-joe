@@ -12,6 +12,8 @@ msg=$2
 rule=$1
 shift 2
 
+make -C certora munged
+
 certoraRun certora/munged/RocketJoeStaking.sol \
            certora/helpers/DummyERC20Impl.sol \
            certora/munged/RocketJoeToken.sol  \

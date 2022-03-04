@@ -1,4 +1,4 @@
-
+make -C certora munged
 
 certoraRun \
     certora/harness/LaunchEventHarness.sol \
