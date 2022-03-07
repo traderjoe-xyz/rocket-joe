@@ -36,11 +36,11 @@ methods {
     PRECISION() returns (uint256) envfree
 }
 
-rule sanity(method f) {
-    env e; calldataarg args;
-    f(e, args);
-    assert false;
-}
+// rule sanity(method f) {
+//     env e; calldataarg args;
+//     f(e, args);
+//     assert false;
+// }
 
 ghost sum_user_balance() returns uint256;
 // {
@@ -70,8 +70,12 @@ ghost initialized() returns bool;
 
 ghost initializing() returns bool;
 
-hook Sload bool init currentContract._initialized STORAGE {
-  havoc initialized assuming initialized@new() == init;
+// hook Sload bool init currentContract._initialized STORAGE {
+//   havoc initialized assuming initialized@new() == init;
+// }
+
+hook Sstore currentContract._initialized bool init STORAGE {
+    havoc initialized assuming initialized@new() == init;
 }
 
 hook Sstore currentContract._initializing bool initing STORAGE {
@@ -81,6 +85,9 @@ hook Sstore currentContract._initializing bool initing STORAGE {
 // helper invariants 
 invariant is_initialized()
     initialized()
+{ preserved {
+    requireInvariant not_initializing();
+}}
 
 invariant not_initializing()
     !initializing()
@@ -94,33 +101,21 @@ invariant not_initializing()
 // invariant User_RJ_balance_sums_supply()
 //     false
 
-// rule
-//rJoe.balanceOf(RJStaking) ≥ Σ pendingRewards over all users
-// the way this is written actually sums out the given rewards
-// invariant staking_RJ_balance_eq_pending_rewards(env e)
-//     rJoe.balanceOf(e, currentContract) >= sum_user_rewards()
-// new variation rJoe.balanceOf(currenctContract) >= pendingRJoe(user)
-invariant rJoe_solvency(env e, address user)
-    rJoe.balanceOf(e, currentContract) >= pendingRJoe(e, user)
-{ preserved with (env otherE) {
-    require otherE.msg.sender != currentContract;
-}}
+
 
 //joe.balanceOf(RJStaking)  ≥ Σ userInfo[user].amount
-invariant staking_joe_bal_sums_user_balance(env e) // passes
-   joe.balanceOf(e, currentContract) >= sum_user_balance()
-{ preserved with (env otherE) {
-    require otherE.msg.sender != currentContract;
-    address a; address b;
-    require a != b;
-    require sum_user_balance() > userJoeStaked(a) + userJoeStaked(b);
-} }
+// invariant staking_joe_bal_sums_user_balance(env e) // passes
+//    joe.balanceOf(e, currentContract) >= sum_user_balance()
+// { preserved with (env otherE) {
+//     require otherE.msg.sender != currentContract;
+//     requireInvariant user_balances_less_than_totalJoeStaked();
+// } }
 
-invariant totalJoeStaked_sums_user_balance() // passes
-    totalJoeStaked() == sum_user_balance()
-{ preserved {
-    requireInvariant user_balances_less_than_totalJoeStaked();
-}}
+// invariant totalJoeStaked_sums_user_balance() // passes
+//     totalJoeStaked() == sum_user_balance()
+// { preserved {
+//     requireInvariant user_balances_less_than_totalJoeStaked();
+// }}
 
 invariant balanceOf_Joe_eq_totalJoeStaked(env e) // passes
    joe.balanceOf(e, currentContract) >= totalJoeStaked()
@@ -158,10 +153,10 @@ rule userInfo_amount_safe_mutate(method f) {
 
 // rJoePerSec only changed by owner in updateEmissionRate
 // passes
-rule RJPS_only_owner_and_function(method f) //  filtered { f -> f.selector != 0xeb990c59} 
+rule RJPS_only_owner_and_function(method f) filtered { f -> f.selector != 0xeb990c59} 
 {
-    requireInvariant not_initializing();
     requireInvariant is_initialized();
+    requireInvariant not_initializing();
     env e; calldataarg args;
     uint256 RJPS_pre = rJoePerSec();
     f(e, args);
@@ -172,10 +167,11 @@ rule RJPS_only_owner_and_function(method f) //  filtered { f -> f.selector != 0x
 }
 
 // pendingReward[user] only decreased by user
-rule pending_reward_decreased_only_user(method f) { 
-    requireInvariant not_initializing();
+rule pending_reward_decreased_only_user(method f) filtered { f -> (f.selector != 0xeb990c59 && f.selector != emergencyWithdraw().selector)
+} { 
     requireInvariant is_initialized();
-    requireInvariant totalJoeStaked_sums_user_balance();
+    requireInvariant not_initializing();
+    // requireInvariant totalJoeStaked_sums_user_balance();
     env e; calldataarg args;
     require totalJoeStaked() < 1000000000000000; // max_uint256 - 1000; // rewards will decrease by 1 or 2 sometimes when it's close to max
     require e.msg.sender != currentContract;
@@ -188,8 +184,9 @@ rule pending_reward_decreased_only_user(method f) {
 
 //  - If I am staked, I get some RJoe
 rule staking_non_trivial_rJoe() {
-    requireInvariant totalJoeStaked_sums_user_balance();
+    // requireInvariant totalJoeStaked_sums_user_balance();
     requireInvariant is_initialized();
+    requireInvariant not_initializing();
     require PRECISION() > 0;
     require rJoePerSec() > 0 && rJoePerSec() < 1000000; // realistic range to help the tool run this rule faster
 
@@ -225,6 +222,7 @@ rule staking_trivial_on_zero_time() { // passes
 }
 
 //  - If I stake longer, I get more reward
+// vacuous 
 rule longer_stake_greater_return() { // passes
 
     storage init = lastStorage; 
@@ -250,31 +248,8 @@ rule longer_stake_greater_return() { // passes
     assert exists uint256 dt. e2.block.timestamp - e1.block.timestamp >= dt => rJoe2 > rJoe1;
 }
 
-// TODO, write with <=> for >= instead of exists
-rule stake_duration_correlates_return() { // passes
 
-    storage init = lastStorage; 
-    uint256 amount;
-    require amount > 0;
-    env e0;
-    env e1; 
-    env e2; 
 
-    // accessing the same account, not current contract
-    require e0.msg.sender != currentContract && e1.msg.sender == e0.msg.sender && e2.msg.sender == e0.msg.sender;
-    // account 2 stakes longer than account 1, which stakes more than 0 seconds
-    require e1.block.timestamp > e0.block.timestamp && e2.block.timestamp > e1.block.timestamp;
-
-    
-
-    deposit(e0, amount);
-    uint256 rJoe1 = pendingRJoe(e1, e0.msg.sender);
-    deposit(e0, amount) at init;
-    uint256 rJoe2 = pendingRJoe(e2, e0.msg.sender);
-
-    // assert rJoe2 > rJoe1; 
-    assert e2.block.timestamp > e1.block.timestamp <=> rJoe2 >= rJoe1;
-}
 
 //  - No front-running for deposit:   `f(); deposit(...)` has same result as `deposit()`)
 rule deposit_no_frontrunning(method f) // passes
@@ -307,7 +282,6 @@ rule deposit_no_frontrunning(method f) // passes
     assert user_bal_pre_clean - user_bal_post_clean == user_bal_pre_f - user_bal_post_f, "balance not received by user";
 }
 //  - No front-running for withdraw   `f(); withdraw(...)` has same result as `withdraw()`)
-// change to support case where balance is less than amount? // TODO
 rule withdraw_no_frontrunning(method f) filtered { f-> (f.selector != emergencyWithdraw().selector)}
 {
     // setup
@@ -464,3 +438,36 @@ rule verify_emergencyWithdraw() {
 //     uint256 post = accRJoePerShare();
 //     assert post > pre, "acc not increasing";
 // }
+
+
+// rule stake_duration_correlates_return() { // passes
+
+//     storage init = lastStorage; 
+//     uint256 amount;
+//     require amount > 0;
+//     env e0;
+//     env e1; 
+//     env e2; 
+
+//     // accessing the same account, not current contract
+//     require e0.msg.sender != currentContract && e1.msg.sender == e0.msg.sender && e2.msg.sender == e0.msg.sender;
+//     // account 2 stakes longer than account 1, which stakes more than 0 seconds
+//     require e1.block.timestamp > e0.block.timestamp && e2.block.timestamp > e1.block.timestamp;
+
+    
+
+//     deposit(e0, amount);
+//     uint256 rJoe1 = pendingRJoe(e1, e0.msg.sender);
+//     deposit(e0, amount) at init;
+//     uint256 rJoe2 = pendingRJoe(e2, e0.msg.sender);
+
+//     // assert rJoe2 > rJoe1; 
+//     assert e2.block.timestamp > e1.block.timestamp <=> rJoe2 >= rJoe1;
+// }
+
+
+// invariant rJoe_solvency(env e, address user)
+//     rJoe.balanceOf(e, currentContract) >= pendingRJoe(e, user)
+// { preserved with (env otherE) {
+//     require otherE.msg.sender != currentContract;
+// }}

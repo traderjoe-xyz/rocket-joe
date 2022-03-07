@@ -11,16 +11,16 @@ fi
 msg=$1
 shift 1
 
-certoraRun certora/munged/RocketJoeStaking.sol \
+certoraRun certora/harness/RocketJoeStakingHarness.sol \
            certora/helpers/DummyERC20Impl.sol \
            certora/munged/RocketJoeToken.sol  \
-    --verify RocketJoeStaking:certora/spec/staking.spec \
+    --verify RocketJoeStakingHarness:certora/spec/Staking.spec \
     --optimistic_loop --loop_iter 1 \
     --solc solc8.6  \
     --solc_args '["--optimize"]' \
     --settings -t=600,-postProcessCounterExamples=true \
-    --link RocketJoeStaking:joe=DummyERC20Impl \
-    --link RocketJoeStaking:rJoe=RocketJoeToken \
+    --link RocketJoeStakingHarness:joe=DummyERC20Impl \
+    --link RocketJoeStakingHarness:rJoe=RocketJoeToken \
     --cache RocketJoeStaking \
     --msg "${msg}" \
-    --staging \
+    # --staging \
