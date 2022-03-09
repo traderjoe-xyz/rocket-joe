@@ -7,8 +7,8 @@ pragma solidity ^0.8.0;
 import "../munged/LaunchEvent.sol";
 
 contract LaunchEventHarness is LaunchEvent {
-
-    constructor(address _issuer,
+    constructor(
+        address _issuer,
         uint256 _auctionStart,
         address _token,
         uint256 _tokenIncentivesPercent,
@@ -49,19 +49,19 @@ contract LaunchEventHarness is LaunchEvent {
         return getUserInfo[user].hasWithdrawnIncentives;
     }
 
-    function getNewWAVAX() public returns (address){
+    function getNewWAVAX() public returns (address) {
         return address(IWAVAX(rocketJoeFactory.wavax()));
     }
 
-    function getWAVAXbalanceOfThis() public returns (uint256){
+    function getWAVAXbalanceOfThis() public returns (uint256) {
         return WAVAX.balanceOf(address(this));
     }
 
-    function getWAVAXbalanceOfPair() public returns (uint256){
+    function getWAVAXbalanceOfPair() public returns (uint256) {
         return WAVAX.balanceOf(address(pair));
     }
 
-    function getPenaltyCollector() public returns (address){
+    function getPenaltyCollector() public returns (address) {
         return rocketJoeFactory.penaltyCollector();
     }
 
@@ -87,43 +87,43 @@ contract LaunchEventHarness is LaunchEvent {
 
     function getOwner() public returns (address) {
         return Ownable(address(rocketJoeFactory)).owner();
-    }  
+    }
 
     mapping(address => uint256) public getUserPairBalance;
 
-    function pairBalance(address _user) public override returns (uint256) {     
+    function pairBalance(address _user) public override returns (uint256) {
         getUserPairBalance[_user] = super.pairBalance(_user);
         return getUserPairBalance[_user];
-    }  
-
+    }
 
     // below are two equal methods but respresented differently
-     function getPairTotalSupplyOfThis() public returns (uint256) {
+    function getPairTotalSupplyOfThis() public returns (uint256) {
         return pair.totalSupply();
     }
 
     function getPairTotalSupply() public returns (uint256) {
-        address iJoePairTmp = address(IJoePair(IJoeFactory(factory).getPair(address(WAVAX), address(token))));
+        address iJoePairTmp = address(
+            IJoePair(
+                IJoeFactory(factory).getPair(address(WAVAX), address(token))
+            )
+        );
         require(iJoePairTmp == address(pair));
         return pair.totalSupply();
-    } 
+    }
 
-    function _safeTransferAVAX(address _to, uint256 _value) override internal {
+    function _safeTransferAVAX(address _to, uint256 _value) internal override {
         IReceiver(_to).receiveETH{value: _value}();
-    }    
+    }
 
-    function factoryGetPairWT() public returns (address){
+    function factoryGetPairWT() public returns (address) {
         return factory.getPair(address(WAVAX), address(token));
     }
 
-    function factoryGetPairTW() public returns (address){
+    function factoryGetPairTW() public returns (address) {
         return factory.getPair(address(token), address(WAVAX));
     }
-
-
 }
 
 interface IReceiver {
     function receiveETH() external payable;
 }
-

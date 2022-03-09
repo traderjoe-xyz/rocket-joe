@@ -42,4 +42,3 @@ which can then be checked into git.
 
 Note: there have been reports of unexpected behavior on mac, see
 [issue CUST-62](https://certora.atlassian.net/browse/CUST-62?atlOrigin=eyJpIjoiZWI1MGFjNGZkZGE0NGFlNjkwYjUwYjY2NmE4ZmQ1OTIiLCJwIjoiaiJ9).
-
