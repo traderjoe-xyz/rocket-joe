@@ -19,7 +19,7 @@ jobs:
       - name: Check key
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
-        run: echo "key length: " ${#CERTORAKEY}
+        run: echo "key length" ${#CERTORAKEY}
 
       - name: Set up node.js
         uses: actions/setup-node@v2
@@ -53,7 +53,7 @@ jobs:
         run: |
           touch certora/applyHarness.patch
           make -C certora munged
-          echo "key length:" ${#CERTORAKEY}
+          echo "key length" ${#CERTORAKEY}
           sh certora/scripts/${{ matrix.rule }}
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
