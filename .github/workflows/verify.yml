@@ -59,6 +59,7 @@ jobs:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
 
     strategy:
+      fail-fast: false
       matrix:
         rule:
           - verifyStaking.sh all
