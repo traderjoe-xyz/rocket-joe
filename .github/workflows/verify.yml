@@ -47,6 +47,7 @@ jobs:
       - name: Verify rule ${{ matrix.rule }}
         run: |
           touch certora/applyHarness.patch
+          make -C certora munged
           sh certora/scripts/${{ matrix.rule }}
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
