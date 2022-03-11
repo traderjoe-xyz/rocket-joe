@@ -23,23 +23,23 @@ jobs:
         run:  yarn
 
       - name: Install python
-        uses: actions/setup-python@v2
-        with: { python-version: 3.6 }
+        uses: actions/setup-python@v2
+        with: { python-version: 3.6 }
 
       - name: Install java
         uses: actions/setup-java@v1
-        with: { java-version: "11", java-package: jre }
+        with: { java-version: "11", java-package: jre }
 
       - name: Install solc
         run: |
-          wget https://github.com/ethereum/solidity/releases/download/v0.8.6/solc-static-linux
-          chmod +x solc-static-linux
-          sudo mv solc-static-linux /usr/local/bin/solc8.6
+          wget https://github.com/ethereum/solidity/releases/download/v0.8.6/solc-static-linux
+          chmod +x solc-static-linux
+          sudo mv solc-static-linux /usr/local/bin/solc8.6
 
       - name: Install certora
         run: pip install certora-cli
         env:
-          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
 
       - name: Create munged files
         run: make -C certora/ munged
@@ -63,7 +63,7 @@ jobs:
       - name: Verify high-level rule ${{ matrix.rule }}
         run: sh certora/scripts/verifyLEHighLevel.sh ${{ matrix.rule }}
         env:
-          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
 
 
   verify_launch_valid_states:
