@@ -47,7 +47,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: source
-          path: .
+          path: certora/
 
   verify_launch_high_level:
     runs-on: ubuntu-latest
