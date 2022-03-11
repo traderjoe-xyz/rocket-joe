@@ -46,7 +46,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: source
+          name: certora
           path: certora/
 
   verify_launch_high_level:
