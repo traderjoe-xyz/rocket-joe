@@ -55,9 +55,9 @@ jobs:
     strategy:
       matrix:
         rule:
-          - verifyStaking.sh all
+          # - verifyStaking.sh all
           - verifyLEHighLevel.sh hl_EqualityOfToken
-          - verifyLEHighLevel.sh l_depositAdditivity
+          # - verifyLEHighLevel.sh l_depositAdditivity
 #           - verifyLEHighLevel.sh l_withdrawAdditivity
 #           - verifyLEHighLevel.sh l_twoSideInverse
 #           - verifyLEHighLevel.sh l_noDepositFrontRun
@@ -77,7 +77,7 @@ jobs:
 #           - verifyLEHighLevel.sh hl_whatShouldRevert
 #           - verifyLEHighLevel.sh hl_noWithdrawFrontRun
           - verifyLEValidStates.sh alwaysInitialized
-          - verifyLEValidStates.sh factoryGetPairCorrelationCurrentVals
+          # - verifyLEValidStates.sh factoryGetPairCorrelationCurrentVals
 #           - verifyLEValidStates.sh cl_pairAndGetPairCorrelation
 #           - verifyLEValidStates.sh al_issuerAllocationZero
 #           - verifyLEValidStates.sh al_balanceLessThanAllocation
