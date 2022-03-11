@@ -8,7 +8,6 @@ import "../munged/RocketJoeStaking.sol";
 
 // TODO: change the name and supercontract and add any necessary harnessing
 contract RocketJoeStakingHarness is RocketJoeStaking {
-
     function userJoeStaked(address user) public view returns (uint256) {
         return userInfo[user].amount;
     }
@@ -21,8 +20,12 @@ contract RocketJoeStakingHarness is RocketJoeStaking {
         return owner();
     }
 
-    constructor(IERC20Upgradeable _joe, RocketJoeToken _rJoe, uint256 _rJoePerSec, uint256 _startTime) {
+    constructor(
+        IERC20Upgradeable _joe,
+        RocketJoeToken _rJoe,
+        uint256 _rJoePerSec,
+        uint256 _startTime
+    ) {
         initialize(_joe, _rJoe, _rJoePerSec, _startTime);
     }
 }
-
