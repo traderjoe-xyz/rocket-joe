@@ -45,7 +45,9 @@ jobs:
           sudo mv solc-static-linux /usr/local/bin/solc6.12
 
       - name: Verify rule ${{ matrix.rule }}
-        run: sh certora/scripts/${{ matrix.rule }}
+        run: |
+          touch certora/applyHarness.patch
+          sh certora/scripts/${{ matrix.rule }}
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
 
