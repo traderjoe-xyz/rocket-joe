@@ -24,4 +24,3 @@ deployments/localhost
 .last_confs
 certora_*
 resource_errors.json
-yarn.lock
