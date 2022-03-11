@@ -9,113 +9,115 @@ on:
       - main
 
 jobs:
-  verify:
+  setup:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Check key
-        env:
-          CERTORAKEY: ${{ secrets.CERTORAKEY }}
-        run: echo "key length" ${#CERTORAKEY}
-
       - name: Set up node.js
         uses: actions/setup-node@v2
-        with: { node-version: "16.x", check-latest: true, cache: 'yarn' }
+        with:
+          node-version: "16.x"
+          check-latest: true
 
       - name: Install node dependencies
         run:  yarn
 
-      - name: Install python
-        uses: actions/setup-python@v2
-        with: { python-version: 3.6, cache: 'pip' }
+      - name: Install python (certora dependency)
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
 
-      - name: Install java
+      - name: Install java (certora dependency)
         uses: actions/setup-java@v1
-        with: { java-version: "11", java-package: jre }
-
-      - name: Install certora
-        run: pip install certora-cli
+        with:
+          java-version: "11"
+          java-package: jre
 
       - name: Install solc
         run: |
-          wget https://github.com/ethereum/solidity/releases/download/v0.8.6/solc-static-linux
-          chmod +x solc-static-linux
-          sudo mv solc-static-linux /usr/local/bin/solc8.6
+          wget https://github.com/ethereum/solidity/releases/download/v0.8.6/solc-static-linux
+          chmod +x solc-static-linux
+          sudo mv solc-static-linux /usr/local/bin/solc8.6
 
-          wget https://github.com/ethereum/solidity/releases/download/v0.6.12/solc-static-linux
-          chmod +x solc-static-linux
-          sudo mv solc-static-linux /usr/local/bin/solc6.12
-
-      - name: Verify rule ${{ matrix.rule }}
-        run: |
-          touch certora/applyHarness.patch
-          make -C certora munged
-          echo "key length" ${#CERTORAKEY}
-          sh certora/scripts/${{ matrix.rule }}
+      - name: Install certora
+        run: pip install certora-cli
         env:
-          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
 
+      - name: Create munged files
+        run: make -C certora/ munged
+
+  verify_launch_high_level:
+    needs: setup
     strategy:
-      fail-fast: false
       matrix:
         rule:
-          - verifyStaking.sh all
-          - verifyLEHighLevel.sh hl_EqualityOfToken
-          - verifyLEHighLevel.sh l_depositAdditivity
-          - verifyLEHighLevel.sh l_withdrawAdditivity
-          - verifyLEHighLevel.sh l_twoSideInverse
-          - verifyLEHighLevel.sh l_noDepositFrontRun
-          - verifyLEHighLevel.sh l_noWithdrawLiquidityFrontRun
-          - verifyLEHighLevel.sh l_stoppedOnlySwitch
-          - verifyLEHighLevel.sh l_onlyOwnerSwitch
-          - verifyLEHighLevel.sh l_whatShouldRevert
-          - verifyLEHighLevel.sh l_noWithdrawFrontRun
-          - verifyLEHighLevel.sh hl_EqualityOfToken
-          - verifyLEHighLevel.sh hl_depositAdditivity
-          - verifyLEHighLevel.sh hl_withdrawAdditivity
-          - verifyLEHighLevel.sh hl_twoSideInverse
-          - verifyLEHighLevel.sh hl_noDepositFrontRun
-          - verifyLEHighLevel.sh hl_noWithdrawLiquidityFrontRun
-          - verifyLEHighLevel.sh hl_stoppedOnlySwitch
-          - verifyLEHighLevel.sh hl_onlyOwnerSwitch
-          - verifyLEHighLevel.sh hl_whatShouldRevert
-          - verifyLEHighLevel.sh hl_noWithdrawFrontRun
-          - verifyLEValidStates.sh alwaysInitialized
-          - verifyLEValidStates.sh factoryGetPairCorrelationCurrentVals
-          - verifyLEValidStates.sh cl_pairAndGetPairCorrelation
-          - verifyLEValidStates.sh al_issuerAllocationZero
-          - verifyLEValidStates.sh al_balanceLessThanAllocation
-          - verifyLEValidStates.sh al_userAllocationLessThanMaxAllocation
-          - verifyLEValidStates.sh al_issuerTimelockNonZero
-          - verifyLEValidStates.sh al_userTimelockSeven
-          - verifyLEValidStates.sh al_timelocksCorrelation
-          - verifyLEValidStates.sh op_incentivesCorrelation
-          - verifyLEValidStates.sh op_userNotWithdrawnPair
-          - verifyLEValidStates.sh op_userNotWithdrawnIncentives
-          - verifyLEValidStates.sh op_wavaxBalanceAndSumBalances
-          - verifyLEValidStates.sh op_avaxAllocZero
-          - verifyLEValidStates.sh op_lpSupplyZero
-          - verifyLEValidStates.sh op_PairBalanceIsZero
-          - verifyLEValidStates.sh op_PairAndTotalSupplyCorrelation
-          - verifyLEValidStates.sh op_AvaxCorrelation
-          - verifyLEValidStates.sh op_tokenCorrelation
-          - verifyLEValidStates.sh op_tokenResFixed
-          - verifyLEValidStates.sh cl_avaxAllocSumUserBalances
-          - verifyLEValidStates.sh cl_avaxReservCheck
-          - verifyLEValidStates.sh cl_incentivesCorrelation
-          - verifyLEValidStates.sh cl_userAllocUnchanging
-          - verifyLEValidStates.sh cl_avaxAllocUnchanging
-          - verifyLEValidStates.sh cl_userBalanceFixed 
-          - verifyLEValidStates.sh cl_lpSupplyFixed
-          - verifyLEValidStates.sh cl_AvaxCorrelation
-          - verifyLEValidStates.sh os_tokenCorrelation
-          - verifyLEValidStates.sh os_avaxAllocSumUserBalances
-          - verifyLEValidStates.sh os_avaxReserveDecrease
-          - verifyLEValidStates.sh os_userBalanceNonIncreasing
-          - verifyLEValidStates.sh cs_lpSupplyFixed
-          - verifyLEValidStates.sh cs_userBalanceFixed
-          - verifyLEValidStates.sh cs_avaxAllocatedFixed
+          - hl_EqualityOfToken
+          - hl_depositAdditivity
+          - hl_withdrawAdditivity
+          - hl_twoSideInverse
+          - hl_noDepositFrontRun
+          - hl_noWithdrawLiquidityFrontRun
+          - hl_stoppedOnlySwitch
+          - hl_onlyOwnerSwitch
+          - hl_whatShouldRevert
+          - hl_noWithdrawFrontRun
+    steps:
+      - name: Verify high-level rule ${{ matrix.rule }}
+        run: sh certora/scripts/verifyLEHighLevel.sh ${{ matrix.rule }}
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
 
+
+  verify_launch_valid_states:
+    needs: setup
+    strategy:
+      matrix:
+        rule:
+          - factoryGetPairCorrelationCurrentVals
+          - cl_pairAndGetPairCorrelation
+          - al_issuerAllocationZero
+          - al_balanceLessThanAllocation
+          - al_userAllocationLessThanMaxAllocation
+          - al_issuerTimelockNonZero
+          - al_userTimelockSeven
+          - al_timelocksCorrelation
+          - op_incentivesCorrelation
+          - op_userNotWithdrawnPair
+          - op_userNotWithdrawnIncentives
+          - op_wavaxBalanceAndSumBalances
+          - op_avaxAllocZero
+          - op_lpSupplyZero
+          - op_PairBalanceIsZero
+          - op_PairAndTotalSupplyCorrelation
+          - op_AvaxCorrelation
+          - op_tokenCorrelation
+          - op_tokenResFixed
+          - cl_avaxAllocSumUserBalances
+          - cl_avaxReservCheck
+          - cl_incentivesCorrelation
+          - cl_userAllocUnchanging
+          - cl_avaxAllocUnchanging
+          - cl_userBalanceFixed 
+          - cl_lpSupplyFixed
+          - cl_AvaxCorrelation
+          - os_tokenCorrelation
+          - os_avaxAllocSumUserBalances
+          - os_avaxReserveDecrease
+          - os_userBalanceNonIncreasing
+          - cs_lpSupplyFixed
+          - cs_userBalanceFixed
+          - cs_avaxAllocatedFixed
+      
+    steps:
+      - name: Verify valid-state rule ${{ matrix.rule }}
+        run:  sh certora/scripts/verifyLEValidStates.sh ${{ matrix.rule }}
+
+  verify_staking:
+    needs: setup
+    steps:
+      - name: Verify staking rules
+        run: sh certora/scripts/verifyStaking.sh
 
