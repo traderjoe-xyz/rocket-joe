@@ -9,12 +9,14 @@ if [ -z "$1" ]
     exit 1
 fi
 
+make -C certora munged
+
 msg=$1
 shift 1
 
 certoraRun certora/harness/RocketJoeStakingHarness.sol \
            certora/helpers/DummyERC20Impl.sol \
-           certora/munged/RocketJoeToken.sol  \
+           certora/munged/RocketJoeToken.sol \
     --verify RocketJoeStakingHarness:certora/spec/Staking.spec \
     --optimistic_loop --loop_iter 1 \
     --solc solc8.6  \
@@ -24,4 +26,4 @@ certoraRun certora/harness/RocketJoeStakingHarness.sol \
     --link RocketJoeStakingHarness:rJoe=RocketJoeToken \
     --cache RocketJoeStaking \
     --msg "${msg}" \
-    # --staging \
+    --staging \

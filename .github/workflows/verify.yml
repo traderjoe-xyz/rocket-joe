@@ -1,0 +1,121 @@
+name: Certora
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check key
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+        run: echo "key length" ${#CERTORAKEY}
+
+      - name: Set up node.js
+        uses: actions/setup-node@v2
+        with: { node-version: "16.x", check-latest: true, cache: 'yarn' }
+
+      - name: Install node dependencies
+        run:  yarn
+
+      - name: Install python
+        uses: actions/setup-python@v2
+        with: { python-version: 3.6, cache: 'pip' }
+
+      - name: Install java
+        uses: actions/setup-java@v1
+        with: { java-version: "11", java-package: jre }
+
+      - name: Install certora
+        run: pip install certora-cli
+
+      - name: Install solc
+        run: |
+          wget https://github.com/ethereum/solidity/releases/download/v0.8.6/solc-static-linux
+          chmod +x solc-static-linux
+          sudo mv solc-static-linux /usr/local/bin/solc8.6
+
+          wget https://github.com/ethereum/solidity/releases/download/v0.6.12/solc-static-linux
+          chmod +x solc-static-linux
+          sudo mv solc-static-linux /usr/local/bin/solc6.12
+
+      - name: Verify rule ${{ matrix.rule }}
+        run: |
+          touch certora/applyHarness.patch
+          make -C certora munged
+          echo "key length" ${#CERTORAKEY}
+          sh certora/scripts/${{ matrix.rule }}
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        rule:
+          - verifyStaking.sh all
+          - verifyLEHighLevel.sh hl_EqualityOfToken
+          - verifyLEHighLevel.sh l_depositAdditivity
+          - verifyLEHighLevel.sh l_withdrawAdditivity
+          - verifyLEHighLevel.sh l_twoSideInverse
+          - verifyLEHighLevel.sh l_noDepositFrontRun
+          - verifyLEHighLevel.sh l_noWithdrawLiquidityFrontRun
+          - verifyLEHighLevel.sh l_stoppedOnlySwitch
+          - verifyLEHighLevel.sh l_onlyOwnerSwitch
+          - verifyLEHighLevel.sh l_whatShouldRevert
+          - verifyLEHighLevel.sh l_noWithdrawFrontRun
+          - verifyLEHighLevel.sh hl_EqualityOfToken
+          - verifyLEHighLevel.sh hl_depositAdditivity
+          - verifyLEHighLevel.sh hl_withdrawAdditivity
+          - verifyLEHighLevel.sh hl_twoSideInverse
+          - verifyLEHighLevel.sh hl_noDepositFrontRun
+          - verifyLEHighLevel.sh hl_noWithdrawLiquidityFrontRun
+          - verifyLEHighLevel.sh hl_stoppedOnlySwitch
+          - verifyLEHighLevel.sh hl_onlyOwnerSwitch
+          - verifyLEHighLevel.sh hl_whatShouldRevert
+          - verifyLEHighLevel.sh hl_noWithdrawFrontRun
+          - verifyLEValidStates.sh alwaysInitialized
+          - verifyLEValidStates.sh factoryGetPairCorrelationCurrentVals
+          - verifyLEValidStates.sh cl_pairAndGetPairCorrelation
+          - verifyLEValidStates.sh al_issuerAllocationZero
+          - verifyLEValidStates.sh al_balanceLessThanAllocation
+          - verifyLEValidStates.sh al_userAllocationLessThanMaxAllocation
+          - verifyLEValidStates.sh al_issuerTimelockNonZero
+          - verifyLEValidStates.sh al_userTimelockSeven
+          - verifyLEValidStates.sh al_timelocksCorrelation
+          - verifyLEValidStates.sh op_incentivesCorrelation
+          - verifyLEValidStates.sh op_userNotWithdrawnPair
+          - verifyLEValidStates.sh op_userNotWithdrawnIncentives
+          - verifyLEValidStates.sh op_wavaxBalanceAndSumBalances
+          - verifyLEValidStates.sh op_avaxAllocZero
+          - verifyLEValidStates.sh op_lpSupplyZero
+          - verifyLEValidStates.sh op_PairBalanceIsZero
+          - verifyLEValidStates.sh op_PairAndTotalSupplyCorrelation
+          - verifyLEValidStates.sh op_AvaxCorrelation
+          - verifyLEValidStates.sh op_tokenCorrelation
+          - verifyLEValidStates.sh op_tokenResFixed
+          - verifyLEValidStates.sh cl_avaxAllocSumUserBalances
+          - verifyLEValidStates.sh cl_avaxReservCheck
+          - verifyLEValidStates.sh cl_incentivesCorrelation
+          - verifyLEValidStates.sh cl_userAllocUnchanging
+          - verifyLEValidStates.sh cl_avaxAllocUnchanging
+          - verifyLEValidStates.sh cl_userBalanceFixed 
+          - verifyLEValidStates.sh cl_lpSupplyFixed
+          - verifyLEValidStates.sh cl_AvaxCorrelation
+          - verifyLEValidStates.sh os_tokenCorrelation
+          - verifyLEValidStates.sh os_avaxAllocSumUserBalances
+          - verifyLEValidStates.sh os_avaxReserveDecrease
+          - verifyLEValidStates.sh os_userBalanceNonIncreasing
+          - verifyLEValidStates.sh cs_lpSupplyFixed
+          - verifyLEValidStates.sh cs_userBalanceFixed
+          - verifyLEValidStates.sh cs_avaxAllocatedFixed
+
+
