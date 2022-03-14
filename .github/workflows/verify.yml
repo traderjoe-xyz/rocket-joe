@@ -63,15 +63,15 @@ jobs:
         rule:
           - verifyStaking.sh all
           - verifyLEHighLevel.sh hl_EqualityOfToken
-          - verifyLEHighLevel.sh l_depositAdditivity
-          - verifyLEHighLevel.sh l_withdrawAdditivity
-          - verifyLEHighLevel.sh l_twoSideInverse
-          - verifyLEHighLevel.sh l_noDepositFrontRun
-          - verifyLEHighLevel.sh l_noWithdrawLiquidityFrontRun
-          - verifyLEHighLevel.sh l_stoppedOnlySwitch
-          - verifyLEHighLevel.sh l_onlyOwnerSwitch
-          - verifyLEHighLevel.sh l_whatShouldRevert
-          - verifyLEHighLevel.sh l_noWithdrawFrontRun
+          - verifyLEHighLevel.sh hl_depositAdditivity
+          - verifyLEHighLevel.sh hl_withdrawAdditivity
+          - verifyLEHighLevel.sh hl_twoSideInverse
+          - verifyLEHighLevel.sh hl_noDepositFrontRun
+          - verifyLEHighLevel.sh hl_noWithdrawLiquidityFrontRun
+          - verifyLEHighLevel.sh hl_stoppedOnlySwitch
+          - verifyLEHighLevel.sh hl_onlyOwnerSwitch
+          - verifyLEHighLevel.sh hl_whatShouldRevert
+          - verifyLEHighLevel.sh hl_noWithdrawFrontRun
           - verifyLEHighLevel.sh hl_EqualityOfToken
           - verifyLEHighLevel.sh hl_depositAdditivity
           - verifyLEHighLevel.sh hl_withdrawAdditivity
