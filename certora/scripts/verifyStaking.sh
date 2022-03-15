@@ -26,4 +26,4 @@ certoraRun certora/harness/RocketJoeStakingHarness.sol \
     --link RocketJoeStakingHarness:rJoe=RocketJoeToken \
     --cache RocketJoeStaking \
     --msg "${msg}" \
-    --staging \
+
